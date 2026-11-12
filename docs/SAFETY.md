@@ -23,7 +23,9 @@ ejection; it does not itself eject the media.
 ## Planned exclusive ownership protocol
 
 The initial mode requires a deliberate host handoff. This is a design requirement,
-not an implementation in this release.
+implemented as a state model and snapshot stager in Phase 1, with no hardware
+adapter. Boolean evidence in the model does not prove real gadget or host state.
+No CLI permits mounting or asserting ownership of a live image.
 
 1. **HOST_OWNED:** expose the writable gadget image. The Pi never mounts, scans,
    repairs or prunes it. Uploads can use previously completed staging batches
@@ -52,6 +54,12 @@ including camera systems. Hosts unable to flush and release cannot safely use
 this initial backup mode. Continuous simultaneous access requires a different
 coordinated architecture; even an atomic block snapshot may contain an inconsistent
 host filesystem.
+
+Keeping the cable connected can preserve power during a logical eject/handoff.
+The Pi can upload completed staging batches while the host owns the USB image;
+new files cannot be read until the next proven handoff. A host/camera that cannot
+cooperate must wait for a safe release rather than use a heuristic live mount.
+See [Phase 1 implementation and hardware matrix](PHASE1.md).
 
 ## Retention and recovery
 

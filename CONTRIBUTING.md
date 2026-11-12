@@ -22,9 +22,20 @@ git diff --check
 ```
 
 Tests must use temporary data and mocked process/cloud boundaries, never mount
-images, format storage, contact real accounts or require root. Add behavior tests
+images, execute Pi installation scripts, format storage, contact real accounts or
+require root. Check setup quarantine by inspection and shell syntax parsing only.
+Add behavior tests
 for transitions, provider failures and persistence as features arrive. Report
 simulated and hardware checks separately.
+
+The optional real-rclone test uses a temporary local alias remote only; set
+`RASPI_TEST_RCLONE=/absolute/path/to/rclone` to include it. CI enables it on Python
+3.12 using the pinned official rclone 1.76.0 archive and SHA-256 checksum. Python
+3.9/3.13 jobs may skip that one test. Keep downloads under temporary/tool directories
+and do not use cloud credentials in CI. See [Phase 1](docs/PHASE1.md).
+
+Work on `development` or a topic branch; push only to the new project's `origin`.
+Do not merge to the default branch or publish a release without owner approval.
 
 Use ignored `config/config.local.json` for local settings. Never add credentials
 to tracked legacy `config.json` or `scp-copy.exp`: ignore rules do not protect

@@ -46,6 +46,10 @@ transfer/
 *.sqlite
 *.sqlite3
 *.sqlite3-*
+*.sqlite-journal
+*.worker.lock
+*.incomplete/
+*.ready/
 
 # Original Windows Dropbox helper build products
 [Bb]in/

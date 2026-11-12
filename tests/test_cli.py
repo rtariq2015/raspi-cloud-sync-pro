@@ -16,7 +16,8 @@ class CliTests(unittest.TestCase):
             self.assertEqual(main(["status"]), 0)
         status = json.loads(output.getvalue())
         self.assertEqual(status["hardware_access"], "disabled")
-        self.assertEqual(status["cloud_sync"], "not_implemented")
+        self.assertEqual(status["cloud_sync"], "adapters_available_service_disabled")
+        self.assertEqual(status["backup_engine"], "staged_files_only")
         self.assertFalse(status["automatic_deletion"])
 
     def test_config_check_explains_limits(self):

@@ -1,74 +1,68 @@
 # Development roadmap
 
-Everything below is planned unless marked complete. No provider, Wi-Fi manager
-or dashboard is implemented in this foundation release.
+## Foundation — complete
 
-## 0. Repository foundation — complete
+Preserve Koseng's history, original README and GPL-3.0; document upstream behavior;
+remove automatic deletion; quarantine unsafe setup/services; establish packaging,
+safe config, tests and CI.
 
-Preserve Koseng's Git history, GPL-3.0 license and original README; review existing
-USB/cloud behavior; remove automatic deletion; quarantine entry points; add a
-Python package, non-secret config validation, tests and CI.
+## Phase 1 — core implemented, integration deliberately blocked
 
-## 1. Storage ownership and durable staging
+- Ownership state model and exclusive snapshot stager with full enumeration,
+  streamed hashes, atomic ready batches and low-space handling.
+- SQLite jobs/history, destination/version deduplication, a worker lock,
+  independent verification events, bounded retries and interrupted-job recovery.
+- Opt-in rclone adapter for Koofr WebDAV/Google Drive remote configurations;
+  immutable version paths and remote-content read-back hashes.
+- Wi-Fi profile validation for personal/home/hotspot, PEAP/MSCHAPv2 and EAP-TLS;
+  upload policy pauses on unknown/portal/limited/offline or disallowed metered links.
+- Hardware-free regression tests and an optional real-rclone local-remote test.
 
-Implement the handoff in [SAFETY.md](SAFETY.md), complete inventory, immutable
-batches, streaming hashes, durable jobs, recovery and disk-space backpressure.
-Fault-injection tests must prove unknown ownership and failed unmount prevent
-further access. Only then plan an authorized disposable-data hardware trial.
+See [Phase 1 details](PHASE1.md) for implemented scope and remaining limits.
 
-## 2. Koofr WebDAV
+## Phase 2 — integrate the storage controller before hardware use
 
-Plan uploads/content checks against `https://app.koofr.net/dav/Koofr/`, using the
-account email and a separate app password, following
-[Koofr's WebDAV guide](https://koofr.eu/help/koofr_with_webdav/how-do-i-connect-a-service-to-koofr-through-webdav/).
-Keep credentials outside Git in restricted service-owned storage, never in the
-dashboard client or public configuration.
+Implement a narrow privileged gadget controller that proves release, drains I/O,
+checks dirty filesystems without repair, mounts/detaches safely, coordinates one
+device owner across processes, and recovers ownership conservatively after crashes.
+Test fault injection for every transition. Determine host flush/eject observability
+and power continuity before a separately authorized disposable-data Pi trial.
+Keep setup/services quarantined until this work is reviewed.
 
-Evaluate streaming HTTP versus rclone's [WebDAV backend](https://rclone.org/webdav/)
-on the chosen Pi OS. Require TLS checks, correct path encoding, bounded memory,
-rate-limit handling, retries and version-preserving destinations. Test Unicode
-paths, empty/large files, changed versions, interrupted uploads, wrong credentials
-and read-back hashing where server checksums cannot prove content equality.
-Keep originals and staging.
+## Phase 3 — cloud account acceptance and operational scheduler
 
-## 3. Google Drive through rclone
+Configure a Koofr WebDAV remote with TLS and a separate app password; configure
+Google Drive with a dedicated OAuth client/scope using rclone's headless workflow.
+Keep config and tokens outside Git, mode 0600, owned by the service user. Confirm
+each configured backend and backup directory before enabling the adapter.
 
-Use the [Drive backend](https://rclone.org/drive/) with a dedicated configured
-remote, appropriate OAuth client/scope and protected rclone configuration outside
-Git. Follow [headless setup](https://rclone.org/remote_setup/) for the Pi. Check
-current OAuth requirements during implementation; Drive documentation now
-recommends creating an own client ID.
+Use test accounts for path encoding, empty/large/changed files, interrupted uploads,
+auth expiry, rate/quota failures and downloaded-content checks. Measure real
+throughput/memory on the Zero 2 W. Add cancellation, explicit failed-job recovery,
+periodic verification/audit and a scheduler with observed network state. Do not
+mirror deletions. Large-file resumability remains separate from whole-file retry.
 
-Invoke rclone with argument arrays, an explicit config path, bounded transfers,
-cancellation, timeouts, backoff and structured results. Copy into versioned backup
-directories without deletion propagation. Process exit is an upload result;
-independent remote-content checking must precede verified. Hide tokens and raw
-provider output. Test expired authorization, rate/quota errors, large files,
-retries and persistence using fake executables before test-account integration.
+## Phase 4 — OS Wi-Fi management
 
-## 4. Improved Wi-Fi configuration
+Implement the [Wi-Fi design](NETWORKING.md) against the selected OS NetworkManager
+API. Add scanning, saved-network priorities, guarded activation/checkpoint rollback,
+metered policy, enterprise certificate/secret handling and portal guidance.
+Do not advertise generic captive-portal support or simultaneous AP/client mode.
+Record home/router, Android/iPhone hotspot and managed enterprise test results.
 
-Inspect the supported Pi OS network stack and use its manager through a narrow
-service interface. Add guided scans, saved networks/priorities, reconnect/fallback,
-phone-hotspot support and clear diagnostics. Test a new connection and roll back
-failed changes to avoid stranding the device. Keep credentials out of logs/URLs.
-Define recovery over a separately configured management connection; do not assume
-simultaneous AP/client support. Simulate failures before changing real networks.
+## Phase 5 — local dashboard
 
-## 5. Modern local dashboard
+Build independent Overview, Wi-Fi, Cloud and History views, informed by Cloud
+Stick Pro's feature concepts. Include first-run authentication, protected sessions,
+CSRF protection, safe LAN access, redacted diagnostics and accessible mobile UI.
+Display live ownership, observed connectivity, per-file version, upload result,
+verification method/time, retry time and failure code. Never show verified merely
+because upload completed or turn a past result into a claim about current contents.
+The web process must remain unprivileged and expose only validated narrow actions.
 
-Use independently implemented Overview, Wi-Fi, Cloud and History views. Show
-storage ownership/activity, saved networks, destination setup/checks, and per-file
-uploaded/verified/paused/failed results. Build a responsive accessible interface
-with first-run authentication, protected sessions, CSRF protection, redacted
-diagnostics and explicit recovery. Bind locally until secure LAN access is set up.
-Do not expose rclone remote control or privileged shell access. Keep the web
-process unprivileged and validate narrow storage/network commands.
+## Deployment acceptance
 
-## Reference boundary and acceptance
-
-[Cloud Stick Pro](https://github.com/rtariq2015/cloud-stick-pro) supplies feature
-inspiration only; no source/assets/history are imported or changed. Before a
-deployment release, record automated, test-account and actual Zero 2 W evidence
-separately. Unit tests or UI previews cannot establish real USB/power-loss safety.
-No automatic deletion is planned for the initial runtime.
+Keep automated, local-rclone, test-account and actual Pi evidence separate.
+[Hardware matrix and remaining work](PHASE1.md#hardware-testing-still-required).
+No initial release will automatically delete USB originals or staging data.
+Merging to the default branch and publishing a release require owner approval.

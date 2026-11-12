@@ -83,6 +83,11 @@ are not changed by these safeguards.
 
 ## Reference project boundary
 
+The complete Phase 1 source review also covers the Windows helper and generated
+project resources. Its findings and preservation boundaries are recorded in
+[PHASE1.md](PHASE1.md). Phase 1 adds a separate tested core; it does not lift any
+legacy hardware/setup quarantine or modify the retained Windows application.
+
 [Cloud Stick Pro's README](https://github.com/rtariq2015/cloud-stick-pro/blob/main/README.md)
 was reviewed read-only for guided setup, saved networks, separate uploaded and
 verified states, diagnostics, and Overview/Wi-Fi/Cloud/History navigation. It

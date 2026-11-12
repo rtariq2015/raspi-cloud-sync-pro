@@ -35,7 +35,7 @@ def validate_config(data: Any) -> Settings:
     if not isinstance(sync["provider"], str) or sync["provider"] not in PROVIDERS:
         raise ConfigError("sync.provider is unsupported")
     if sync["enabled"] is not False:
-        raise ConfigError("sync.enabled must be false; providers are not implemented")
+        raise ConfigError("sync.enabled must be false; service integration remains disabled")
     if safety["automatic_deletion"] is not False:
         raise ConfigError("safety.automatic_deletion must be false")
     return Settings(provider=sync["provider"])

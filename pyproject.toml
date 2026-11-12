@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "raspi-cloud-sync-pro"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "A safety-first Raspberry Pi USB-to-cloud backup project"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -19,6 +19,10 @@ classifiers = [
 
 [project.scripts]
 raspi-cloud-sync-pro = "raspi_cloud_sync_pro.cli:main"
+
+[project.urls]
+Repository = "https://github.com/rtariq2015/raspi-cloud-sync-pro"
+Issues = "https://github.com/rtariq2015/raspi-cloud-sync-pro/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

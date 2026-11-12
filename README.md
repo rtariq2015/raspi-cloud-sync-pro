@@ -5,9 +5,9 @@ USB-to-cloud backup software for the **Raspberry Pi Zero 2 W**, built on
 The goal is dependable USB storage with clear backup results, flexible cloud
 destinations, simple Wi-Fi setup, and a responsive local web dashboard.
 
-**Status: development foundation, not ready for hardware deployment.** USB image
-access, legacy services, cloud uploading, and setup scripts are disabled. No new
-Pi hardware compatibility or cloud integration has been verified. Do not follow
+**Status: Phase 1 development, not ready for hardware deployment.** The backup
+core operates on staged copies; live USB access, automatic services, and setup
+scripts remain disabled. Real Pi/cloud integration has not been verified. Do not follow
 the historical installation instructions for this release.
 
 ## Available today
@@ -18,28 +18,41 @@ the historical installation instructions for this release.
 - Automatic USB retention deletion and staged-folder deletion are removed.
   Legacy setup and runtime entry points fail before doing work.
 - An installable Python package provides read-only status and configuration checks.
-- Tests and GitHub Actions cover configuration and legacy safeguards without
-  mounting storage, contacting cloud accounts, or requiring a Pi.
+- An ownership state model rejects unsafe handoffs. The stager fully enumerates
+  an exclusively owned snapshot, streams SHA-256 hashes, and atomically publishes
+  ready batches. Failed batches and originals are retained.
+- SQLite jobs/history track each destination and file version, with bounded
+  exponential retries, interrupted-job recovery and a single-worker lock.
+- An opt-in rclone adapter prepares Koofr WebDAV and Google Drive uploads into
+  versioned paths, followed by downloaded-content SHA-256 verification.
+- Wi-Fi profile validation covers home/hotspot, PEAP and EAP-TLS settings;
+  unknown, captive-portal, offline and disallowed metered states pause uploads.
+- Automated tests cover these components without requiring a Pi or cloud account.
 
 ## Planned improvements
 
 | Area | Direction | Current state |
 | --- | --- | --- |
-| USB storage | Explicit host/Pi handoff and consistent staged copies | Design documented; runtime blocked |
-| Koofr | WebDAV uploads with an app password and content checks | Planned |
-| Google Drive | rclone adapter, OAuth setup, bounded transfers and retries | Planned |
-| Wi-Fi | Guided saved-network management, connection checks and recovery | Planned |
+| USB storage | Explicit host/Pi handoff and consistent staged copies | Model/stager tested; hardware adapter blocked |
+| Koofr | WebDAV through a configured rclone remote and app password | Adapter tested locally; account testing pending |
+| Google Drive | rclone remote and OAuth setup | Shared adapter tested; account testing pending |
+| Wi-Fi | Saved networks, hotspots, enterprise and captive-portal guidance | Validation/policy tested; OS integration planned |
 | Dashboard | Authenticated Overview, Wi-Fi, Cloud and History views | Planned |
-| Reliability | Persistent jobs, resumable work, verified results and space limits | Planned |
+| Reliability | Persistent jobs, retries, verification and low-space protection | Core tested; hardware recovery pending |
 
 “Sync” initially means one-way backup. Automatic source deletion and remote
 deletion propagation are outside the initial scope. Uploaded and verified will
 be distinct states. See the [roadmap](docs/ROADMAP.md) and
 [architecture](docs/ARCHITECTURE.md).
 
+While the cable remains connected, cloud uploads may use completed staging batches.
+Reading newly written USB files requires a coordinated host flush/eject, exclusive
+Pi access, staging, and host re-enumeration. Quiet time is not a safety guarantee.
+See [Phase 1 scope and usage](docs/PHASE1.md) and [Wi-Fi design](docs/NETWORKING.md).
+
 ## Develop locally without hardware
 
-Python 3.9 or newer is the development baseline. From the repository root:
+Linux and Python 3.9 or newer are the development baseline. From the repository root:
 
 ```sh
 python3 -m venv .venv
@@ -67,7 +80,7 @@ setup command in this release.
 ## Project map
 
 ```text
-src/raspi_cloud_sync_pro/  New Python package: configuration and safe CLI
+src/raspi_cloud_sync_pro/  Ownership, staging, backup engine, history, providers and policy
 src/home/pi/              Upstream scripts and service units, quarantined
 src/DropboxHelper/        Original Windows helper, retained for provenance
 config/                   Non-secret example configuration
@@ -79,8 +92,9 @@ doc/                      Historical upstream guides and images
 Read the [upstream functionality review](docs/UPSTREAM_REVIEW.md),
 [storage safety design](docs/SAFETY.md), and [contributor guide](CONTRIBUTING.md)
 before changing the runtime. See [validation results](docs/VALIDATION.md) for
-exact checks and remaining limits. The [first-commit guide](docs/FIRST_COMMIT.md)
-explains publication to a separate repository while retaining the upstream history.
+exact checks and remaining limits. Development happens on the
+[`development` branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)
+of the independent project. [Git workflow](docs/FIRST_COMMIT.md).
 
 ## Credits and license
 

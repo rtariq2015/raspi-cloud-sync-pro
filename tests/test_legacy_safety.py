@@ -126,21 +126,13 @@ class LegacySafetyTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("Legacy SCP disabled", result.stderr)
 
-    @unittest.skipUnless(shutil.which("sh"), "requires a POSIX shell")
-    def test_setup_exits_before_any_privileged_command(self):
+    def test_setup_guards_precede_all_commands_without_executing_scripts(self):
+        # Installation scripts must not be executed on the development computer,
+        # even to exercise their quarantine. Shell syntax is checked with sh -n.
         for name in ("execute_setup_bullseye.sh", "execute_setup_bookworm.sh"):
-            with self.subTest(script=name), tempfile.TemporaryDirectory() as directory:
-                # A fake sudo prevents privileged operations even if quarantine regresses.
-                base = Path(directory)
-                marker = base / "sudo-called"
-                sudo = base / "sudo"
-                sudo.write_text('#!/bin/sh\n: > "' + str(marker) + '"\nexit 99\n')
-                sudo.chmod(0o700)
-                result = subprocess.run(
-                    [shutil.which("sh"), str(LEGACY / name)],
-                    cwd=directory, env={"PATH": directory},
-                    capture_output=True, text=True, timeout=5,
-                )
-                self.assertEqual(result.returncode, 2)
-                self.assertIn("Setup disabled", result.stderr)
-                self.assertFalse(marker.exists())
+            with self.subTest(script=name):
+                lines = (LEGACY / name).read_text().splitlines()
+                commands = [line.strip() for line in lines
+                            if line.strip() and not line.lstrip().startswith("#")]
+                self.assertTrue(commands[0].startswith('echo "Setup disabled:'))
+                self.assertEqual(commands[1], "exit 2")

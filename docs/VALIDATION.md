@@ -1,29 +1,39 @@
-# Foundation validation record
+# Phase 1 validation record
 
-Date: 2026-11-12. Local environment: Linux, Python 3.12.3.
-This record covers repository preparation only, not a hardware release.
+Date: 2026-11-12. Environment: Linux x86-64, Python 3.12.3.
+Development branch: `development`. Package version: `0.1.0.dev1`.
 
-| Check | Result |
+| Check | Result and evidence boundary |
 | --- | --- |
-| Standard-library unit/regression suite | 19 tests passed, no skips, including setup and Tcl/SCP quarantine |
-| Editable package install | Passed offline using existing setuptools |
-| Wheel build and wheel installation | Passed offline; installed-package tests and CLI passed |
-| Wheel contents | Only the new Python package and metadata/license; legacy code excluded |
-| CLI `status` and example `check-config` | Passed; hardware/sync reported disabled |
-| Python compilation | Passed for new package, legacy Python and tests |
-| Shell syntax | Both retained setup scripts passed `sh -n` |
-| systemd syntax | All three units passed `systemd-analyze verify` without installation/activation |
-| Provenance | Original README and LICENSE match baseline bytes; baseline remains in ancestry |
-| Documentation | Current relative links resolve |
-| Ignore rules | Virtual environment, builds, credentials, images, runtime staging/logs excluded |
-| Whitespace | `git diff --check` passed; original README whitespace deliberately preserved by attributes |
+| Automated tests | 62 tests passed locally with the optional real-rclone test enabled; no cloud account or Pi required |
+| Ownership/staging | Unsafe transitions, interruption, host-owned read refusal, complete/deep inventory, old timestamps, same-size changed content, symlinks, manifest tampering, low space and atomic publication |
+| Queue/history | Version/destination deduplication, separate uploaded/verified events, completion timestamps, transient/permanent failures, capped backoff, exhaustion, interrupted-job recovery, worker contention and database-write failures |
+| Provider adapter | Disabled default, protected config, argument arrays, bounded execution, sanitized errors, no deletion, ambient rclone override removal |
+| Real rclone | Version 1.76.0, official Linux amd64 archive checksum verified; temporary local alias remote only; copies, SHA-256 read-back, empty/Unicode/shell-like names, idempotency and corruption rejection |
+| Wi-Fi | Personal/hotspot and PEAP/EAP-TLS profile validation; mandatory server trust fields; unknown/portal/limited/offline and metered upload gating |
+| Legacy safeguards | Import-safe Python, disabled mounts/loops/services/SCP and retained files; setup guards inspected without execution |
+| Packaging | Wheel build/install and installed-package tests; new package and GPL license only, no legacy runtime bundled |
+| CLI | Static Phase 1 capabilities, safe example config and bounded read-only history/errors |
+| Syntax | Python compilation; both setup scripts parsed with `sh -n`; three service units verified without activation |
+| Provenance | Original README/license bytes match `1bc5702`; upstream ancestry and original source locations retained |
+| Documentation/Git | Current local links resolve; ignored credentials/state/images/batches/builds; staged whitespace checked |
 
-GitHub Actions is configured for Python 3.9, 3.12 and 3.13. Those remote CI jobs
-have not run yet; only Python 3.12 was executed locally. No live Dropbox, SCP,
-Koofr or Google Drive account was contacted for a transfer. No USB image was
-created, formatted or mounted, and no Pi was flashed or tested.
+Run the checks from [CONTRIBUTING.md](../CONTRIBUTING.md). GitHub Actions is
+configured for Python 3.9, 3.12 and 3.13, including pinned rclone on 3.12. Local
+validation used Python 3.12 only; remote CI results belong to the associated
+development-branch commit and should be checked separately.
 
-The source review of Cloud Stick Pro was read-only. Its source/assets/history
-were not imported and its repository was not modified. Publication is not done:
-the upstream remote is retained, no new origin is configured, and the foundation
-changes are prepared without creating a commit or pushing.
+No actual cloud account, USB host/gadget, Pi, NetworkManager changes, enterprise
+authentication or captive-portal sign-in was tested. No formatting, installation,
+flashing or service activation was performed. The inherited setup-guard test
+initially launched the quarantined scripts against a fake sudo; it has been
+replaced by inspection to avoid executing installation scripts at all. The
+guards exited before any installation/formatting commands.
+
+The earlier foundation checkpoint had 19 passing tests and is preserved in
+commit `de48881`. Its staged-only publication notes described that earlier
+checkpoint; the new repository now exists and Phase 1 targets its development
+branch. The Cloud Stick Pro repository remains unchanged.
+
+See [remaining hardware acceptance](PHASE1.md#hardware-testing-still-required).
+Passing software checks is not evidence of safe concurrent USB filesystem access.

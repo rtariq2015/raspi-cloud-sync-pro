@@ -1,31 +1,25 @@
-# First Raspi Cloud Sync Pro commit
+# History and development branch workflow
 
-This repository already has upstream commits. Extend that history; do not run
-`git init`, create an orphan branch or squash the upstream ancestry. Keep the
-`upstream` remote pointing at Koseng. Never publish to Cloud Stick Pro.
+The new project repository is
+<https://github.com/rtariq2015/raspi-cloud-sync-pro>.
+`origin` points there; `upstream` points to Koseng's original project. Upstream
+commit `1bc57020851edf2860f0b44ea4a0ecd7e2904615` remains in the ancestry.
+Do not initialize an orphan history, squash the upstream commits, force-push,
+or use Cloud Stick Pro as a destination.
 
-After the [contributor checks](../CONTRIBUTING.md), review and stage changes:
+Foundation work is committed separately from the Phase 1 implementation on
+`development`. Future work should extend this branch or a topic branch based on it.
+Run the checks in [CONTRIBUTING.md](../CONTRIBUTING.md), inspect the staged diff,
+and verify the push URL before committing/pushing:
 
 ```sh
-git status --short
-git diff --stat
-git diff --check
-git add README.md README.upstream.md LICENSE .gitignore .gitattributes pyproject.toml CONTRIBUTING.md config docs tests .github src
+git branch --show-current
+git remote -v
 git diff --cached --check
 git diff --cached --stat
 ```
 
-Suggested first project commit:
-
-```sh
-git commit -m "Initialize Raspi Cloud Sync Pro foundation and quarantine unsafe legacy runtime"
-```
-
-For publication, create a new empty GitHub repository named
-`raspi-cloud-sync-pro` in the intended account, without initializing a README or
-license. Add its actual URL as `origin`, inspect the push destination, then push
-the current branch. No account URL is assumed here. Do not force-push or push to
-`upstream`.
-
-These instructions do not create a commit/repository or push. No hardware needs
-to be connected, formatted or flashed.
+Only `origin/development` is a destination for this phase. The default branch
+and upstream repository must remain untouched. Merging and releases require
+the owner's approval. The `LICENSE` and `README.upstream.md` must remain exact
+upstream copies; `.gitattributes` preserves their bytes.
