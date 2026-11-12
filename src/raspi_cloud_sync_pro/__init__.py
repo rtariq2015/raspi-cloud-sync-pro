@@ -1,3 +1,3 @@
-"""Raspi Cloud Sync Pro: Phase 1 core; hardware integration remains disabled."""
+"""Raspi Cloud Sync Pro: backup core and gated Phase 2 device prototypes."""
 
-__version__ = "0.1.0.dev1"
+__version__ = "0.1.0.dev2"

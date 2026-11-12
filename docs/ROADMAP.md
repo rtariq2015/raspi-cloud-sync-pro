@@ -20,14 +20,25 @@ safe config, tests and CI.
 
 See [Phase 1 details](PHASE1.md) for implemented scope and remaining limits.
 
-## Phase 2 — integrate the storage controller before hardware use
+## Phase 2 — device and network-sharing prototypes implemented; hardware blocked
 
-Implement a narrow privileged gadget controller that proves release, drains I/O,
-checks dirty filesystems without repair, mounts/detaches safely, coordinates one
-device owner across processes, and recovers ownership conservatively after crashes.
-Test fault injection for every transition. Determine host flush/eject observability
-and power continuity before a separately authorized disposable-data Pi trial.
-Keep setup/services quarantined until this work is reviewed.
+The Linux configfs mass-storage backend integrates the ownership state machine,
+read-only loops/mounts, non-repairing exFAT checks, an intent journal, cross-process
+locking and conservative resource recovery. Host release detection is session-bound;
+actual kernel/Windows behavior remains to be validated.
+
+USB Ethernet is the preferred mode, using the official Raspberry Pi external
+RNDIS/CDC-ECM provider with a stable USB-local network policy and authenticated
+SMB3 sharing. SMB deny-write/delete snapshots feed the existing durable queue and
+verification/retry engine. Wi-Fi is unnecessary for local file capture. Device
+mode plans and future switch guards reject active/unproven transfers; live and
+composite switching are unsupported.
+
+Read-only readiness/power diagnostics, gated runtimes, static service/deployment
+templates and fault simulations are present. All hardware/network mutations remain
+disabled. Follow [the exact Pi trial sequence](PI_TEST_GUIDE.md) only after separate
+approval. Real Samba share-mode/lease, Windows driver, USB power and filesystem
+recovery tests are still required before deployment.
 
 ## Phase 3 — cloud account acceptance and operational scheduler
 

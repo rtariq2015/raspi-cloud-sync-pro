@@ -1,4 +1,9 @@
-# Phase 1 architecture
+# Architecture
+
+Phase 2 adds the guarded device and sharing layers described in
+[PHASE2.md](PHASE2.md). USB Ethernet plus authenticated Samba is the preferred
+continuous-backup mode; mass storage remains an explicit-eject compatibility mode.
+The Phase 1 core and its guarantees below remain in use.
 
 The package in `src/raspi_cloud_sync_pro/` evolves Koseng's image → local transfer
 directory → upload design into explicit boundaries. The original source remains
@@ -77,7 +82,10 @@ against the manifest. Upload exit success alone never records verification.
 
 ## Limits and next integration work
 
-There is no running daemon, gadget adapter, NetworkManager driver, or web server.
+Phase 2 now supplies code-gated controller/share runtimes and a Linux gadget
+backend, plus an external official Ethernet provider integration. None is enabled
+by default. NetworkManager provisioning and a web dashboard still require review;
+there is no live mode switch. See [the device design](PHASE2.md).
 The queue retries whole files, not partial-upload sessions; large files may need
 a later resumable provider implementation. Terminal failed jobs require future
 explicit recovery tooling; re-enqueueing an identical version does not silently

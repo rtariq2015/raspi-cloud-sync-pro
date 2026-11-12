@@ -1,0 +1,17 @@
+[Unit]
+Description=Raspi Cloud Sync Pro disposable-test mass-storage controller
+After=local-fs.target
+ConditionPathExists=/etc/raspi-cloud-sync-pro/DISPOSABLE_TEST_APPROVED
+
+[Service]
+Type=simple
+User=root
+UMask=0077
+ExecStart=/opt/raspi-cloud-sync-pro/venv/bin/python -m raspi_cloud_sync_pro controller-run --config /etc/raspi-cloud-sync-pro/gadget.json --device-policy /etc/raspi-cloud-sync-pro/device.json
+Restart=no
+NoNewPrivileges=yes
+# Intentionally no private devices/mount namespace: the controller must inspect
+# the host mount namespace. This is a gated prototype, not a hardened production unit.
+PrivateDevices=no
+PrivateMounts=no
+# No Install section: copying this template cannot enable it at boot.

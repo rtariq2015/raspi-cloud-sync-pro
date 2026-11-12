@@ -1,5 +1,9 @@
 # Storage safety and hardware gate
 
+Phase 2 implements guarded mass-storage and preferred Ethernet/Samba prototypes.
+See [PHASE2.md](PHASE2.md) and the [Pi trial guide](PI_TEST_GUIDE.md). Real operations
+remain disabled; simulated ownership or SMB handles are not physical test evidence.
+
 This checkout must not be deployed to hardware yet. Legacy setup scripts,
 Python entry points, SCP helper and service units are deliberately blocked.
 Automatic USB file deletion, empty-directory deletion and staging cleanup are

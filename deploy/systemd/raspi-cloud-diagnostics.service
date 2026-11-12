@@ -1,0 +1,9 @@
+[Unit]
+Description=Raspi Cloud Sync Pro read-only USB and power diagnostics
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/raspi-cloud-sync-pro/venv/bin/python -m raspi_cloud_sync_pro diagnostics
+NoNewPrivileges=yes
+# Diagnostics do not install, enable or start any other unit.

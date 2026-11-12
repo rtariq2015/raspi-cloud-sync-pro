@@ -1,39 +1,44 @@
-# Phase 1 validation record
+# Phase 2 validation record
 
-Date: 2026-11-12. Environment: Linux x86-64, Python 3.12.3.
-Development branch: `development`. Package version: `0.1.0.dev1`.
+Date: 2026-11-12. Linux x86-64 development environment, Python 3.12.3.
+Package `0.1.0.dev2`; target branch `development`. Hardware gate remains false.
 
-| Check | Result and evidence boundary |
+| Check | Result and limits |
 | --- | --- |
-| Automated tests | 62 tests passed locally with the optional real-rclone test enabled; no cloud account or Pi required |
-| Ownership/staging | Unsafe transitions, interruption, host-owned read refusal, complete/deep inventory, old timestamps, same-size changed content, symlinks, manifest tampering, low space and atomic publication |
-| Queue/history | Version/destination deduplication, separate uploaded/verified events, completion timestamps, transient/permanent failures, capped backoff, exhaustion, interrupted-job recovery, worker contention and database-write failures |
-| Provider adapter | Disabled default, protected config, argument arrays, bounded execution, sanitized errors, no deletion, ambient rclone override removal |
-| Real rclone | Version 1.76.0, official Linux amd64 archive checksum verified; temporary local alias remote only; copies, SHA-256 read-back, empty/Unicode/shell-like names, idempotency and corruption rejection |
-| Wi-Fi | Personal/hotspot and PEAP/EAP-TLS profile validation; mandatory server trust fields; unknown/portal/limited/offline and metered upload gating |
-| Legacy safeguards | Import-safe Python, disabled mounts/loops/services/SCP and retained files; setup guards inspected without execution |
-| Packaging | Wheel build/install and installed-package tests; new package and GPL license only, no legacy runtime bundled |
-| CLI | Static Phase 1 capabilities, safe example config and bounded read-only history/errors |
-| Syntax | Python compilation; both setup scripts parsed with `sh -n`; three service units verified without activation |
-| Provenance | Original README/license bytes match `1bc5702`; upstream ancestry and original source locations retained |
-| Documentation/Git | Current local links resolve; ignored credentials/state/images/batches/builds; staged whitespace checked |
+| Automated suite | 108 tests pass locally, including all 62 Phase 1 tests and real rclone against a temporary local alias |
+| Controller simulations | Session-bound eject, quiet host, link loss, startup-empty LUN refusal, dirty filesystem, power/profile/RO faults, detach/mount/unmount/reattach failures, interruption, resource recovery and controller contention |
+| Linux adapter | Production gates before mutations/config reads, detached-profile creation, driver/composite rejection, image identity, partition/device numbers, RO flags, non-repairing fsck command and no force-eject/unmount |
+| Samba ingestion | Active writer deferral, deny-write/delete snapshot contract, successful close before publication, interruption/short read/low space, queue reconciliation, changed versions, Wi-Fi/cloud outage and approved/metered policy |
+| Official provider | Pinned source reviewed; offline adapter commands tested only with a fake executor; no upstream installer executed |
+| Network and templates | NM/IP/DHCP/Samba policies structurally tested; real dnsmasq syntax parser passes without opening a server |
+| systemd | Static-unit syntax passes on temporary copies with executable substitutions; no unit installation, start, enable or restart |
+| CLI | Status, device mode plan, read-only diagnostics and disabled controller/share/device gates checked |
+| Packaging/provenance | Wheel build/install, current core and GPL/Apache notices; original README/LICENSE exact upstream bytes, ancestry retained |
+| Documentation/Git | Current relative links resolve; Python compilation, shell parsing and staged whitespace checks pass |
 
-Run the checks from [CONTRIBUTING.md](../CONTRIBUTING.md). GitHub Actions is
-configured for Python 3.9, 3.12 and 3.13, including pinned rclone on 3.12. Local
-validation used Python 3.12 only; remote CI results belong to the associated
-development-branch commit and should be checked separately.
+The official provider was reviewed at
+`05ff0940af823868ff995808286bc0bcca8b86b7`. Its Apache license text is preserved,
+but no provider installer/watcher/driver binary is vendored. Cloud Stick Pro was
+not modified. Root `LICENSE` and `README.upstream.md` remain unchanged.
 
-No actual cloud account, USB host/gadget, Pi, NetworkManager changes, enterprise
-authentication or captive-portal sign-in was tested. No formatting, installation,
-flashing or service activation was performed. The inherited setup-guard test
-initially launched the quarantined scripts against a fake sudo; it has been
-replaced by inspection to avoid executing installation scripts at all. The
-guards exited before any installation/formatting commands.
+Rclone 1.76.0 integration uses only a temporary local alias remote, not a cloud
+account. SMB tests use simulated server handles and a mocked client API, not an
+actual Samba/Windows connection. `testparm` is unavailable on the development
+machine; full Samba parameter/runtime validation belongs to the approved Pi.
+NetworkManager profiles and firewall rules were not loaded. The systemd parser
+check does not establish installed paths, account permissions or device readiness.
 
-The earlier foundation checkpoint had 19 passing tests and is preserved in
-commit `de48881`. Its staged-only publication notes described that earlier
-checkpoint; the new repository now exists and Phase 1 targets its development
-branch. The Cloud Stick Pro repository remains unchanged.
+No real USB image was mounted, no block device formatted, no Pi flashed, no USB
+or network settings changed, no service enabled, and no installation script run.
+Read-only diagnostics correctly report this development machine is not a ready Pi.
+The firmware power API is unavailable here; voltage/current adequacy is unknown.
 
-See [remaining hardware acceptance](PHASE1.md#hardware-testing-still-required).
-Passing software checks is not evidence of safe concurrent USB filesystem access.
+GitHub Actions covers Python 3.9, 3.12 and 3.13, with the local rclone integration
+enabled on 3.12. Local execution used 3.12; remote results belong to the associated
+commit's workflow run. Optional SMB deployment requires Python 3.10 or newer.
+
+Actual host-eject/kernel-unbind behavior, electrical stability, Windows RNDIS
+binding, DHCP, authenticated SMB3, lease/share-mode enforcement, ext4/SD durability,
+enterprise/managed host restrictions and real cloud accounts remain unverified.
+The [first Pi trial guide](PI_TEST_GUIDE.md) defines the separate approval and
+acceptance steps. Simulations are not evidence of safe concurrent block access.

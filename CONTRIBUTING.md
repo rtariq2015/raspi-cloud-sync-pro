@@ -37,6 +37,13 @@ and do not use cloud credentials in CI. See [Phase 1](docs/PHASE1.md).
 Work on `development` or a topic branch; push only to the new project's `origin`.
 Do not merge to the default branch or publish a release without owner approval.
 
+Phase 2 device tests use in-memory sysfs/command adapters and temporary files.
+Never enable the real hardware code gate to run automated tests. Do not execute
+official provider installers or retained Pi setup scripts. `mode-plan`,
+`diagnostics` and template parsers are read-only; controller/server units remain
+static and disabled. Actual USB, Samba lease/share-mode, electrical and Windows
+driver evidence must be recorded separately from simulations.
+
 Use ignored `config/config.local.json` for local settings. Never add credentials
 to tracked legacy `config.json` or `scp-copy.exp`: ignore rules do not protect
 already tracked files. Inspect staged changes for passwords, tokens, device logs

@@ -22,19 +22,85 @@ def main(argv: Optional[List[str]] = None) -> int:
     history = commands.add_parser("history", help="read existing backup history without starting a worker")
     history.add_argument("database", type=Path)
     history.add_argument("--limit", type=int, default=100)
+    for command in ("diagnostics", "check-hardware"):
+        hardware = commands.add_parser(command, help="read-only Pi USB/power diagnostics")
+        hardware.add_argument("--config", type=Path)
+        hardware.add_argument("--mode", choices=("mass_storage", "ethernet_samba"), default="ethernet_samba")
+    mode = commands.add_parser("mode-plan", help="inspect USB mode policy without applying it")
+    mode.add_argument("config", type=Path)
+    for command in ("controller-run", "controller-recover"):
+        control = commands.add_parser(command, help="code-gated disposable-test controller")
+        control.add_argument("--config", type=Path, required=True)
+        control.add_argument("--device-policy", type=Path, required=True)
+        control.add_argument("--once", action="store_true")
+    share = commands.add_parser("share-service", help="code-gated Samba staging/backup service")
+    share.add_argument("--config", type=Path, required=True)
+    share.add_argument("--once", action="store_true")
+    gate = commands.add_parser("device-gate", help="fail unless the reviewed hardware code gate is enabled")
+    gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
+    gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
     if args.command == "status":
         print(json.dumps({
             "project": "Raspi Cloud Sync Pro",
             "version": __version__,
-            "stage": "phase_1",
+            "stage": "phase_2",
             "hardware_access": "disabled",
             "cloud_sync": "adapters_available_service_disabled",
             "backup_engine": "staged_files_only",
             "wifi_management": "validation_only",
             "automatic_deletion": False,
+            "preferred_usb_mode": "ethernet_samba",
+            "live_mode_switch": "disabled",
         }, indent=2))
         return 0
+    if args.command in ("diagnostics", "check-hardware", "mode-plan", "controller-run",
+                        "controller-recover", "share-service", "device-gate"):
+        try:
+            if args.command == "device-gate":
+                from .linux_gadget import require_hardware_test_approval
+                require_hardware_test_approval()
+                if args.mode:
+                    from .device_modes import DevicePolicy
+                    from .linux_gadget import LEGACY_GADGET_MODULES
+                    if args.device_policy is None or DevicePolicy.load(args.device_policy).mode.value != args.mode:
+                        raise BackupError("selected_device_mode_mismatch")
+                    if args.mode == "ethernet_samba" and (
+                        not Path("/sys/module/g_ether").exists()
+                        or any(Path("/sys/module", name).exists() for name in LEGACY_GADGET_MODULES if name != "g_ether")
+                    ):
+                        raise BackupError("ethernet_provider_unverified")
+                return 0
+            if args.command in ("diagnostics", "check-hardware"):
+                from .hardware import readiness
+                from .linux_gadget import GadgetSettings
+                from .device_modes import DevicePolicy
+                settings = GadgetSettings.load(args.config) if args.config and args.mode == "mass_storage" else None
+                policy = DevicePolicy.load(args.config) if args.config and args.mode == "ethernet_samba" else None
+                report = readiness(settings=settings, mode=args.mode, policy=policy)
+                print(json.dumps(report, indent=2))
+                return 0 if args.command == "diagnostics" else 2
+            if args.command == "mode-plan":
+                from .device_modes import DeviceMode, DevicePolicy
+                from .ethernet import OfficialEthernet
+                policy = DevicePolicy.load(args.config)
+                print(json.dumps(OfficialEthernet().plan(policy) if policy.mode == DeviceMode.ETHERNET_SAMBA
+                                 else policy.plan(), indent=2))
+                return 0
+            from .device_service import run_controller, run_share_service
+            if args.command == "share-service":
+                result = run_share_service(args.config, once=args.once)
+            else:
+                result = run_controller(args.config, args.device_policy,
+                                        recover=args.command == "controller-recover", once=args.once)
+            print(json.dumps(result))
+            return 0
+        except BackupError as exc:
+            print(f"Device operation unavailable: {exc.code}", file=sys.stderr)
+            return 2
+        except (OSError, ValueError, TypeError, KeyError):
+            print("Device configuration or I/O error", file=sys.stderr)
+            return 2
     if args.command == "history":
         try:
             print(json.dumps(read_history(args.database, args.limit), indent=2))

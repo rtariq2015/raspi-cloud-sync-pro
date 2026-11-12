@@ -1,4 +1,4 @@
-name: Python Phase 1 checks
+name: Python Phase 2 checks
 
 on:
   push:
@@ -46,6 +46,8 @@ jobs:
         run: |
           raspi-cloud-sync-pro status
           raspi-cloud-sync-pro check-config config/config.example.json
+          raspi-cloud-sync-pro mode-plan config/device.example.json
+          raspi-cloud-sync-pro diagnostics --mode ethernet_samba
       - name: Check Python and retained shell syntax
         run: |
           python -m compileall -q src/raspi_cloud_sync_pro src/home/pi tests

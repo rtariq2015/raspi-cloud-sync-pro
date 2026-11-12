@@ -1,5 +1,8 @@
 # Phase 1 implementation and limits
 
+This is the historical Phase 1 report. For current USB/Ethernet controllers,
+Samba ingestion, runtime gates and first-test instructions, see [PHASE2.md](PHASE2.md).
+
 Phase 1 adds tested library components to the preserved Raspberry Pi foundation.
 Version `0.1.0.dev1` is a development version, not a published release. Neither
 automatic USB access nor an upload service is enabled by this work.

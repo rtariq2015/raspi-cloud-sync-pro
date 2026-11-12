@@ -83,6 +83,11 @@ are not changed by these safeguards.
 
 ## Reference project boundary
 
+Phase 2 additionally reviews Raspberry Pi Ltd.'s official `rpi-usb-gadget` as an
+external Ethernet provider. [Pinned source findings](OFFICIAL_USB_ETHERNET.md)
+and [third-party notices](../THIRD_PARTY_NOTICES.md) preserve its separate identity
+and Apache-2.0 attribution. Koseng's source/history/license are unchanged.
+
 The complete Phase 1 source review also covers the Windows helper and generated
 project resources. Its findings and preservation boundaries are recorded in
 [PHASE1.md](PHASE1.md). Phase 1 adds a separate tested core; it does not lift any

@@ -5,12 +5,21 @@ USB-to-cloud backup software for the **Raspberry Pi Zero 2 W**, built on
 The goal is dependable USB storage with clear backup results, flexible cloud
 destinations, simple Wi-Fi setup, and a responsive local web dashboard.
 
-**Status: Phase 1 development, not ready for hardware deployment.** The backup
-core operates on staged copies; live USB access, automatic services, and setup
-scripts remain disabled. Real Pi/cloud integration has not been verified. Do not follow
+**Status: Phase 2 development, not ready for hardware deployment.** Selectable
+USB Ethernet/Samba and mass-storage prototypes feed the staged-file backup core.
+All live device/network operations, SMB sessions and automatic services remain
+disabled pending a separately approved disposable-data Pi trial. Do not follow
 the historical installation instructions for this release.
 
 ## Available today
+
+- Preferred **USB Ethernet + Samba** mode integrates the official Raspberry Pi
+  RNDIS/CDC-ECM provider as an external dependency, with secure sharing templates
+  and SMB deny-write/delete snapshots. Windows can use a mapped network drive;
+  the Pi keeps filesystem ownership. Physical interoperability remains untested.
+- Classic **USB mass storage** remains an explicit-eject compatibility option.
+  A guarded Linux controller adds read-only staging, resource checks and an
+  intent journal; it never treats write quiet time as a host release.
 
 - Complete upstream Git ancestry, original source locations, documentation and
   Windows Dropbox helper are retained, with documented safety changes.
@@ -33,22 +42,25 @@ the historical installation instructions for this release.
 
 | Area | Direction | Current state |
 | --- | --- | --- |
-| USB storage | Explicit host/Pi handoff and consistent staged copies | Model/stager tested; hardware adapter blocked |
+| USB modes | Ethernet/Samba preferred; mass storage waits for clean eject | Controllers/ingestion simulated; hardware blocked |
 | Koofr | WebDAV through a configured rclone remote and app password | Adapter tested locally; account testing pending |
 | Google Drive | rclone remote and OAuth setup | Shared adapter tested; account testing pending |
 | Wi-Fi | Saved networks, hotspots, enterprise and captive-portal guidance | Validation/policy tested; OS integration planned |
 | Dashboard | Authenticated Overview, Wi-Fi, Cloud and History views | Planned |
-| Reliability | Persistent jobs, retries, verification and low-space protection | Core tested; hardware recovery pending |
+| Reliability | Persistent jobs, retries, verification, crash recovery and space checks | Core/controller simulated; hardware recovery pending |
 
 “Sync” initially means one-way backup. Automatic source deletion and remote
 deletion propagation are outside the initial scope. Uploaded and verified will
 be distinct states. See the [roadmap](docs/ROADMAP.md) and
 [architecture](docs/ARCHITECTURE.md).
 
-While the cable remains connected, cloud uploads may use completed staging batches.
-Reading newly written USB files requires a coordinated host flush/eject, exclusive
-Pi access, staging, and host re-enumeration. Quiet time is not a safety guarantee.
-See [Phase 1 scope and usage](docs/PHASE1.md) and [Wi-Fi design](docs/NETWORKING.md).
+The same USB data cable can supply power and Ethernet access, subject to the
+host/cable power budget. USB-local sharing works without Wi-Fi; cloud uploads
+queue until approved Internet connectivity returns. Ethernet mode captures stable
+SMB file versions without ejecting. Mass-storage mode requires a coordinated host
+flush/eject before reading new files. Quiet time is not a safety guarantee.
+See [Phase 2 design](docs/PHASE2.md), [official provider review](docs/OFFICIAL_USB_ETHERNET.md),
+[Pi test guide](docs/PI_TEST_GUIDE.md), and [Wi-Fi design](docs/NETWORKING.md).
 
 ## Develop locally without hardware
 
@@ -77,6 +89,17 @@ provider names but requires sync and automatic deletion to remain `false`.
 Credentials do not belong in this file. There is no install-to-Pi or hardware
 setup command in this release.
 
+Inspect modes and readiness without applying settings:
+
+```sh
+PYTHONPATH=src python3 -m raspi_cloud_sync_pro mode-plan config/device.example.json
+PYTHONPATH=src python3 -m raspi_cloud_sync_pro diagnostics --mode ethernet_samba
+```
+
+`check-hardware` reports blockers and returns 2 in this gated build. The optional
+SMB dependency needs Python 3.10+; the core still supports 3.9+. Never run device
+installation scripts or enable deployment templates on a development computer.
+
 ## Project map
 
 ```text
@@ -86,6 +109,7 @@ src/DropboxHelper/        Original Windows helper, retained for provenance
 config/                   Non-secret example configuration
 tests/                    Hardware-free regression tests
 docs/                     Current review, safety design and development plans
+deploy/                   Inactive systemd, Samba, DHCP, NM and firewall templates
 doc/                      Historical upstream guides and images
 ```
 
@@ -103,6 +127,10 @@ implementation.** Raspi Cloud Sync Pro preserves its original
 [GNU GPL version 3 license](LICENSE) unchanged, its history, and its attribution.
 This derivative project is distributed under that same GPL-3.0 license.
 See [upstream provenance and local changes](docs/UPSTREAM_REVIEW.md).
+
+The external USB Ethernet provider is **Raspberry Pi Ltd.'s rpi-usb-gadget**,
+licensed Apache-2.0. Its credits/license and optional SMB client notices are
+preserved in [third-party notices](THIRD_PARTY_NOTICES.md).
 
 [Cloud Stick Pro](https://github.com/rtariq2015/cloud-stick-pro) is a separate
 project used only as a feature and design reference. Its concepts of guided setup,
