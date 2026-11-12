@@ -1,0 +1,32 @@
+# Contributing
+
+This GPL-3.0 project derives from Koseng's Raspberry Pi project. Preserve its
+license/notices and document legacy modifications. Keep Cloud Stick Pro as a
+read-only feature/design reference.
+
+Read [the upstream review](docs/UPSTREAM_REVIEW.md) and
+[safety design](docs/SAFETY.md). Do not restore deletion or remove quarantine as
+routine cleanup. Ownership, crash recovery and hardware evidence must precede
+runtime activation.
+
+## Local checks
+
+```sh
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+PYTHONPATH=src python3 -m raspi_cloud_sync_pro check-config config/config.example.json
+PYTHONPATH=src python3 -m raspi_cloud_sync_pro status
+python3 -m compileall -q src/raspi_cloud_sync_pro src/home/pi tests
+sh -n src/home/pi/execute_setup_bullseye.sh
+sh -n src/home/pi/execute_setup_bookworm.sh
+git diff --check
+```
+
+Tests must use temporary data and mocked process/cloud boundaries, never mount
+images, format storage, contact real accounts or require root. Add behavior tests
+for transitions, provider failures and persistence as features arrive. Report
+simulated and hardware checks separately.
+
+Use ignored `config/config.local.json` for local settings. Never add credentials
+to tracked legacy `config.json` or `scp-copy.exp`: ignore rules do not protect
+already tracked files. Inspect staged changes for passwords, tokens, device logs
+and user data before committing. Justify new dependencies against Pi constraints.

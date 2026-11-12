@@ -4,7 +4,9 @@ After=multi-user.target
 [Service]
 Type=simple
 User=pi
-Restart=always
-ExecStart=/usr/bin/python3 /home/pi/copy_new_usb_files.py
+Restart=no
+# Raspi Cloud Sync Pro: legacy hardware/runtime activation is disabled.
+# Upstream ExecStart=/usr/bin/python3 /home/pi/copy_new_usb_files.py
+ExecStart=/usr/bin/false
 [Install]
 WantedBy=multi-user.target

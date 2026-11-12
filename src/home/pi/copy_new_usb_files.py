@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Raspi Cloud Sync Pro modification: quarantine unsafe legacy runtime.
+# Original source: Koseng/RaspiAsUSBStickWithCloudSync (GPL-3.0).
 import os, subprocess, shutil, time, json
 import logging, logging.handlers
 from pathlib import Path
@@ -52,8 +54,7 @@ def get_all_file_entries_delete_empty_dirs(start_dir):
             all_file_entries.append(item)
         elif item.is_dir():
             all_file_entries.extend(get_all_file_entries_delete_empty_dirs(item.path))
-    if counter == 0:
-        os.rmdir(start_dir)
+    # Historical function name retained; empty directories are never deleted.
     return all_file_entries
 
 
@@ -75,8 +76,9 @@ def get_loop_device():
 
 
 def mount(device, mount_dir):
-    subprocess.call(['sudo', 'mount', '-t', 'exfat', device, mount_dir]) 
-    time.sleep(0.5)
+    raise RuntimeError(
+        "Legacy USB image mounting is disabled: exclusive storage ownership is required"
+    )
 
 
 def umount(mount_dir):
@@ -85,23 +87,8 @@ def umount(mount_dir):
 
 
 def check_and_delete_on_usb(cycle_counter, device, config):
-    check_count = config['DeleteOnUSBCycleTime'] / config['CopyCheckCycleTime']
-    cycle_counter[0] = cycle_counter[0] + 1
-    # time has elapsed to perform the check
-    if cycle_counter[0] > check_count:
-        logging.info(f"Perform usb deletion check. Counter: {cycle_counter[0]}")
-        mount(device, SOURCE_DIR)
-        file_entries = get_all_file_entries_delete_empty_dirs(SOURCE_DIR) 
-        max_file_diff = len(file_entries) - config['KeepMaxFilesOnUSB']
-        logging.info(f"Perform usb deletion check. Max_file_diff: {max_file_diff}")
-        if max_file_diff > 0:
-            # sort and delete oldest files
-            file_entries.sort(key=lambda f: f.stat().st_mtime)
-            for i in range(max_file_diff):
-                os.remove(file_entries[i].path)
-                logging.info(f"Deleted file: {file_entries[i].path}")            
-        umount(SOURCE_DIR)
-        cycle_counter[0] = 0    
+    """Compatibility entry point: automatic USB deletion is permanently disabled."""
+    logging.warning("Automatic USB deletion is disabled; all source files are retained")
 
 
 def copy_new_files(last_modify_time, device):   
@@ -122,29 +109,42 @@ def copy_new_files(last_modify_time, device):
 # ----------------
 # MAIN
 # ----------------
-setup_logging(os.path.join(BASE_PATH, 'logs/copyLogging.log')) 
-config = []
-cycle_counter = [0]
-last_modify_time = [os.stat(USB_IMG).st_mtime]
+# This constant cannot be overridden by configuration or an environment variable.
+# Re-enabling requires a reviewed code change and the storage safety work in docs/SAFETY.md.
+LEGACY_RUNTIME_DISABLED = True
 
-try:
-    logging.info("----STARTED copy_new_usb_files.py----")
-    
-    # load config file
-    with open(os.path.join(BASE_PATH,'config.json')) as config_file:
-        config = json.load(config_file)
-    logging.info(f"Configuration loaded.")
 
-    # get loop device for partition access
-    loop_device = get_loop_device() + 'p1' # primary partition 1 
-    logging.info(f"Loop Device: {loop_device}")
+def main():
+    if LEGACY_RUNTIME_DISABLED:
+        logging.error("Legacy USB copying is disabled; see docs/SAFETY.md")
+        return 2
+    setup_logging(os.path.join(BASE_PATH, 'logs/copyLogging.log'))
+    config = []
+    cycle_counter = [0]
+    last_modify_time = [os.stat(USB_IMG).st_mtime]
 
-    # main loop
-    while (True):
-        check_and_delete_on_usb(cycle_counter, loop_device, config)
-        copy_new_files(last_modify_time, loop_device)
-        time.sleep(config['CopyCheckCycleTime'] )
+    try:
+        logging.info("----STARTED copy_new_usb_files.py----")
 
-except Exception as ex:
-    logging.exception(ex)
+        # load config file
+        with open(os.path.join(BASE_PATH,'config.json')) as config_file:
+            config = json.load(config_file)
+        logging.info(f"Configuration loaded.")
 
+        # get loop device for partition access
+        loop_device = get_loop_device() + 'p1' # primary partition 1
+        logging.info(f"Loop Device: {loop_device}")
+
+        # main loop
+        while (True):
+            check_and_delete_on_usb(cycle_counter, loop_device, config)
+            copy_new_files(last_modify_time, loop_device)
+            time.sleep(config['CopyCheckCycleTime'] )
+
+    except Exception as ex:
+        logging.exception(ex)
+
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
