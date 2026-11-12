@@ -92,7 +92,11 @@ class LiveLinuxIO:
                 raise BackupError("controller_directory_not_protected")
 
     def exists(self, path):
-        return Path(path).exists()
+        try:
+            Path(path).stat()
+            return True
+        except FileNotFoundError:
+            return False  # Permission/I/O errors must not masquerade as absence.
 
     def children(self, path):
         return sorted(Path(path).iterdir())
@@ -121,7 +125,11 @@ class LiveLinuxIO:
             raise BackupError("linux_command_failed") from exc
 
     def query(self, arguments):
-        if arguments[:3] != ["losetup", "--list", "--json"] and arguments[:3] != ["lsblk", "--json", "--paths"]:
+        loop_list = arguments == ["losetup", "--list", "--json", "--output", "NAME,BACK-FILE,RO"]
+        block_list = len(arguments) == 6 \
+            and arguments[:5] == ["lsblk", "--json", "--paths", "--output", "NAME,MAJ:MIN,RO"] \
+            and re.fullmatch(r"/dev/loop[0-9]+", arguments[5]) is not None
+        if not loop_list and not block_list:
             raise BackupError("unsupported_linux_query")
         return self._command(arguments, {"losetup", "lsblk"})
 

@@ -5,7 +5,7 @@ Package `0.1.0.dev2`; target branch `development`. Hardware gate remains false.
 
 | Check | Result and limits |
 | --- | --- |
-| Automated suite | 108 tests pass locally, including all 62 Phase 1 tests and real rclone against a temporary local alias |
+| Automated suite | 111 tests pass locally, including all 62 Phase 1 tests and real rclone against a temporary local alias |
 | Controller simulations | Session-bound eject, quiet host, link loss, startup-empty LUN refusal, dirty filesystem, power/profile/RO faults, detach/mount/unmount/reattach failures, interruption, resource recovery and controller contention |
 | Linux adapter | Production gates before mutations/config reads, detached-profile creation, driver/composite rejection, image identity, partition/device numbers, RO flags, non-repairing fsck command and no force-eject/unmount |
 | Samba ingestion | Active writer deferral, deny-write/delete snapshot contract, successful close before publication, interruption/short read/low space, queue reconciliation, changed versions, Wi-Fi/cloud outage and approved/metered policy |

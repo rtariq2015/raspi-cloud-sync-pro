@@ -8,6 +8,15 @@ OFFICIAL_REPOSITORY = "https://github.com/raspberrypi/rpi-usb-gadget"
 REVIEWED_COMMIT = "05ff0940af823868ff995808286bc0bcca8b86b7"
 
 
+def bound_configfs_gadgets(io):
+    # g_ether does not need libcomposite/configfs. An absent tree is normal for
+    # the official provider; an existing but unreadable tree must still fail.
+    root = "/sys/kernel/config/usb_gadget"
+    if not io.exists(root):
+        return ()
+    return tuple(gadget for gadget in io.children(root) if io.read(gadget / "UDC"))
+
+
 class OfficialEthernet:
     def __init__(self, io=None):
         self.io = LiveLinuxIO() if io is None else io
@@ -30,9 +39,8 @@ class OfficialEthernet:
         validate_switch(evidence)
         if any(self.io.exists("/sys/module/" + name) for name in LEGACY_GADGET_MODULES):
             raise BackupError("conflicting_gadget_driver")
-        for gadget in self.io.children("/sys/kernel/config/usb_gadget"):
-            if self.io.read(gadget / "UDC"):
-                raise BackupError("other_gadget_active")
+        if bound_configfs_gadgets(self.io):
+            raise BackupError("other_gadget_active")
         if not self.io.exists("/usr/bin/rpi-usb-gadget"):
             raise BackupError("official_ethernet_provider_missing")
         # Official `on` edits Pi boot/NM configuration and starts its ICS watcher.

@@ -10,6 +10,7 @@ from pathlib import Path
 from .device_modes import DeviceMode, DevicePolicy
 from .engine import BackupEngine
 from .errors import BackupError
+from .ethernet import bound_configfs_gadgets
 from .gadget import GadgetController
 from .history import History
 from .linux_gadget import (
@@ -103,9 +104,8 @@ def run_share_service(config, *, once=False):
             or not Path("/sys/module/g_ether").exists():
         raise BackupError("ethernet_provider_unverified")
     io = LiveLinuxIO()
-    for gadget in io.children("/sys/kernel/config/usb_gadget"):
-        if io.read(gadget / "UDC"):
-            raise BackupError("conflicting_gadget_driver")
+    if bound_configfs_gadgets(io):
+        raise BackupError("conflicting_gadget_driver")
     # A profile flip can interrupt file copies. Do not run the official ICS
     # auto-switcher alongside the fixed local-only USB policy.
     def query(args):

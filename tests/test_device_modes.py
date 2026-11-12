@@ -10,7 +10,7 @@ from pathlib import Path
 from raspi_cloud_sync_pro.cli import main
 from raspi_cloud_sync_pro.device_modes import DeviceMode, DevicePolicy, SwitchEvidence, validate_switch
 from raspi_cloud_sync_pro.errors import BackupError
-from raspi_cloud_sync_pro.ethernet import OfficialEthernet, REVIEWED_COMMIT
+from raspi_cloud_sync_pro.ethernet import OfficialEthernet, REVIEWED_COMMIT, bound_configfs_gadgets
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -61,6 +61,20 @@ class DeviceModeTests(unittest.TestCase):
         adapter.provision_offline(idle)
         self.assertEqual(fixture.commands, [["rpi-usb-gadget", "on"],
                                            ["systemctl", "disable", "--now", "rpi-usb-gadget-ics.service"]])
+
+    def test_official_g_ether_does_not_require_configfs_but_bound_profiles_are_rejected(self):
+        from unittest import mock
+        fixture = mock.Mock()
+        fixture.exists.return_value = False
+        self.assertEqual(bound_configfs_gadgets(fixture), ())
+        fixture.children.assert_not_called()
+        fixture.exists.return_value = True
+        profile = Path("/sys/kernel/config/usb_gadget/other")
+        fixture.children.return_value = [profile]
+        fixture.read.return_value = "mock-udc"
+        self.assertEqual(bound_configfs_gadgets(fixture), (profile,))
+        fixture.children.side_effect = PermissionError()
+        with self.assertRaises(PermissionError): bound_configfs_gadgets(fixture)
 
     def test_samba_templates_require_authentication_and_exclude_guest_smb1(self):
         samba = configparser.ConfigParser()

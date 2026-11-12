@@ -91,6 +91,16 @@ class LinuxBackendTests(unittest.TestCase):
         read.assert_not_called()
         run.assert_not_called()
 
+    def test_read_only_query_api_rejects_extra_action_flags_before_execution(self):
+        with mock.patch("subprocess.run") as run:
+            with self.assertRaisesRegex(BackupError, "unsupported_linux_query"):
+                LiveLinuxIO().query(["losetup", "--list", "--json", "--detach", "/dev/loop42"])
+        run.assert_not_called()
+
+    def test_unreadable_sysfs_is_not_treated_as_absent(self):
+        with mock.patch("pathlib.Path.stat", side_effect=PermissionError):
+            with self.assertRaises(PermissionError): LiveLinuxIO().exists("/sys/mock")
+
     def test_loop_and_mount_require_read_only_and_partition(self):
         self.backend.verify_loop_read_only("/dev/loop42")
         self.io.loop_read_only = False
