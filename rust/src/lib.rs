@@ -7,7 +7,7 @@ use std::io::Read;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 
 pub type Result<T> = std::result::Result<T, &'static str>;
 
@@ -104,6 +104,41 @@ pub fn snapshot(staging: &Path, config: &Path) -> Result<Snapshot> {
 pub struct WorkerReport {
     pub pending_jobs: u64,
     pub reconciliation_pending: bool,
+    pub network_policy_allows_upload: Option<bool>,
+}
+
+pub const PAUSED_BACKOFF: Duration = Duration::from_secs(60);
+
+/// Scheduling uses elapsed monotonic time, never wall-clock timestamps. The
+/// filesystem poll remains short so new ready work/configuration bypasses a
+/// paused/error delay. This class neither observes nor changes any network.
+#[derive(Default)]
+pub struct Scheduler {
+    pending: bool,
+    next_check: Duration,
+}
+
+impl Scheduler {
+    pub fn should_run(&self, now: Duration, candidates: usize, changed: bool) -> bool {
+        candidates > 0 && (changed || (self.pending && now >= self.next_check))
+    }
+
+    pub fn record_report(&mut self, now: Duration, report: &WorkerReport) {
+        self.pending = report.needs_work();
+        self.next_check = if self.pending
+            && !report.reconciliation_pending
+            && report.network_policy_allows_upload == Some(false)
+        {
+            now.saturating_add(PAUSED_BACKOFF)
+        } else {
+            now
+        };
+    }
+
+    pub fn record_error(&mut self, now: Duration) {
+        self.pending = true;
+        self.next_check = now.saturating_add(PAUSED_BACKOFF);
+    }
 }
 
 impl WorkerReport {
@@ -144,9 +179,14 @@ pub fn run_worker(runner: &Path, config: &Path) -> Result<WorkerReport> {
         None => false, // Older workers do not have a reconciliation budget signal.
         Some(value) => value.as_bool().ok_or("invalid_worker_report")?,
     };
+    let network_policy_allows_upload = match report.get("network_policy_allows_upload") {
+        None => None, // Legacy minimal reports retain the original polling cadence.
+        Some(value) => Some(value.as_bool().ok_or("invalid_worker_report")?),
+    };
     Ok(WorkerReport {
         pending_jobs,
         reconciliation_pending,
+        network_policy_allows_upload,
     })
 }
 
@@ -246,6 +286,7 @@ mod tests {
             WorkerReport {
                 pending_jobs: 2,
                 reconciliation_pending: false,
+                network_policy_allows_upload: None,
             }
         );
         fs::write(
@@ -272,6 +313,89 @@ mod tests {
         assert_eq!(
             run_worker(&runner, &fixture.0.join("worker.json")),
             Err("worker_failed")
+        );
+    }
+
+    #[test]
+    fn paused_pending_work_waits_but_changed_work_and_online_reports_do_not() {
+        let mut schedule = Scheduler::default();
+        let mut report = WorkerReport {
+            pending_jobs: 5,
+            reconciliation_pending: false,
+            network_policy_allows_upload: Some(false),
+        };
+        schedule.record_report(Duration::ZERO, &report);
+        assert!(!schedule.should_run(Duration::from_secs(10), 1, false));
+        assert!(!schedule.should_run(Duration::from_secs(59), 1, false));
+        assert!(schedule.should_run(Duration::from_secs(60), 1, false));
+        // Either a configuration change or a newly published ready batch is
+        // represented by changed=true and must bypass a paused delay.
+        assert!(schedule.should_run(Duration::from_secs(10), 1, true));
+        assert!(!schedule.should_run(Duration::from_secs(60), 0, true));
+        report.network_policy_allows_upload = Some(true);
+        schedule.record_report(Duration::from_secs(60), &report);
+        assert!(schedule.should_run(Duration::from_secs(70), 1, false));
+        report.network_policy_allows_upload = None;
+        schedule.record_report(Duration::from_secs(70), &report);
+        assert!(schedule.should_run(Duration::from_secs(80), 1, false));
+        report.pending_jobs = 0;
+        schedule.record_report(Duration::from_secs(80), &report);
+        assert!(!schedule.should_run(Duration::from_secs(1000), 1, false));
+    }
+
+    #[test]
+    fn errors_back_off_without_success_and_pending_reconciliation_is_not_delayed() {
+        let mut schedule = Scheduler::default();
+        schedule.record_error(Duration::from_secs(100));
+        assert!(!schedule.should_run(Duration::from_secs(159), 1, false));
+        assert!(schedule.should_run(Duration::from_secs(160), 1, false));
+        assert!(schedule.should_run(Duration::from_secs(110), 1, true));
+        schedule.record_report(
+            Duration::from_secs(110),
+            &WorkerReport {
+                pending_jobs: 0,
+                reconciliation_pending: true,
+                network_policy_allows_upload: Some(false),
+            },
+        );
+        assert!(schedule.should_run(Duration::from_secs(120), 1, false));
+    }
+
+    #[test]
+    fn paused_fixture_reduces_actual_child_invocations_under_a_virtual_clock() {
+        fn runner(fixture: &Fixture) -> PathBuf {
+            let path = fixture.0.join("runner.sh");
+            fs::write(&path, "#!/bin/sh\nprintf 'call\\n' >> \"${0%/*}/calls\"\nprintf '%s\\n' '{\"pending_jobs\":5,\"network_policy_allows_upload\":false}'\n").unwrap();
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+            path
+        }
+        let baseline = Fixture::new();
+        let baseline_runner = runner(&baseline);
+        let optimized = Fixture::new();
+        let optimized_runner = runner(&optimized);
+        let mut schedule = Scheduler::default();
+        // Exercise actual child processes while advancing a synthetic monotonic
+        // clock; this is not a five-minute hardware/power measurement.
+        for second in (0..=300).step_by(10) {
+            run_worker(&baseline_runner, &baseline.0.join("unused.json")).unwrap();
+            let now = Duration::from_secs(second);
+            if schedule.should_run(now, 1, second == 0) {
+                let report =
+                    run_worker(&optimized_runner, &optimized.0.join("unused.json")).unwrap();
+                schedule.record_report(now, &report);
+            }
+        }
+        let before = fs::read_to_string(baseline.0.join("calls"))
+            .unwrap()
+            .lines()
+            .count();
+        let after = fs::read_to_string(optimized.0.join("calls"))
+            .unwrap()
+            .lines()
+            .count();
+        assert_eq!((before, after), (31, 6));
+        println!(
+            "{{\"fixture\":\"stable_paused_queue\",\"virtual_seconds\":300,\"poll_seconds\":10,\"baseline_child_invocations\":{before},\"optimized_child_invocations\":{after},\"energy_measured\":false}}"
         );
     }
 }

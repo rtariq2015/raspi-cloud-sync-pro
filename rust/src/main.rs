@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
-use cloudstick_watcher::{path_argument, run_worker, snapshot, validated_paths};
+use cloudstick_watcher::{Scheduler, path_argument, run_worker, snapshot, validated_paths};
 use std::process::ExitCode;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 fn run() -> Result<(), &'static str> {
     let mut arguments = std::env::args().skip(1);
@@ -37,19 +37,25 @@ fn run() -> Result<(), &'static str> {
     );
     if plan {
         println!(
-            "{{\"source\":\"published_ready_batches\",\"mounts_images\":false,\"quiet_period_authorizes_reads\":false,\"executes_worker\":false}}"
+            "{{\"source\":\"published_ready_batches\",\"mounts_images\":false,\"quiet_period_authorizes_reads\":false,\"executes_worker\":false,\"paused_error_backoff_seconds\":60}}"
         );
         return Ok(());
     }
     validated_paths(&staging, &runner, &config)?;
-    let (mut previous, mut pending) = (None, false);
+    let mut previous = None;
+    let mut scheduler = Scheduler::default();
+    let started = Instant::now();
     loop {
         validated_paths(&staging, &runner, &config)?;
         let current = snapshot(&staging, &config)?;
-        if current.candidate_count() > 0 && (pending || previous.as_ref() != Some(&current)) {
+        if scheduler.should_run(
+            started.elapsed(),
+            current.candidate_count(),
+            previous.as_ref() != Some(&current),
+        ) {
             match run_worker(&runner, &config) {
                 Ok(report) => {
-                    pending = report.needs_work();
+                    scheduler.record_report(started.elapsed(), &report);
                     println!(
                         "{{\"event\":\"worker_completed\",\"pending_jobs\":{},\"reconciliation_pending\":{}}}",
                         report.pending_jobs, report.reconciliation_pending
@@ -59,7 +65,7 @@ fn run() -> Result<(), &'static str> {
                     if once {
                         return Err(code);
                     }
-                    pending = true;
+                    scheduler.record_error(started.elapsed());
                     eprintln!("{{\"error\":\"{code}\"}}");
                 }
             }

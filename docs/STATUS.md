@@ -9,7 +9,8 @@ for remote automated checks.
 
 ## Working on the Pi
 
-- USB Ethernet management, home Wi-Fi and authenticated SSH access.
+- Home Wi-Fi and authenticated SSH access. USB Ethernet carrier is present;
+  stable USB addressing remains an outstanding acceptance item.
 - Dashboard login with owner/viewer accounts, phone-friendly screens, QA-file
   upload, bounded text preview and downloads with byte/SHA-256 checks.
 - Restricted dev6 dashboard service candidate with NoNewPrivileges and home/system
@@ -18,6 +19,9 @@ for remote automated checks.
   a temporary public HTTPS tunnel; no router ports or VPN app were needed.
 - Rust watcher fixture trial: 398,048-byte ARM64 binary, 1,796 KiB parent idle RSS,
   incomplete batches ignored and completed unchanged work not retriggered.
+- Rust paused-worker comparison on the Pi: three child launches reduced to one
+  in separate twelve-second fixture windows; new files/configuration still wake
+  at the next poll. This measures launches, not electrical power consumption.
 - End-to-end Rust → Python → ARM64 rclone trial: three files, two temporary local
   destinations, six read-back verified jobs, blocked-policy queueing, deduplication
   and retained data after controlled process interruption. No cloud account used.
@@ -29,7 +33,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **177 Python tests and 6 Rust tests pass locally.** Python includes real rclone
+- **177 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.

@@ -58,7 +58,7 @@ remain to be accepted.
 
 | Working and tested | Next acceptance step |
 | --- | --- |
-| Pi USB management, home Wi-Fi and authenticated SSH | Reboot and long-duration connectivity checks |
+| Home Wi-Fi and authenticated SSH | Stable USB addressing, reboot and long-duration checks |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
 | Versioned backup engine, retries and independent read-back verification | Private Koofr and Google Drive test accounts |
@@ -67,7 +67,7 @@ remain to be accepted.
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**177 Python tests and 6 Rust tests pass locally.** Python tests include actual
+**177 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).

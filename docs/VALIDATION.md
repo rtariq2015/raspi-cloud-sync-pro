@@ -250,3 +250,18 @@ existing staged QA samples; no real cloud account or new public upload is claime
 Wi-Fi stayed connected. USB NM state was30 (disconnected) at the sampled request;
 this test does not establish working USB IP connectivity. The upgrade changed no
 network profile. [HTTPS record](acceptance/pi-https-dev6-2026-11-13.json).
+
+## Rust paused-worker scheduling
+
+Ten Rust tests pass, including policy/error backoff, prompt response to changed
+inventory/configuration, reconciliation and invalid reports. A virtual 300-second
+test invokes real fixture child processes: 31 baseline launches versus six with
+backoff. Formatting, clippy and the ARM64 release build pass.
+
+On the physical Pi, a separate twelve-second window at a five-second poll produced
+three baseline child launches versus one optimized launch. New-ready and config
+changes woke the optimized watcher in 3.033 and 5.055 seconds respectively; its
+parent RSS/high-water RSS was 1,784 KiB. Only disposable fixture children ran; no
+real worker, cloud account, USB setting or Wi-Fi setting was used. Fixture data
+remains retained. [Result](acceptance/pi-rust-paused-2026-11-13.json).
+This is a process-launch comparison, not an energy or whole-appliance benchmark.

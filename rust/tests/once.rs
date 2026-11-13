@@ -70,3 +70,27 @@ fn once_keeps_reconciliation_signal_when_no_jobs_have_been_registered() {
     assert_eq!(report["pending_jobs"], 0);
     assert_eq!(report["reconciliation_pending"], true);
 }
+
+#[test]
+fn paused_and_legacy_reports_work_but_invalid_network_policy_types_fail() {
+    for report in [
+        "{\"pending_jobs\":2,\"network_policy_allows_upload\":false}",
+        "{\"pending_jobs\":2}",
+    ] {
+        let runner = format!("#!/bin/sh\nprintf '%s\\n' '{report}'\n");
+        let output = Fixture::new(&runner).run();
+        assert!(output.status.success());
+        assert_eq!(
+            serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap()["pending_jobs"],
+            2
+        );
+    }
+    for invalid in ["\"false\"", "0", "null", "[]"] {
+        let runner = format!(
+            "#!/bin/sh\nprintf '%s\\n' '{{\"pending_jobs\":2,\"network_policy_allows_upload\":{invalid}}}'\n"
+        );
+        let output = Fixture::new(&runner).run();
+        assert!(!output.status.success());
+        assert!(output.stdout.is_empty());
+    }
+}

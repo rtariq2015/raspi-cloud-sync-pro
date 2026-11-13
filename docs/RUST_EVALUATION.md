@@ -102,3 +102,36 @@ Incomplete data and all originals stayed retained, repeat runs deduplicated, and
 a controlled process-group stop followed by another run retained completed work.
 This does not simulate electrical power failure or accept a real cloud account.
 See [the result record](acceptance/pi-worker-2026-11-13.json).
+
+## Paused-worker optimization — 2026-11-13
+
+The Rust scheduler now waits 60 seconds before launching another worker for an
+unchanged, policy-paused queue or a failed child. Its monotonic clock is unaffected
+by wall-clock corrections. New ready batches or a changed protected configuration
+bypass that delay at the next filesystem poll. Unfinished reconciliation and
+online/legacy reports keep the existing poll cadence. Invalid child output remains
+an error, never a successful backup.
+
+Ten Rust tests, formatting, clippy and the ARM64 build pass. A virtual five-minute
+test using actual fixture child processes reduced launches from 31 to 6 at a
+ten-second poll. This is a simulated clock, not five minutes of measured hardware
+energy use.
+
+A separate physical Pi comparison used a five-second poll and a twelve-second
+steady window per binary: the previous scheduler launched its fixture three times;
+the new one launched once. New ready work woke it in 3.033 seconds and a config
+change in 5.055 seconds. Both parents measured 1,784 KiB RSS/high-water RSS and one
+thread. The new 398,048-byte ARM64 binary has SHA-256
+`b559ae8a1056c387b8cfd336561984bceb75492b08e8a426c07cf4bf82c9a0e2`.
+See [the retained-fixture result](acceptance/pi-rust-paused-2026-11-13.json).
+
+This reduces unnecessary process launches. It does not measure watts, change
+network settings or establish total appliance CPU savings; directory polling is
+unchanged. Without a new batch/config change, an approved connection returning
+can take up to the 60-second backoff plus the configured poll interval to be
+noticed. Ready batches must remain retained for pending-job recovery.
+
+Further Rust work should follow profiles: inventory scanning or streamed hashing
+are possible candidates if sustained file-count/transfer tests identify them as
+bottlenecks. Keep protocol handling in rclone/Samba and the tested dashboard in
+Python until a representative comparison justifies moving another component.
