@@ -19,7 +19,9 @@ git diff --cached --check
 git diff --cached --stat
 ```
 
-Only `origin/development` is a destination for this phase. The default branch
-and upstream repository must remain untouched. Merging and releases require
+Only `origin/development` is a push destination for this phase. GitHub uses
+`development` as the default view so the project homepage shows current progress.
+This repository setting does not merge into or change `main`; main and the
+upstream repository remain untouched. Main-branch merges and releases require
 the owner's approval. The `LICENSE` and `README.upstream.md` must remain exact
 upstream copies; `.gitattributes` preserves their bytes.

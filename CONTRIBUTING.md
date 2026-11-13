@@ -35,7 +35,7 @@ The optional real-rclone test uses a temporary local alias remote only; set
 and do not use cloud credentials in CI. See [Phase 1](docs/PHASE1.md).
 
 Work on `development` or a topic branch; push only to the new project's `origin`.
-Do not merge to the default branch or publish a release without owner approval.
+Do not merge to main or publish a release without owner approval.
 
 Phase 2 device tests use in-memory sysfs/command adapters and temporary files.
 Never enable the real hardware code gate to run automated tests. Do not execute

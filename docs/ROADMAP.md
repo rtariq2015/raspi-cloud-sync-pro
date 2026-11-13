@@ -46,7 +46,11 @@ the current addressing/route/auto-switcher differences from the share runtime
 without changing them. Next is a reviewed disposable-file Samba test, preserving
 the working management path; cloud-account acceptance follows local capture.
 
-## Phase 3 — cloud account acceptance and operational scheduler
+## Phase 3 — scheduler implemented; cloud account acceptance pending
+
+The opt-in completed-batch worker and small Rust scheduler are implemented and
+tested locally; the Rust ready-batch fixture also ran on the Pi. See
+[the worker guide](STAGED_WORKER.md) and [Rust evidence](RUST_EVALUATION.md).
 
 Configure a Koofr WebDAV remote with TLS and a separate app password; configure
 Google Drive with a dedicated OAuth client/scope using rclone's headless workflow.
@@ -75,7 +79,7 @@ web-upload staging. It has passed local and real Pi QA-file checks; see
 [DASHBOARD.md](DASHBOARD.md). The phone layout and PWA foundation share this app.
 
 Continue with operational setup controls, account recovery and invitations,
-browser-only HTTPS remote access (no Tailscale requirement), physical Android
+a stable hostname for the tested browser-only HTTPS preview (no Tailscale requirement), physical Android
 installation, Samba file browsing and cloud-worker integration. Include
 CSRF protection, safe LAN access, redacted diagnostics and accessible mobile UI.
 Display live ownership, observed connectivity, per-file version, upload result,
@@ -91,4 +95,13 @@ types from the user's screenshots, replication requirements and acceptance order
 Keep automated, local-rclone, test-account and actual Pi evidence separate.
 [Hardware matrix and remaining work](PHASE1.md#hardware-testing-still-required).
 No initial release will automatically delete USB originals or staging data.
-Merging to the default branch and publishing a release require owner approval.
+Merging to main and publishing a release require owner approval.
+
+
+## Appliance image and device updates — planned
+
+[Image/update design](APPLIANCE_IMAGE.md) covers an official Trixie ARM64 base,
+unique first-boot identity, private onboarding, signed versioned application
+updates and rollback. No appliance image, signing service or update release is
+published yet. Build/test on a spare card and second Pi before distribution;
+do not replace the current working card to trial an image recipe.

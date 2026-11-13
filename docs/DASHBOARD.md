@@ -83,3 +83,30 @@ tunnel, cloud account or real Samba session was used for these checks.
 
 The README screenshots are from this real preview, using disposable files.
 The Wi-Fi address was replaced with a generic label for the public screenshots.
+
+## Restricted HTTPS candidate — 2026-11-13
+
+The follow-up installed the reviewed wheel in a root-owned versioned directory
+and created a dedicated no-login `raspi-dashboard` identity. A transient candidate
+runs with NoNewPrivileges, read-only system/home restrictions, private state and
+loopback-only binding. It has not been enabled at boot. Account/system settings
+were backed up before installation; the user-level preview remains retained.
+
+A verified official cloudflared binary runs as a separate restricted transient
+service and connects outbound to the loopback backend. The dashboard is configured
+with the exact public HTTPS origin and Secure cookies. Through the public URL,
+owner/viewer login, all three QA-file download/hash checks, anonymous rejection,
+viewer upload rejection, missing-CSRF rejection and logout revocation passed.
+USB and Wi-Fi remained connected. No router ports or laptop network settings
+were changed. This is a temporary development tunnel, not stable hosting.
+
+Quick Tunnel hostnames change when the tunnel is recreated; a named tunnel and
+stable hostname/access policy remain account setup work. Do not publish generated
+account passwords or the temporary preview address in Git. This public-path test
+was made from the development laptop; an actual phone on another network and
+Android installation still need acceptance. No real cloud account was connected.
+
+To stop the temporary public preview, stop only
+`raspi-cloud-tunnel-preview.service`; this does not stop USB, Wi-Fi or SSH.
+The transient dashboard candidate is `raspi-cloud-dashboard-candidate.service`.
+Retain its state and uploads when stopping or replacing it.

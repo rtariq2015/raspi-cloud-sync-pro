@@ -18,8 +18,10 @@ quarantine. New code does not import those service loops.
 | `engine.py` | One attempt at a time; distinct upload/verification events; capped exponential backoff; network/metered gating; retain every source/staged file |
 | `providers.py` | Explicitly enabled rclone adapter; bounded copies, immutable version paths and downloaded-content SHA-256 verification |
 | `network.py` | Non-secret personal/enterprise profile validation and connectivity policy; no OS changes |
-| `config.py`, `cli.py` | Strict planning schema, status/config checks and bounded read-only history output; no live backup command |
+| `config.py`, `cli.py` | Strict planning schema, diagnostics and opt-in completed-batch worker commands |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
+| `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |
+| `wifi_plan.py` | Non-secret inactive NetworkManager profile plans; no OS mutation |
 | `web_ingest.py` | Pi-owned HTTP ingress, streaming hashes, size/space limits, retained incomplete uploads and atomic ready publication |
 
 ## Data flow

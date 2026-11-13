@@ -90,3 +90,37 @@ README screenshots show this preview with the Wi-Fi address replaced by a generi
 label. No cloud verification, public tunnel, physical Android installation or
 real Samba session is claimed. System-wide deployment awaits administrator
 authentication; the local preview did not change system services or networks.
+
+## Hybrid worker and HTTPS follow-up — 2026-11-13
+
+**145 Python tests pass**, including the real-rclone local-alias integration with
+rclone 1.76.0. Four Rust tests pass; formatting and clippy with warnings denied
+pass in the pinned Rust 1.100.0 container. The ARM64 release build succeeds.
+Additional Python checks cover durable per-destination reconciliation, retry and
+network-policy deferral, receipt reuse without trusting changed payloads,
+concurrent scheduler refusal and non-secret enterprise Wi-Fi planning.
+
+The 398,048-byte ARM64 watcher ran on the actual Zero 2 W with a protected fixture
+runner: incomplete work ignored, one ready batch triggered, unchanged completed
+work parked. Idle parent VmRSS/VmHWM was 1,796 KiB with one thread. This does not
+measure a real cloud transfer or the whole appliance. Details and Python dashboard
+measurements are in [RUST_EVALUATION.md](RUST_EVALUATION.md).
+
+After private administrator authentication, a root-owned versioned dashboard
+installation and dedicated no-login identity were installed with account-file
+backups. The restricted transient system candidate passed the QA-file/access
+checks, then passed them again through a temporary outbound HTTPS tunnel using
+a verified official cloudflared binary. No passwords were printed or committed.
+The app backend remained loopback-only; neither service was enabled at boot.
+
+Public-path acceptance: owner/viewer logins; three existing QA files downloaded
+with matching bytes/SHA-256; anonymous API access, viewer upload, missing CSRF and
+revoked sessions rejected. USB and Wi-Fi were still connected. Actual new uploads
+were tested through the earlier loopback preview; public rechecks reused the
+completed QA files. The cloud state correctly stayed `not_configured`.
+
+No actual cloud account, off-LAN physical phone, real Samba session, image flash,
+new gadget configuration, service boot enablement or release publication is
+claimed. No source or staging deletion was introduced. A temporary tunnel is not
+a stable public deployment. Restricted service and tunnel rollback are described
+in [DASHBOARD.md](DASHBOARD.md).
