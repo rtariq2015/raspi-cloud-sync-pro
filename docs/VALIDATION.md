@@ -444,3 +444,10 @@ addresses differed between observations; this establishes no cause and does not
 resolve the previously observed automatic profile switching. No network/boot
 settings were changed by this trial. These synthetic tests do not establish
 real-account import, refresh, folder access or unattended backup readiness.
+
+The first dev9 CI run exposed a fixture-only Python 3.9 issue: that interpreter
+does not expose `fcntl.F_SETPIPE_SZ`. The backpressure test now fills an ordinary
+pipe with bounded nonblocking writes, leaves room for a partial frame, and checks
+the timeout and restored flags. All 33 preparation/CLI tests then passed under
+actual CPython 3.9.25 in a non-root, network-disabled, read-only container. The
+application module and the Pi-tested wheel were unchanged by this correction.

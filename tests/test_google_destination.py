@@ -671,10 +671,22 @@ class GoogleDestinationTests(unittest.TestCase):
         self.authorization["refresh_token"] = "R" * 16384
         self.write_json(self.dashboard / "oauth-google_drive.json", self.authorization)
         read_fd, write_fd = os.pipe()
-        fcntl.fcntl(write_fd, fcntl.F_SETPIPE_SZ, 4096)
         alias = os.dup(write_fd)
         initial = fcntl.fcntl(alias, fcntl.F_GETFL)
         try:
+            # F_SETPIPE_SZ is not exposed by Python 3.9. Fill the ordinary
+            # pipe instead, then leave one page for an actual partial write.
+            os.set_blocking(write_fd, False)
+            filled = 0
+            for _ in range(512):
+                try:
+                    filled += os.write(write_fd, b"\0" * 4096)
+                except BlockingIOError:
+                    break
+            else:
+                self.fail("Synthetic pipe did not reach backpressure within 2 MiB")
+            self.assertEqual(len(os.read(read_fd, 4096)), 4096)
+            fcntl.fcntl(write_fd, fcntl.F_SETFL, initial)
             with self.assertRaises(google.GoogleDestinationError) as error:
                 google.export_google_authorization(
                     self.dashboard, ORIGIN, write_fd, timeout=0.03
@@ -682,9 +694,21 @@ class GoogleDestinationTests(unittest.TestCase):
             self.assertEqual(error.exception.code, "google_handoff_timeout")
             self.assertEqual(fcntl.fcntl(alias, fcntl.F_GETFL), initial)
             self.assert_closed(write_fd)
+            os.set_blocking(read_fd, False)
+            remaining = 0
+            while True:
+                try:
+                    remaining += len(os.read(read_fd, 8192))
+                except BlockingIOError:
+                    break
+            self.assertGreater(remaining, filled - 4096)
         finally:
             os.close(alias)
             os.close(read_fd)
+            try:
+                os.close(write_fd)
+            except OSError:
+                pass  # The exporter normally consumed the accepted descriptor.
 
 
 class IdentityRefusalTests(unittest.TestCase):
