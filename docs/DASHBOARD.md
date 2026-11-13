@@ -157,3 +157,10 @@ Actual Pi loopback HTTP and private PTY recovery tests passed using disposable
 accounts. The existing public restricted service still runs dev3 pending its
 prepared administrator-authenticated upgrade. The test did not change its
 accounts, USB profiles, Wi-Fi or stored user files.
+
+
+Dev6 additionally refuses getpass's potentially echoed no-terminal fallback.
+Initialization and recovery require a secure interactive prompt; piped or
+noninteractive password entry is not a supported recovery channel. This refusal
+happens before account creation or an auth update. Actual Pi PTY recovery and
+no-terminal refusal both passed, with no generated credential printed.

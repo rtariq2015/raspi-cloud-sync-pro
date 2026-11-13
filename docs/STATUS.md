@@ -28,7 +28,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **176 Python tests and 6 Rust tests pass locally.** Python includes real rclone
+- **177 Python tests and 6 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -39,7 +39,7 @@ for remote automated checks.
 - Local-only cloud backend checks: missing/mismatched/alias configurations are
   distinguished without claiming account access or making a cloud request.
 
-- Dev5 password change/recovery: actual Pi loopback HTTP, private interactive
+- Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private
   hash backups. Only disposable test accounts changed.
 - Five-minute Pi retention trial: ten more files, twenty more verified local
@@ -50,7 +50,7 @@ for remote automated checks.
 1. Replace the tested temporary HTTPS preview with a stable hostname/access policy,
    then accept an off-LAN phone connection.
 2. Upgrade the restricted service after renewed private administrator authentication;
-   the new development package has already passed its isolated Pi worker trial.
+   the latest development package has passed its isolated Pi worker/account trials.
 3. Finish private cloud account authorization and actual cloud acceptance;
    account password change/recovery has now passed an isolated Pi HTTP trial.
 4. Resolve the observed existing USB profile auto-switcher/DHCP loop without
@@ -86,3 +86,7 @@ Main-branch merge and release publication still require owner approval.
 The current USB carrier stays present, but a follow-up observed its existing
 auto-switcher cycling between DHCP attempts and local addressing. This trial
 changed no USB profile; stable USB addressing is an outstanding acceptance item.
+
+Dev6 also refuses CLI password entry when no secure terminal is available.
+The private PTY path and no-terminal refusal both passed on the Pi. GitHub
+checks now include ARM64 cross-builds and an isolated real Samba protocol job.

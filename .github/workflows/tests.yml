@@ -8,6 +8,18 @@ permissions:
   contents: read
 
 jobs:
+  samba-protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the isolated Debian Samba fixture
+        run: docker build -t raspi-cloud-samba-ci tools/acceptance/samba
+      - name: Check real share locks without host networking or devices
+        run: |
+          docker run --rm --network none --pids-limit 128 --memory 256m \
+            --security-opt no-new-privileges \
+            --mount type=bind,src="$GITHUB_WORKSPACE",dst=/work,readonly \
+            raspi-cloud-samba-ci
   rust:
     runs-on: ubuntu-latest
     steps:

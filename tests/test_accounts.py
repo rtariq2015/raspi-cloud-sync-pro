@@ -3,6 +3,7 @@ import io
 import json
 import tempfile
 import unittest
+import warnings
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest import mock
@@ -66,6 +67,30 @@ class AccountTests(unittest.TestCase):
                 self.assertEqual(main(["dashboard-reset-password", "--state", str(self.root), "--username", user]), 2)
             self.assertNotIn("new-password-long", output.getvalue() + errors.getvalue())
             self.assertEqual(self.path.read_bytes(), self.auth)
+        self.assertEqual(list(self.root.glob("auth-backup-*.json")), [])
+
+    def test_cli_initialization_and_recovery_refuse_getpass_echo_fallback(self):
+        import getpass
+        for command in ("dashboard-init", "dashboard-reset-password"):
+            for unsafe_prompt in (1, 2):
+                calls = []
+
+                def prompt(_message):
+                    calls.append(None)
+                    if len(calls) == unsafe_prompt:
+                        warnings.warn("insecure-fallback-marker", getpass.GetPassWarning)
+                        self.fail("GetPassWarning must raise before fallback input")
+                    return "private-test-new-password"
+
+                state = self.root / "new-state" if command == "dashboard-init" else self.root
+                output, errors = io.StringIO(), io.StringIO()
+                with mock.patch("getpass.getpass", side_effect=prompt), redirect_stdout(output), redirect_stderr(errors):
+                    self.assertEqual(main([command, "--state", str(state), "--username", "owner"]), 2)
+                self.assertEqual(len(calls), unsafe_prompt)
+                self.assertNotIn("private-test-new-password", output.getvalue() + errors.getvalue())
+                self.assertNotIn("insecure-fallback-marker", output.getvalue() + errors.getvalue())
+                self.assertEqual(self.path.read_bytes(), self.auth)
+                self.assertFalse((self.root / "new-state").exists())
         self.assertEqual(list(self.root.glob("auth-backup-*.json")), [])
 
     def test_failed_atomic_publication_retains_old_auth_and_private_backup(self):

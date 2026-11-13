@@ -208,3 +208,26 @@ configuration. [Account/readiness result](acceptance/pi-accounts-2026-11-13.json
 The restricted public dev3 service and its accounts were not replaced by this
 trial. Its dev5 upgrade is prepared with backup/rollback and awaits a privately
 authenticated administrator terminal.
+
+
+## Secure-prompt follow-up — development 0.1.0.dev6
+
+Review found Python getpass can fall back to potentially echoed input without a
+controlling terminal. Dev6 makes that warning fatal before fallback. Both account
+initialization and recovery reject insecure input without creating/changing auth.
+The full local suite now passes **177 Python tests**; all six Rust tests still pass.
+GitHub's dev5 checks also passed the reviewed Debian-container ARM64 cross-build.
+
+The new dev6 wheel SHA-256 is
+`5167a35b013fe966b6b30249ef5a90d598a2fd1be705b90ff1eb570370868e32`.
+It was checksum-verified and installed in a separate private Pi venv. Actual
+loopback HTTP password change, session revocation/isolation, private PTY CLI
+recovery and real-rclone local metadata checks passed again. An actual invocation
+without a secure terminal refused with exit2 and no new state. No production
+account/service/network was changed. [Result](acceptance/pi-secure-prompt-2026-11-13.json).
+
+The latest private upgrade transaction targets dev6, validates its exact artifact,
+backs up private state and prior unit configuration, prepares the new version
+before stopping dev3, and includes checked process/HTTP rollback. It has not run:
+a privately authenticated administrator terminal remains required. Static and
+mocked transaction helper checks do not establish an executed upgrade.

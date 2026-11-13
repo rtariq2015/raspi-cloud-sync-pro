@@ -8,6 +8,7 @@ import re
 import secrets
 import stat
 import time
+import warnings
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -98,8 +99,15 @@ def _publish_auth(state, data):
 
 def _password(password=None, confirmation=None):
     if password is None:
-        password = getpass.getpass("New dashboard password: ")
-        confirmation = getpass.getpass("Confirm dashboard password: ")
+        try:
+            with warnings.catch_warnings():
+                # getpass warns before using its potentially echoed fallback.
+                # Fail there instead of ever reading a secret insecurely.
+                warnings.simplefilter("error", getpass.GetPassWarning)
+                password = getpass.getpass("New dashboard password: ")
+                confirmation = getpass.getpass("Confirm dashboard password: ")
+        except getpass.GetPassWarning:
+            raise ValueError("A secure interactive terminal is required") from None
     if not isinstance(password, str) or not 12 <= len(password) <= 256:
         raise ValueError("Use a password between 12 and 256 characters")
     if confirmation is not None and (not isinstance(confirmation, str) or password != confirmation):
