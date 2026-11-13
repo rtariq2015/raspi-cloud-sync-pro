@@ -48,16 +48,23 @@ the share runtime without changing them. The Pi loopback Samba test is accepted;
 stable USB addressing and actual Windows-host transfers remain, preserving the
 working Wi-Fi management path. Cloud-account acceptance follows local capture.
 
-## Phase 3 — scheduler implemented; cloud account acceptance pending
+## Phase 3 — scheduler implemented; first Google Drive QA backup accepted
 
 The opt-in completed-batch worker and small Rust scheduler are implemented and
-tested locally; the Rust ready-batch fixture also ran on the Pi. See
+tested locally; the Rust ready-batch fixture also ran on the Pi. Real browser
+owner/session/PKCE authorization and one controlled Google Drive QA upload with
+independent downloaded-content SHA-256 verification now pass on the Pi. The
+original stays retained. This does not enable recurring background uploads. See
 [the worker guide](STAGED_WORKER.md) and [Rust evidence](RUST_EVALUATION.md).
 
-Configure a Koofr WebDAV remote with TLS and a separate app password; configure
-Google Drive with a dedicated OAuth client/scope using rclone's headless workflow.
-Keep config and tokens outside Git, mode 0600, owned by the service user. Confirm
-each configured backend and backup directory before enabling the adapter.
+Complete the Google Drive folder/test/enable wizard and persistent worker, then
+accept token refresh, large/changed files, outages and interrupted real-account
+uploads. The controlled proof used a dedicated OAuth client with `drive.file`;
+External/Testing retains its seven-day refresh-token limit. Rclone's documented
+headless setup remains an alternative to the tested browser path. Keep config
+and tokens outside Git, mode 0600, owned by the service user. Confirm each backend
+and destination before enabling it. Koofr app-password and Dropbox real-account
+authorization/backup trials remain pending.
 
 Use test accounts for path encoding, empty/large/changed files, interrupted uploads,
 auth expiry, rate/quota failures and downloaded-content checks. Measure real

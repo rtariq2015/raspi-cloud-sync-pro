@@ -18,8 +18,9 @@ Local storage · Verified cloud backups · Desktop and phone dashboard
 
 > **Development preview — 13 November 2026.** The dashboard runs on a real Pi,
 > and authenticated access through a temporary HTTPS tunnel has passed testing.
-> Real cloud-account backups, Windows/USB share acceptance and a ready-to-flash
-> image are still ahead. No production release has been published.
+> The first controlled Google Drive QA backup passed upload and independent
+> read-back verification. Automatic cloud setup, Windows/USB share acceptance and
+> a ready-to-flash image remain unfinished. No production release has been published.
 
 ## Meet your dashboard
 
@@ -43,9 +44,10 @@ automatically deletes originals or staged files.
 
 **Back up with evidence.** Koofr WebDAV, Google Drive and Dropbox use rclone adapters with
 separate jobs per destination. “Verified” means remote contents were downloaded
-and checked against SHA-256. Real account authorization and acceptance are pending.
-The dev7 source adds guided Google Drive/Dropbox sign-in foundations; folder
-selection, account testing and upload enablement remain separate steps.
+and checked against SHA-256. Real Google browser authorization and one controlled
+QA-file backup have passed on the Pi. Koofr and Dropbox real-account tests remain.
+The guided folder/test/enable workflow and persistent background worker are still
+being completed; automatic uploads remain disabled.
 
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
@@ -63,8 +65,8 @@ remain to be accepted.
 | Home Wi-Fi and authenticated SSH | Stable USB addressing, reboot and long-duration checks |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
-| Versioned backup engine, retries and independent read-back verification | Private Koofr, Google Drive and Dropbox test accounts |
-| Opt-in completed-batch worker and small Rust scheduler | Real cloud accounts and sustained-load acceptance |
+| First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
+| Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |

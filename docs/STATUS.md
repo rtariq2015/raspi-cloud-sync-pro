@@ -25,6 +25,11 @@ for remote automated checks.
 - End-to-end Rust → Python → ARM64 rclone trial: three files, two temporary local
   destinations, six read-back verified jobs, blocked-policy queueing, deduplication
   and retained data after controlled process interruption. No cloud account used.
+- First controlled real Google Drive backup on dev8: browser owner/session/PKCE
+  authorization passed, then one known QA file uploaded to a unique app-owned
+  folder and passed independent downloaded-content SHA-256 verification. The
+  original and private QA configuration are retained; background uploads remain
+  disabled. [Sanitized evidence](acceptance/pi-google-drive-2026-11-13.json).
 - Real encrypted Samba protocol fixture in an isolated Linux container: active
   writers defer capture; snapshot handles block new writes/deletes. This is
   separate from actual Pi/Windows/USB acceptance.
@@ -71,14 +76,16 @@ has completed. No account passwords, USB/Wi-Fi settings or boot enablement chang
    then accept an off-LAN phone connection.
 2. Extend the accepted Pi loopback Samba contract to actual Windows/USB host
    transfers after stable USB addressing is established.
-3. Finish Google Drive authorization and actual cloud acceptance first;
-   account password change/recovery has now passed an isolated Pi HTTP trial.
+3. Complete the guided Google Drive folder/test/enable workflow and persistent
+   worker after the first controlled real-account proof. Extend account trials
+   to refresh, outages, large/changed files and the other providers.
 4. Resolve the observed existing USB profile auto-switcher/DHCP loop without
    interrupting Wi-Fi management, then accept actual Pi Samba and host transfers.
 
 ## Still requires acceptance
 
-- Google Drive authorization and Koofr app-password setup with real test accounts.
+- Google Drive refresh/outage/large-file acceptance and recurring worker setup;
+  Koofr and Dropbox real-account authorization and backup tests.
 - A phone on an outside network and physical Android PWA installation.
 - Enterprise Wi-Fi on the intended network with its approved CA/server identity.
 - Captive-portal sign-in for the Pi's own session; no universal automatic acceptance.
@@ -88,6 +95,12 @@ has completed. No account passwords, USB/Wi-Fi settings or boot enablement chang
 Bluetooth setup/status is an optional future addition. It is not enabled by this
 work. The chosen architecture stays lightweight: Rust watcher, Python control/UI,
 and rclone/Samba for their protocols.
+
+The Google trial used approved Wi-Fi before and after, with rclone bound to the
+Wi-Fi IPv4 address; it does not establish an egress-firewall guarantee. Firmware
+reported no throttling afterward. The OAuth application stays External/Testing,
+where Drive refresh tokens expire after seven days. This one-file proof does not
+complete automatic consumer setup or indefinite unattended backup.
 
 ## Guides
 

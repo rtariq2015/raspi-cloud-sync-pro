@@ -31,6 +31,9 @@ rclone.conf.*
 *.pem
 *.key
 credentials.json
+client_secret*.json
+google-oauth-*-private.json
+google-oauth-client-payload.json
 token.json
 auth.json
 auth-backup-*.json

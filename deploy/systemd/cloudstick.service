@@ -20,4 +20,5 @@ PrivateDevices=yes
 ReadWritePaths=/var/lib/raspi-cloud-sync-pro/smb-state
 ReadOnlyPaths=/var/lib/raspi-cloud-sync-pro/smb-staging
 CapabilityBoundingSet=
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# ip route observations use Netlink; the service retains no network-admin capability.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK

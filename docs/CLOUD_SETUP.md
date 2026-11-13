@@ -1,8 +1,10 @@
 # Private cloud setup and acceptance
 
-Cloud adapters and the ready-batch worker are implemented. Real Google Drive,
-Koofr and Dropbox account acceptance is still pending. The Pi pipeline trials used two local
-rclone aliases; those results must never be presented as cloud-account evidence.
+Cloud adapters and the ready-batch worker are implemented. The first controlled
+Google Drive QA backup on the Pi passed real browser authorization, upload and
+independent read-back verification. Recurring Google backups and Koofr/Dropbox
+real-account acceptance remain pending. Earlier Pi pipeline trials used local
+rclone aliases; those results remain separate from the real-account proof.
 
 ## Prepare privately
 
@@ -46,7 +48,7 @@ with `folder_selected`, `test_verified` and `uploads_enabled` all false.
 
 | Destination | Account connection | Current acceptance |
 | --- | --- | --- |
-| Google Drive | Google's own sign-in and consent page | OAuth source/tests; real consent and rclone handoff pending |
+| Google Drive | Google's own sign-in and consent page | Real browser consent and one controlled QA upload/read-back passed; enable wizard and recurring worker pending |
 | Dropbox | Dropbox's own sign-in and consent page | OAuth and upload adapter source/tests; real consent/backup pending |
 | Koofr | HTTPS WebDAV with a Koofr app password | Adapter implemented; private form and real-account tests pending |
 | Synology NAS | Dedicated NAS account, validated HTTPS WebDAV or SFTP endpoint | Connector/setup design; no NAS acceptance yet |
@@ -103,6 +105,28 @@ Configure every reverse proxy/access log to omit callback query strings; TLS
 alone does not keep authorization codes out of an access log. Never capture
 provider sign-in, callback URLs or tokens in screenshots or acceptance records.
 See [Google's web-server flow](https://developers.google.com/identity/protocols/oauth2/web-server).
+
+### First controlled Google Drive backup — 13 November 2026
+
+On the physical Zero 2 W running dev8, the real browser flow passed the
+owner/session-bound PKCE and cookie-return path. A separate, private QA
+configuration used the direct rclone `drive` backend to create a unique app-owned
+test folder and upload one known `Sample-report.json`. The existing backup engine
+recorded the job as verified after an independent download matched the fixture's
+SHA-256. The original and private QA configuration remain retained; the source
+credentials stayed unchanged. [Sanitized result](acceptance/pi-google-drive-2026-11-13.json).
+
+Approved Wi-Fi was checked before and after; rclone was bound to its Wi-Fi IPv4
+address. Wi-Fi supplied cloud Internet; the trial required no Windows Internet
+Sharing. This does not establish an egress-firewall guarantee. Firmware reported
+`throttled=0x0` afterward. The trial changed no USB/network configuration and
+performed no automatic deletion.
+
+This is one controlled proof, not complete automatic setup. The dashboard's
+folder/test/enable wizard and persistent background worker remain unfinished;
+background uploads stay disabled. Token refresh, outages, large/changed files and
+unattended operation still need real-account trials. The application remains
+External/Testing with the seven-day refresh-token limitation described above.
 
 ### Dropbox upload adapter — dev8 source
 

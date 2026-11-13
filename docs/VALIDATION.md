@@ -370,3 +370,42 @@ logout revocation. Missing OAuth-client setup was reported without enabling
 uploads. No new file upload, real cloud account, boot enablement or network change
 is claimed. Wi-Fi remained connected; USB was still in its existing DHCP state70.
 [HTTPS record](acceptance/pi-https-dev8-2026-11-13.json).
+
+## First real Google Drive QA backup — development 0.1.0.dev8
+
+On the physical Zero 2 W, real Chrome authorization passed the dashboard's
+owner/session-bound PKCE and cookie-return path. A private, controlled QA run
+then used the direct rclone `drive` backend and the existing backup engine to
+upload exactly one known `Sample-report.json` into a unique app-owned QA folder.
+The job reached `verified` after independently downloaded remote contents matched
+the fixture's SHA-256. The original and private QA configuration remain retained;
+the source credentials stayed unchanged.
+[Sanitized evidence](acceptance/pi-google-drive-2026-11-13.json).
+
+Approved Wi-Fi was observed before and after, and rclone was bound to its Wi-Fi
+IPv4 address. Wi-Fi supplied cloud Internet without Windows Internet Sharing.
+This does not establish an egress-firewall guarantee. No USB/network settings
+changed, no automatic deletion occurred and firmware reported `throttled=0x0`
+afterward. No duration, throughput, endurance or electrical power-failure claim
+is established by this one-file proof.
+
+The Google application remains External/Testing, with its seven-day Drive
+refresh-token limitation. The OAuth-to-rclone folder/test/enable wizard and a
+persistent recurring worker remain unfinished; background uploads stay disabled.
+Large/changed/interrupted transfers, refresh, outages and other providers still
+need real-account acceptance.
+
+## Inactive service-template network diagnostics
+
+The dashboard and Rust worker unit templates now allow `AF_NETLINK` so read-only
+`ip route` observations can work inside their address-family restrictions.
+Independent disposable-child seccomp probes reproduced `EAFNOSUPPORT` and
+`ip route` exit 1 without that family; allowing it produced a successful
+`NETLINK_ROUTE` socket and `ip route` exit 0 with valid JSON. Empty capability
+bounding sets and `NoNewPrivileges` remain; neither `CAP_NET_ADMIN` nor
+`AF_PACKET` was added.
+
+Focused reruns passed nine device-mode, twelve staged-worker and six
+network-diagnostics tests. `systemd-analyze verify` passed temporary unit copies
+with only `ExecStart` replaced by `/usr/bin/true`. This template fix installed or
+started no units and changed no network settings or Pi configuration.
