@@ -62,12 +62,12 @@ remain to be accepted.
 | Dashboard login, owner/viewer roles, uploads, text previews and downloads | Account recovery, invitations and broader file browsing |
 | Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
 | Versioned backup engine, retries and independent read-back verification | Private Koofr and Google Drive test accounts |
-| Opt-in completed-batch worker and small Rust scheduler | End-to-end worker acceptance on the Pi |
-| Guarded USB controller and Samba snapshot components | Actual share locks, host behavior and power-loss tests |
+| Opt-in completed-batch worker and small Rust scheduler | Real cloud accounts and sustained-load acceptance |
+| Guarded USB controller; actual Samba protocol-lock fixture | Pi/Windows share locks, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**145 Python tests and 4 Rust tests pass locally.** Python tests include actual
+**153 Python tests and 6 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).

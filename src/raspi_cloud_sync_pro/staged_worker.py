@@ -87,10 +87,13 @@ def observe_uplink():
         result = subprocess.run(["nmcli", "-g", "GENERAL.METERED", "device", "show", name],
                                 capture_output=True, text=True, timeout=5, check=False,
                                 env={**os.environ, "LC_ALL": "C", "PATH": "/usr/sbin:/usr/bin:/sbin:/bin"})
-        metered = result.stdout.strip()
-        if result.returncode or metered not in ("yes", "no", "guess-yes", "guess-no"):
+        # nmcli renders guessed enum values with parentheses, unlike D-Bus
+        # enum names. Accept only explicit C-locale values; unknown stays shut.
+        metered = {"yes": True, "no": False, "guess-yes": True, "guess-no": False,
+                   "yes (guessed)": True, "no (guessed)": False}.get(result.stdout.strip())
+        if result.returncode or metered is None:
             return "unknown", Connectivity.UNKNOWN, True
-        return uplink, Connectivity.ONLINE, metered in ("yes", "guess-yes")
+        return uplink, Connectivity.ONLINE, metered
     except (OSError, subprocess.TimeoutExpired):
         return "unknown", Connectivity.UNKNOWN, True
 
@@ -122,10 +125,21 @@ class StagedWorker:
                 batch_root TEXT NOT NULL, destination TEXT NOT NULL, manifest_sha256 TEXT NOT NULL,
                 registered_at REAL NOT NULL, PRIMARY KEY(batch_root,destination,manifest_sha256)
             )""")
+            history.connection.execute("""CREATE TABLE IF NOT EXISTS staged_rejections (
+                batch_root TEXT PRIMARY KEY, fingerprint TEXT NOT NULL
+            )""")
+
+    def _reject(self, root, fingerprint):
+        # Keep unchanged malformed batches from monopolizing every fresh child.
+        self.rejected[root] = fingerprint
+        with self.history.connection:
+            self.history.connection.execute(
+                "INSERT OR REPLACE INTO staged_rejections VALUES (?,?)", (root, fingerprint))
 
     def tick(self, *, now=None, observation=None):
         now = time.time() if now is None else now
-        result = {"jobs_added": 0, "rejected_batches": 0, "cloud_results": []}
+        result = {"jobs_added": 0, "rejected_batches": 0, "cloud_results": [],
+                  "reconciliation_pending": False}
         staging = self.settings.staging
         if staging.is_symlink():
             raise BackupError("unsafe_staging_roots")
@@ -144,11 +158,13 @@ class StagedWorker:
                         fingerprint = (info.st_ino, info.st_mtime_ns, manifest_info.st_mtime_ns, manifest_info.st_size)
                     except OSError:
                         fingerprint = (info.st_ino, info.st_mtime_ns)
-                    if self.rejected.get(entry.path) == fingerprint:
+                    fingerprint = json.dumps(fingerprint, separators=(",", ":"))
+                    previous_rejection = self.history.connection.execute(
+                        "SELECT fingerprint FROM staged_rejections WHERE batch_root=?", (entry.path,)).fetchone()
+                    if self.rejected.get(entry.path) == fingerprint or \
+                            (previous_rejection and previous_rejection[0] == fingerprint):
                         continue
-                    if newly_checked >= 100:
-                        break
-                    newly_checked += 1
+                    charged = False
                     try:
                         digest = hashlib.sha256()
                         with open_regular(Path(entry.path), "manifest.json") as manifest:
@@ -161,6 +177,11 @@ class StagedWorker:
                         if not missing:
                             self.reconciled.add(entry.path)
                             continue
+                        if newly_checked >= 100:
+                            result["reconciliation_pending"] = True
+                            break
+                        newly_checked += 1
+                        charged = True
                         batch = ReadyBatch.load(Path(entry.path))
                         for provider in missing:
                             result["jobs_added"] += self.history.enqueue(batch, provider.destination_id, now)
@@ -169,8 +190,15 @@ class StagedWorker:
                                                                 (entry.path, provider.destination_id, signature, now))
                         self.reconciled.add(entry.path)
                     except (BackupError, OSError):
+                        # Opening a missing/unsafe manifest also consumes the
+                        # reconciliation budget, while known receipts do not.
+                        if not charged:
+                            if newly_checked >= 100:
+                                result["reconciliation_pending"] = True
+                                break
+                            newly_checked += 1
                         result["rejected_batches"] += 1
-                        self.rejected[entry.path] = fingerprint
+                        self._reject(entry.path, fingerprint)
         uplink, connectivity, metered = observe_uplink() if observation is None else observation
         allowed = approved_internet(self.settings.policy, uplink, connectivity)
         for provider in self.providers:

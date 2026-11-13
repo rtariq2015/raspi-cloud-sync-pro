@@ -100,7 +100,19 @@ pub fn snapshot(staging: &Path, config: &Path) -> Result<Snapshot> {
     })
 }
 
-pub fn run_worker(runner: &Path, config: &Path) -> Result<u64> {
+#[derive(Debug, PartialEq, Eq)]
+pub struct WorkerReport {
+    pub pending_jobs: u64,
+    pub reconciliation_pending: bool,
+}
+
+impl WorkerReport {
+    pub fn needs_work(&self) -> bool {
+        self.pending_jobs > 0 || self.reconciliation_pending
+    }
+}
+
+pub fn run_worker(runner: &Path, config: &Path) -> Result<WorkerReport> {
     // Direct argv invocation only. The trusted runner uses exec, and systemd's
     // control-group kill policy stops the worker and rclone together on shutdown.
     let mut child = Command::new(runner)
@@ -124,10 +136,18 @@ pub fn run_worker(runner: &Path, config: &Path) -> Result<u64> {
     }
     let report: serde_json::Value =
         serde_json::from_slice(&output).map_err(|_| "invalid_worker_report")?;
-    report
+    let pending_jobs = report
         .get("pending_jobs")
         .and_then(serde_json::Value::as_u64)
-        .ok_or("invalid_worker_report")
+        .ok_or("invalid_worker_report")?;
+    let reconciliation_pending = match report.get("reconciliation_pending") {
+        None => false, // Older workers do not have a reconciliation budget signal.
+        Some(value) => value.as_bool().ok_or("invalid_worker_report")?,
+    };
+    Ok(WorkerReport {
+        pending_jobs,
+        reconciliation_pending,
+    })
 }
 
 pub fn validated_paths(staging: &Path, runner: &Path, config: &Path) -> Result<()> {
@@ -223,7 +243,25 @@ mod tests {
         fs::set_permissions(&runner, fs::Permissions::from_mode(0o700)).unwrap();
         assert_eq!(
             run_worker(&runner, &fixture.0.join("worker.json")).unwrap(),
-            2
+            WorkerReport {
+                pending_jobs: 2,
+                reconciliation_pending: false,
+            }
+        );
+        fs::write(
+            &runner,
+            "#!/bin/sh\nprintf '%s\\n' '{\"pending_jobs\":0,\"reconciliation_pending\":true}'\n",
+        )
+        .unwrap();
+        assert!(
+            run_worker(&runner, &fixture.0.join("worker.json"))
+                .unwrap()
+                .needs_work()
+        );
+        fs::write(&runner, "#!/bin/sh\nprintf '%s\\n' '{\"pending_jobs\":0,\"reconciliation_pending\":\"false\"}'\n").unwrap();
+        assert_eq!(
+            run_worker(&runner, &fixture.0.join("worker.json")),
+            Err("invalid_worker_report")
         );
         fs::write(&runner, "#!/bin/sh\nprintf '%s\\n' '{\"uploaded\":true}'\n").unwrap();
         assert_eq!(

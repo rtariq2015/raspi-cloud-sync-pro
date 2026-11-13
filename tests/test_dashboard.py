@@ -1,11 +1,94 @@
 import importlib.util
 import io
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 
-from raspi_cloud_sync_pro.dashboard import create_app, initialize_dashboard
+from raspi_cloud_sync_pro.dashboard import create_app, initialize_dashboard, worker_snapshot
+
+
+class WorkerSnapshotTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.path = self.root / "worker-status.json"
+        self.report = {"jobs_added": 1, "rejected_batches": 0, "cloud_results": ["paused"],
+                       "observed_uplink": "wifi", "metered": True, "network_policy_allows_upload": False,
+                       "updated_at": 1000, "destinations": ["koofr_webdav/private:folder"],
+                       "automatic_deletion": False, "pending_jobs": 2}
+
+    def write_report(self, report=None):
+        self.path.write_text(json.dumps(self.report if report is None else report))
+        self.path.chmod(0o600)
+
+    def test_report_is_projected_without_destination_names_or_cloud_claims(self):
+        self.write_report()
+        before = self.path.read_bytes()
+        result = worker_snapshot(self.root, now=1001)
+        self.assertEqual(result["state"], "observed")
+        self.assertEqual(result["pending_jobs"], 2)
+        self.assertEqual(result["destination_count"], 1)
+        self.assertFalse(result["network_policy_allows_upload"])
+        self.assertFalse(result["cloud_accounts_verified"])
+        self.assertNotIn("private:folder", json.dumps(result))
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_stale_report_is_distinguished_without_dropping_observed_queue(self):
+        self.write_report({**self.report, "reconciliation_pending": True})
+        result = worker_snapshot(self.root, now=1400)
+        self.assertEqual(result["state"], "stale")
+        self.assertEqual(result["age_seconds"], 400)
+        self.assertEqual(result["pending_jobs"], 2)
+        self.assertTrue(result["reconciliation_pending"])
+        self.write_report({**self.report, "updated_at": 1400})
+        self.assertEqual(worker_snapshot(self.root, now=1000)["state"], "invalid")
+
+    def test_missing_unconfigured_error_and_unreadable_reports_are_distinct(self):
+        self.assertEqual(worker_snapshot(None)["state"], "not_connected")
+        self.assertEqual(worker_snapshot(self.root / "missing")["state"], "unavailable")
+        self.assertFalse((self.root / "missing").exists())
+        self.write_report({"error": "staged_worker_tick_failed", "updated_at": 1000, "automatic_deletion": False})
+        result = worker_snapshot(self.root, now=1001)
+        self.assertEqual(result["state"], "error")
+        self.assertIsNone(result["pending_jobs"])
+        self.path.unlink()
+        self.path.symlink_to(self.root / "absent")
+        self.assertEqual(worker_snapshot(self.root, now=1001)["state"], "unavailable")
+
+    def test_malformed_oversized_secret_and_nonfinite_reports_are_not_exposed(self):
+        for data in ({**self.report, "password": "private-test-value"},
+                     {**self.report, "pending_jobs": True}, {**self.report, "updated_at": float("nan")},
+                     {**self.report, "updated_at": 10 ** 400}, {**self.report, "automatic_deletion": True},
+                     {**self.report, "cloud_results": ["arbitrary-provider-output"]},
+                     {**self.report, "destinations": [{}]}, {**self.report, "reconciliation_pending": "yes"}):
+            self.write_report(data)
+            result = worker_snapshot(self.root, now=1001)
+            self.assertEqual(result["state"], "invalid")
+            self.assertIsNone(result["pending_jobs"])
+            self.assertNotIn("private-test-value", json.dumps(result))
+        self.path.write_text(" " * 65537)
+        self.assertEqual(worker_snapshot(self.root, now=1001)["state"], "invalid")
+        self.path.write_text('{"updated_at":1,"updated_at":2}')
+        self.assertEqual(worker_snapshot(self.root, now=1001)["state"], "invalid")
+
+    def test_symlinks_fifo_and_writable_status_are_refused_without_following(self):
+        self.write_report()
+        self.path.chmod(0o666)
+        self.assertEqual(worker_snapshot(self.root, now=1001)["state"], "invalid")
+        self.path.unlink()
+        os.mkfifo(self.path)
+        self.assertEqual(worker_snapshot(self.root, now=1001)["state"], "unavailable")
+        self.path.unlink()
+        self.write_report()
+        link = self.root / "link"
+        link.symlink_to(self.root, target_is_directory=True)
+        self.assertEqual(worker_snapshot(link, now=1001)["state"], "invalid")
+        nested = self.root / "nested"
+        nested.mkdir()
+        self.assertEqual(worker_snapshot(link / "nested", now=1001)["state"], "invalid")
 
 
 @unittest.skipUnless(importlib.util.find_spec("flask"), "optional dashboard dependencies not installed")
@@ -141,3 +224,24 @@ class DashboardTests(unittest.TestCase):
         response = client.get("/login", base_url="https://public.example")
         self.assertIn("Secure", response.headers["Set-Cookie"])
         self.assertIn("max-age", response.headers["Strict-Transport-Security"])
+
+    def test_optional_worker_report_does_not_enable_cloud_or_create_history(self):
+        worker = self.root / "worker"
+        worker.mkdir(mode=0o700)
+        status = worker / "worker-status.json"
+        import time
+        status.write_text(json.dumps({"jobs_added": 0, "rejected_batches": 0, "cloud_results": ["verified"],
+                          "observed_uplink": "wifi", "metered": False, "network_policy_allows_upload": True,
+                          "updated_at": time.time(), "destinations": ["google_drive_rclone/test:folder"],
+                          "automatic_deletion": False, "pending_jobs": 0}))
+        status.chmod(0o600)
+        self.client = create_app(self.root, worker_state=worker, network_reader=lambda: {}).test_client()
+        self.login("viewer", "test-viewer-password")
+        response = self.client.get("/api/status")
+        self.assertEqual(response.json["worker"]["state"], "observed")
+        self.assertEqual(response.json["worker"]["pending_jobs"], 0)
+        self.assertEqual(response.json["cloud"], "not_configured")
+        self.assertFalse(response.json["worker"]["cloud_accounts_verified"])
+        self.assertEqual(self.client.get("/api/history").json, {"available": False, "jobs": []})
+        self.assertFalse((worker / "history.sqlite3").exists())
+        self.assertEqual(list(worker.iterdir()), [status])

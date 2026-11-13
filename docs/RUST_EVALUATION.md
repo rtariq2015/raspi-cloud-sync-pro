@@ -39,7 +39,8 @@ constructed from filenames. The [upload wrapper](../tools/cloudstick/upload.sh)
 executes the existing completed-batch worker once. Only a valid pending-job report
 allows the watcher to park after the work is drained. Paused/failed/unknown child
 outcomes do not become a backup-success claim. A new batch/configuration or pending
-jobs triggers another worker run. SQLite registration receipts avoid repeatedly
+jobs or unfinished reconciliation triggers another worker run. `--once` fails
+if the child fails or returns an invalid report. SQLite registration receipts avoid repeatedly
 hashing an unchanged completed batch across short-lived worker invocations;
 the upload engine still rechecks actual bytes before upload/verification.
 
@@ -87,3 +88,17 @@ The watcher result supports using Rust for the always-idle scheduler. It does
 not establish that rclone, Samba, network firmware, hashing or a full appliance
 will stay below a particular total RAM value. Sustained-transfer, retry, radio
 coexistence, power failure and end-to-end cloud account tests remain necessary.
+
+
+## End-to-end follow-up
+
+The revised scheduler passed six Rust tests (four unit, two CLI), formatting,
+clippy and ARM64 release build. The binary remains 398,048 bytes; new SHA-256:
+`93c16d59ffda4281d8d5a218392b0c67e8db2cf6e1c78922d60113cbd4384d17`.
+On the Pi, it invoked the actual Python CLI worker and ARM64 rclone against two
+temporary local alias destinations. Three files produced six read-back verified
+jobs; an unapproved-uplink policy first paused them without spending attempts.
+Incomplete data and all originals stayed retained, repeat runs deduplicated, and
+a controlled process-group stop followed by another run retained completed work.
+This does not simulate electrical power failure or accept a real cloud account.
+See [the result record](acceptance/pi-worker-2026-11-13.json).

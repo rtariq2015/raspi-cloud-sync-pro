@@ -110,6 +110,38 @@ class StagedWorkerTests(unittest.TestCase):
         self.assertEqual(self.history.jobs(), [])
         self.assertTrue((staging / "broken.ready").exists())
 
+    def test_short_lived_workers_finish_reconciliation_beyond_the_tick_budget(self):
+        # Empty, valid manifests produce no jobs, so pending_jobs cannot signal
+        # the remaining registration work to the Rust parent.
+        self.settings.staging.mkdir()
+        for number in range(101):
+            batch = self.settings.staging / f"{number:032x}.ready"
+            batch.mkdir()
+            (batch / "manifest.json").write_text('{"schema_version":1,"files":[]}')
+        provider = Destination("first")
+        first = StagedWorker(self.settings, self.history, [provider]).tick(
+            observation=("unknown", Connectivity.OFFLINE, True))
+        self.assertEqual(first["pending_jobs"], 0)
+        self.assertTrue(first["reconciliation_pending"])
+        second = StagedWorker(self.settings, self.history, [provider]).tick(
+            observation=("unknown", Connectivity.OFFLINE, True))
+        self.assertFalse(second["reconciliation_pending"])
+        self.assertEqual(self.history.connection.execute("SELECT COUNT(*) FROM staged_receipts").fetchone()[0], 101)
+
+    def test_retained_malformed_batches_cannot_starve_fresh_worker_reconciliation(self):
+        self.settings.staging.mkdir()
+        for number in range(101):
+            (self.settings.staging / f"{number:032x}.ready").mkdir()
+        good = stage_upload(io.BytesIO(b"QA"), "good.txt", self.settings.staging)
+        provider = Destination("first")
+        results = [StagedWorker(self.settings, self.history, [provider]).tick(
+            observation=("unknown", Connectivity.OFFLINE, True)) for _ in range(3)]
+        self.assertTrue(results[0]["reconciliation_pending"])
+        self.assertFalse(results[-1]["reconciliation_pending"])
+        self.assertEqual(sum(result["rejected_batches"] for result in results), 101)
+        self.assertEqual(len(self.history.jobs()), 1)
+        self.assertEqual(self.history.jobs()[0]["batch_root"], str(good.root))
+
     def test_disabled_worker_does_not_create_state_and_bad_prerequisites_spend_no_attempts(self):
         with self.assertRaisesRegex(BackupError, "staged_worker_disabled"):
             run_staged_worker(self.settings, once=True)
@@ -144,6 +176,12 @@ class StagedWorkerTests(unittest.TestCase):
                   "interfaces": {"usb0": {"state_code": 100, "type": "ethernet"},
                                  "wlan0": {"state_code": 100, "type": "wifi"}}}
         for metered, expected in (("guess-no", ("usb_host_ics", Connectivity.ONLINE, False)),
+                                  ("no (guessed)", ("usb_host_ics", Connectivity.ONLINE, False)),
+                                  ("yes (guessed)", ("usb_host_ics", Connectivity.ONLINE, True)),
+                                  ("guess-yes", ("usb_host_ics", Connectivity.ONLINE, True)),
+                                  ("no", ("usb_host_ics", Connectivity.ONLINE, False)),
+                                  ("yes", ("usb_host_ics", Connectivity.ONLINE, True)),
+                                  ("no (unknown)", ("unknown", Connectivity.UNKNOWN, True)),
                                   ("unknown", ("unknown", Connectivity.UNKNOWN, True))):
             with mock.patch("raspi_cloud_sync_pro.staged_worker.network_status", return_value=report), \
                     mock.patch("subprocess.run", return_value=subprocess.CompletedProcess([], 0, metered, "")) as run:

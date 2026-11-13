@@ -124,3 +124,40 @@ new gadget configuration, service boot enablement or release publication is
 claimed. No source or staging deletion was introduced. A temporary tunnel is not
 a stable public deployment. Restricted service and tunnel rollback are described
 in [DASHBOARD.md](DASHBOARD.md).
+
+## Operational worker follow-up — 2026-11-13, development 0.1.0.dev4
+
+153 Python tests and six Rust tests pass. New regressions cover more than 100
+ready batches, malformed retained batches across worker restarts, failed Rust
+one-shot execution, actual nmcli guessed-metering labels, and dashboard reporting
+of unavailable, invalid, stale and sanitized worker state. Formatting, clippy,
+Ruff F/E9, Python and JavaScript parsing pass.
+
+A reviewed wheel (`d1331ce0cf822dd0fc675a9b863af33d4ddbefeb16f968c101fd99764646d055`)
+was installed in a new unprivileged Pi virtual environment, preserving existing
+preview/system installations. Actual Rust → Python CLI → ARM64 rclone execution
+produced six independently verified local copies from three files across two
+temporary alias destinations. Blocked-policy jobs spent no attempts; incomplete
+and completed payloads were retained; repeat runs deduplicated. Controlled
+process-group termination and a subsequent run retained/reconciled completed
+work. This was not a power cut or real cloud account test.
+
+The [sanitized Pi record](acceptance/pi-worker-2026-11-13.json) includes exact
+artifacts. No disk image, device configuration or network profile was modified.
+A follow-up found the existing official USB auto-switcher repeatedly trying DHCP
+against an autoconnected generic Ethernet profile, with changing USB addressing.
+Wi-Fi SSH remained available. USB carrier presence does not prove working USB IP
+access; stable USB addressing remains unresolved and requires a focused repair.
+
+An actual Debian Trixie Samba server in an isolated `--network none` Docker
+container passed encrypted SMB3 share-mode, access-control, staged-content,
+interrupted-read retention and changed-version checks. See the
+[result](acceptance/samba-container-2026-11-13.json) and
+[reproducible fixture](../tools/acceptance/samba/README.md). This is stronger than
+mocked SMB handles, but it does not replace Pi/Windows/USB acceptance. No host
+ports, device access or production hardware gates were enabled.
+
+The restricted system preview still runs the earlier dev3 artifact. Its upgrade
+and actual Pi Samba provisioning need a privately authenticated administrator
+session; the earlier authentication expired. Unprivileged development/testing
+continues. No administrator policy or account password was changed to bypass that.

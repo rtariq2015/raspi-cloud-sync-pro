@@ -42,18 +42,24 @@ fn run() -> Result<(), &'static str> {
         return Ok(());
     }
     validated_paths(&staging, &runner, &config)?;
-    let (mut previous, mut pending) = (None, 0);
+    let (mut previous, mut pending) = (None, false);
     loop {
         validated_paths(&staging, &runner, &config)?;
         let current = snapshot(&staging, &config)?;
-        if current.candidate_count() > 0 && (pending > 0 || previous.as_ref() != Some(&current)) {
+        if current.candidate_count() > 0 && (pending || previous.as_ref() != Some(&current)) {
             match run_worker(&runner, &config) {
-                Ok(count) => {
-                    pending = count;
-                    println!("{{\"event\":\"worker_completed\",\"pending_jobs\":{count}}}");
+                Ok(report) => {
+                    pending = report.needs_work();
+                    println!(
+                        "{{\"event\":\"worker_completed\",\"pending_jobs\":{},\"reconciliation_pending\":{}}}",
+                        report.pending_jobs, report.reconciliation_pending
+                    );
                 }
                 Err(code) => {
-                    pending = 1;
+                    if once {
+                        return Err(code);
+                    }
+                    pending = true;
                     eprintln!("{{\"error\":\"{code}\"}}");
                 }
             }

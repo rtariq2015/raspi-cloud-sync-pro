@@ -17,12 +17,18 @@ for remote automated checks.
   a temporary public HTTPS tunnel; no router ports or VPN app were needed.
 - Rust watcher fixture trial: 398,048-byte ARM64 binary, 1,796 KiB parent idle RSS,
   incomplete batches ignored and completed unchanged work not retriggered.
+- End-to-end Rust → Python → ARM64 rclone trial: three files, two temporary local
+  destinations, six read-back verified jobs, blocked-policy queueing, deduplication
+  and retained data after controlled process interruption. No cloud account used.
+- Real encrypted Samba protocol fixture in an isolated Linux container: active
+  writers defer capture; snapshot handles block new writes/deletes. This is
+  separate from actual Pi/Windows/USB acceptance.
 
 ![Actual dashboard on the Pi](images/dashboard-desktop.png)
 
 ## Implemented and tested locally
 
-- **145 Python tests and 4 Rust tests pass locally.** Python includes real rclone
+- **153 Python tests and 6 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -35,10 +41,11 @@ for remote automated checks.
 
 1. Replace the tested temporary HTTPS preview with a stable hostname/access policy,
    then accept an off-LAN phone connection.
-2. Connect the Rust scheduler to the staged-file worker on the Pi using disposable
-   local destinations before real cloud credentials.
-3. Connect the dashboard to live queue/destination state.
-4. Accept actual Samba file/lease locking while preserving USB management.
+2. Upgrade the restricted service after renewed private administrator authentication;
+   the new development package has already passed its isolated Pi worker trial.
+3. Finish browser account management and private cloud account onboarding.
+4. Resolve the observed existing USB profile auto-switcher/DHCP loop without
+   interrupting Wi-Fi management, then accept actual Pi Samba and host transfers.
 
 ## Still requires acceptance
 
@@ -65,3 +72,7 @@ and rclone/Samba for their protocols.
 
 Original files remain retained. The current SD card has not been reflashed.
 Main-branch merge and release publication still require owner approval.
+
+The current USB carrier stays present, but a follow-up observed its existing
+auto-switcher cycling between DHCP attempts and local addressing. This trial
+changed no USB profile; stable USB addressing is an outstanding acceptance item.

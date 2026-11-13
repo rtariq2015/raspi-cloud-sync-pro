@@ -27,6 +27,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     dashboard = commands.add_parser("dashboard", help="serve the authenticated dashboard on loopback only")
     dashboard.add_argument("--state", type=Path, required=True)
     dashboard.add_argument("--history", type=Path)
+    dashboard.add_argument("--worker-state", type=Path, help="read only the completed-batch worker's status directory")
     dashboard.add_argument("--port", type=int, default=8080)
     dashboard.add_argument("--public-origin", help="reviewed HTTPS origin behind the reverse proxy")
     for command in ("worker-plan", "backup-staged"):
@@ -84,7 +85,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 initialize_dashboard(args.state, username=args.username, role=args.role)
                 print("Dashboard account created. No network or backup service was changed.")
             else:
-                serve_dashboard(args.state, history=args.history, port=args.port,
+                serve_dashboard(args.state, history=args.history, worker_state=args.worker_state, port=args.port,
                                 public_origin=args.public_origin)
             return 0
         except ImportError:

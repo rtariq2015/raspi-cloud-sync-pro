@@ -2,10 +2,12 @@
 
 import getpass
 import json
+import math
 import os
 import re
 import secrets
 import shutil
+import stat
 import threading
 import time
 from datetime import timedelta
@@ -13,6 +15,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from . import __version__
+from .config import _unique_object
 from .errors import BackupError
 from .history import read_history
 from .network_diagnostics import network_status
@@ -75,7 +78,78 @@ def _read_auth(state):
     return data
 
 
-def create_app(state, *, history=None, public_origin=None, network_reader=network_status):
+def worker_snapshot(directory, *, now=None):
+    """Read only a bounded status report; it cannot prove account setup or liveness."""
+    unavailable = {"state": "not_connected" if directory is None else "unavailable",
+                   "updated_at": None, "age_seconds": None, "pending_jobs": None,
+                   "destination_count": None, "network_policy_allows_upload": None,
+                   "reconciliation_pending": None, "outcomes": [],
+                   "cloud_accounts_verified": False}
+    if directory is None:
+        return unavailable
+    root = Path(directory)
+    now = time.time() if now is None else now
+    try:
+        if not root.is_absolute() or ".." in root.parts:
+            raise ValueError()
+        for parent in root.parents:
+            info = parent.lstat()
+            trusted_sticky = info.st_uid == 0 and info.st_mode & stat.S_ISVTX
+            if not stat.S_ISDIR(info.st_mode) or (info.st_mode & 0o022 and not trusted_sticky):
+                raise ValueError()
+        info = root.lstat()
+        if not stat.S_ISDIR(info.st_mode) or info.st_mode & 0o022:
+            raise ValueError()
+        with open_regular(root, "worker-status.json") as stream:
+            info = os.fstat(stream.fileno())
+            if info.st_mode & 0o022 or info.st_size > 65536:
+                raise ValueError()
+            raw = stream.read(65537)
+        if len(raw) > 65536:
+            raise ValueError()
+        data = json.loads(raw, object_pairs_hook=_unique_object)
+        if not isinstance(data, dict):
+            raise ValueError()
+        updated = data.get("updated_at")
+        if type(updated) not in (int, float) or not math.isfinite(updated) or not 0 <= updated <= now + 30 \
+                or data.get("automatic_deletion") is not False:
+            raise ValueError()
+        age = max(0, int(now - updated))
+        if "error" in data:
+            if set(data) != {"error", "updated_at", "automatic_deletion"} \
+                    or data["error"] != "staged_worker_tick_failed":
+                raise ValueError()
+            return {**unavailable, "state": "error",
+                    "updated_at": updated, "age_seconds": age}
+        required = {"jobs_added", "rejected_batches", "cloud_results", "observed_uplink", "metered",
+                    "network_policy_allows_upload", "updated_at", "destinations", "automatic_deletion", "pending_jobs"}
+        if not required <= set(data) or set(data) - required - {"reconciliation_pending"}:
+            raise ValueError()
+        for field in ("jobs_added", "rejected_batches", "pending_jobs"):
+            if type(data[field]) is not int or not 0 <= data[field] <= 10 ** 12:
+                raise ValueError()
+        destinations, outcomes = data["destinations"], data["cloud_results"]
+        if not isinstance(destinations, list) or not 1 <= len(destinations) <= 8 \
+                or any(not isinstance(value, str) or not value or len(value) > 512
+                       or any(ord(char) < 32 for char in value) for value in destinations) \
+                or len(set(destinations)) != len(destinations) or not isinstance(outcomes, list) \
+                or len(outcomes) != len(destinations) \
+                or any(value not in (None, "verified", "retry", "paused", "failed") for value in outcomes) \
+                or data["observed_uplink"] not in ("wifi", "usb_host_ics", "unknown") \
+                or any(type(data[field]) is not bool for field in ("metered", "network_policy_allows_upload")) \
+                or type(data.get("reconciliation_pending", False)) is not bool:
+            raise ValueError()
+        return {**unavailable, "state": "stale" if age > 300 else "observed", "updated_at": updated,
+                "age_seconds": age, "pending_jobs": data["pending_jobs"], "destination_count": len(destinations),
+                "network_policy_allows_upload": data["network_policy_allows_upload"],
+                "reconciliation_pending": data.get("reconciliation_pending", False), "outcomes": outcomes}
+    except (ValueError, TypeError, UnicodeError, RecursionError, OverflowError):
+        return {**unavailable, "state": "invalid"}
+    except (OSError, BackupError):
+        return unavailable
+
+
+def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status):
     from flask import Flask, abort, jsonify, redirect, render_template, request, send_file, session, url_for
     from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -210,7 +284,8 @@ def create_app(state, *, history=None, public_origin=None, network_reader=networ
         disk = shutil.disk_usage(state)
         return jsonify(project="Raspi Cloud Sync Pro", version=__version__, network=network,
                        storage={"free": disk.free, "total": disk.total}, role=current_user()["role"],
-                       cloud="not_configured", automatic_deletion=False, remote_access="external_setup_required")
+                       cloud="not_configured", automatic_deletion=False, remote_access="external_setup_required",
+                       worker=worker_snapshot(worker_state))
 
     @app.get("/api/history")
     def history_view():
@@ -321,12 +396,12 @@ def create_app(state, *, history=None, public_origin=None, network_reader=networ
     return app
 
 
-def serve_dashboard(state, *, history=None, port=8080, public_origin=None):
+def serve_dashboard(state, *, history=None, worker_state=None, port=8080, public_origin=None):
     from waitress import serve
     if type(port) is not int or not 1024 <= port <= 65535:
         raise ValueError("Use an unprivileged dashboard port")
     # Always loopback. A reviewed HTTPS reverse proxy supplies external access.
-    app = create_app(state, history=history, public_origin=public_origin)
+    app = create_app(state, history=history, worker_state=worker_state, public_origin=public_origin)
     serve(app, host="127.0.0.1", port=port, threads=2, connection_limit=32,
           channel_timeout=30, max_request_body_size=102 * 1024 * 1024,
           clear_untrusted_proxy_headers=True)

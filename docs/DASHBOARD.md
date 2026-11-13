@@ -110,3 +110,15 @@ To stop the temporary public preview, stop only
 `raspi-cloud-tunnel-preview.service`; this does not stop USB, Wi-Fi or SSH.
 The transient dashboard candidate is `raspi-cloud-dashboard-candidate.service`.
 Retain its state and uploads when stopping or replacing it.
+
+## Read-only worker report — development 0.1.0.dev4
+
+Pass `--worker-state /absolute/private/worker-state` to read only that directory's
+fixed `worker-status.json`. Select `--history /absolute/path/history.sqlite3`
+separately if recorded jobs should be shown. Neither option activates a worker
+or reads its cloud credential configuration. The Backups panel distinguishes
+not connected, unavailable, malformed, error, observed and older-than-five-minute
+reports. An older report does not establish the service is dead; an idle Rust
+scheduler may be parked. Queue/destination counts are projected without exposing
+remote names or provider output. Reports cannot declare cloud accounts accepted
+or set per-file cloud verification on the web-inbox listing.

@@ -45,6 +45,13 @@ ignored. Successfully uploaded/verified source data is retained. Corrupt immutab
 remote objects are not silently overwritten. A failed/exhausted job needs future
 explicit recovery tooling rather than an automatic reset of its retry history.
 
+The auxiliary `staged_rejections` table retains malformed-batch fingerprints
+across short-lived child invocations, preventing rejected retained batches from
+starving later work. A `reconciliation_pending` report keeps the Rust scheduler
+running when the 100-new-batch scan budget is exhausted, even if no jobs have yet
+been queued. Removing a destination retains its jobs without keeping the active
+scheduler busy for that removed destination.
+
 The worker exposes sanitized status including pending jobs, rejected batches,
 observed uplink, metering and per-destination outcomes. It never writes raw
 provider output or credentials into status. Each tick is bounded by the number
@@ -73,3 +80,11 @@ Automated tests include two-destination retry independence, offline restart
 reconciliation, receipt reuse without trusting changed payloads, busy-worker
 exclusion and malformed/disabled configuration. A real-rclone local-alias test
 does not constitute Google Drive/Koofr account acceptance.
+
+
+The dashboard can read a deliberately selected report directory with
+`dashboard --worker-state /absolute/private/worker-state` and an independently
+selected `--history` database. It projects queue counts and report age only;
+it does not read credentials, start a worker or infer cloud account acceptance.
+The parser recognizes NetworkManager's actual C-locale `no (guessed)` /
+`yes (guessed)` metering labels; unknown values still pause uploads.
