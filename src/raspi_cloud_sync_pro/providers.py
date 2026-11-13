@@ -1,4 +1,4 @@
-"""Opt-in rclone adapter for configured Koofr WebDAV and Google Drive remotes."""
+"""Opt-in rclone adapter for configured Koofr WebDAV, Drive and Dropbox remotes."""
 
 import os
 import re
@@ -14,7 +14,7 @@ from .staging import ReadyBatch, StagedFile, relative_path
 class RcloneProvider:
     def __init__(self, kind: str, remote: str, config: Path, *, enabled=False,
                  executable="rclone", process_timeout=900):
-        if kind not in ("koofr_webdav", "google_drive_rclone"):
+        if kind not in ("koofr_webdav", "google_drive_rclone", "dropbox_rclone"):
             raise ValueError("unsupported provider")
         if not isinstance(remote, str) or not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]*:[^:\\]*", remote):
             raise ValueError("use a named rclone remote with a relative backup directory")
@@ -67,8 +67,13 @@ class RcloneProvider:
 
     def upload(self, batch: ReadyBatch, item: StagedFile):
         batch.check_file(item)
-        self._run(["copyto", str(batch.root / "files" / item.relative), self._target(item.remote_key),
-                   "--immutable", "--checksum"])
+        arguments = ["copyto", str(batch.root / "files" / item.relative), self._target(item.remote_key),
+                     "--immutable", "--checksum"]
+        if self.kind == "dropbox_rclone":
+            # Wait for the batch commit; asynchronous mode cannot establish the
+            # uploaded state. Reduce the backend's default in-memory chunk size.
+            arguments += ["--dropbox-batch-mode", "sync", "--dropbox-chunk-size", "8Mi"]
+        self._run(arguments)
 
     def verify(self, batch: ReadyBatch, item: StagedFile):
         # Download hashing also works when WebDAV has no server checksum support.

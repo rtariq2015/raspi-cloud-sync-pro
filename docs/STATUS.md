@@ -38,7 +38,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **195 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **200 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -52,6 +52,9 @@ for remote automated checks.
   PKCE, one-use session-bound returns and private token storage. Missing registered
   clients show setup-required; authorization never enables uploads. Eighteen new
   tests use fake OAuth responses, not real accounts. The live preview is still dev6.
+- Dev8 Dropbox rclone adapter with synchronous commits, smaller upload chunks and
+  independent read-back verification. Local-alias integration passes; real
+  Dropbox authorization/backup and the dashboard-to-worker handoff remain pending.
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private

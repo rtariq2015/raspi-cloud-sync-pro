@@ -1,7 +1,7 @@
 # Private cloud setup and acceptance
 
-Cloud adapters and the ready-batch worker are implemented. Real Google Drive and
-Koofr account acceptance is still pending. The Pi pipeline trials used two local
+Cloud adapters and the ready-batch worker are implemented. Real Google Drive,
+Koofr and Dropbox account acceptance is still pending. The Pi pipeline trials used two local
 rclone aliases; those results must never be presented as cloud-account evidence.
 
 ## Prepare privately
@@ -47,7 +47,7 @@ with `folder_selected`, `test_verified` and `uploads_enabled` all false.
 | Destination | Account connection | Current acceptance |
 | --- | --- | --- |
 | Google Drive | Google's own sign-in and consent page | OAuth source/tests; real consent and rclone handoff pending |
-| Dropbox | Dropbox's own sign-in and consent page | OAuth source/tests; upload adapter and real consent pending |
+| Dropbox | Dropbox's own sign-in and consent page | OAuth and upload adapter source/tests; real consent/backup pending |
 | Koofr | HTTPS WebDAV with a Koofr app password | Adapter implemented; private form and real-account tests pending |
 | Synology NAS | Dedicated NAS account, validated HTTPS WebDAV or SFTP endpoint | Connector/setup design; no NAS acceptance yet |
 | OneDrive / S3-compatible storage | Provider-specific authorization or scoped credentials | Future connectors |
@@ -97,6 +97,25 @@ alone does not keep authorization codes out of an access log. Never capture
 provider sign-in, callback URLs or tokens in screenshots or acceptance records.
 See [Google's web-server flow](https://developers.google.com/identity/protocols/oauth2/web-server).
 
+### Dropbox upload adapter — dev8 source
+
+The disabled [Dropbox worker example](../config/worker-dropbox.example.json)
+selects `dropbox_rclone` and expects a privately configured direct rclone
+`dropbox` remote. The adapter uses immutable content-version paths, synchronous
+batch commits, one transfer and 8 MiB upload chunks, followed by independently
+downloaded SHA-256 verification. Failed verification retains the local source
+and queues the failure/retry rather than recording a verified backup.
+
+The smaller chunk bounds that backend's chunk buffer, not total rclone/appliance
+memory. Synchronous commits wait for completion; this must not be confused with
+rclone's destructive `sync` command, which the adapter never uses. See
+[rclone's Dropbox options](https://rclone.org/dropbox/).
+
+Tests exercise actual rclone commands with temporary local aliases and explicitly
+report those aliases as backend mismatches in `cloud-check`. They do not establish
+Dropbox credentials, real commit behavior, API limits or remote durability.
+The dashboard's saved OAuth token is not yet connected to this rclone config.
+
 ## Check local configuration without contacting the cloud
 
 ```sh
@@ -114,7 +133,7 @@ credential environment; the probe will not ask for or expose its password.
 
 | Result | Meaning |
 | --- | --- |
-| `backend_matches` | Configured name has the expected direct `drive` or `webdav` type |
+| `backend_matches` | Configured name has the expected direct `drive`, `webdav` or `dropbox` type |
 | `missing_remote` | The selected name was not found |
 | `backend_mismatch` | The type differs from the adapter's expected type |
 | `alias_backend` | An alias is configured; its target may be local or another remote |

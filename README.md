@@ -41,7 +41,7 @@ drive while the Pi retains filesystem ownership. Actual share acceptance is pend
 connection is unavailable. The backup engine queues jobs and retries; it never
 automatically deletes originals or staged files.
 
-**Back up with evidence.** Koofr WebDAV and Google Drive use rclone adapters with
+**Back up with evidence.** Koofr WebDAV, Google Drive and Dropbox use rclone adapters with
 separate jobs per destination. “Verified” means remote contents were downloaded
 and checked against SHA-256. Real account authorization and acceptance are pending.
 The dev7 source adds guided Google Drive/Dropbox sign-in foundations; folder
@@ -63,13 +63,13 @@ remain to be accepted.
 | Home Wi-Fi and authenticated SSH | Stable USB addressing, reboot and long-duration checks |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
-| Versioned backup engine, retries and independent read-back verification | Private Koofr and Google Drive test accounts |
+| Versioned backup engine, retries and independent read-back verification | Private Koofr, Google Drive and Dropbox test accounts |
 | Opt-in completed-batch worker and small Rust scheduler | Real cloud accounts and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**195 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**200 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).

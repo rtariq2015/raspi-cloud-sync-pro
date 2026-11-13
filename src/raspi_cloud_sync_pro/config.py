@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict
 
-PROVIDERS = ("disabled", "koofr_webdav", "google_drive_rclone")
+PROVIDERS = ("disabled", "koofr_webdav", "google_drive_rclone", "dropbox_rclone")
 
 
 class ConfigError(ValueError):

@@ -20,7 +20,7 @@ class ConfigTests(unittest.TestCase):
         self.assertFalse(settings.automatic_deletion)
 
     def test_planned_providers_remain_disabled(self):
-        for provider in ("koofr_webdav", "google_drive_rclone"):
+        for provider in ("koofr_webdav", "google_drive_rclone", "dropbox_rclone"):
             with self.subTest(provider=provider):
                 self.example["sync"]["provider"] = provider
                 settings = validate_config(self.example)

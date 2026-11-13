@@ -320,3 +320,26 @@ power probe outside the device sandbox, prepared only reviewed public-code
 permissions before sandboxing, and used Trixie's existing no-mail-spool default.
 The last failed attempt's proven empty QA group was validated and reused; no
 existing group was deleted or recreated. Failed-attempt evidence remains private.
+
+## Dropbox adapter — development 0.1.0.dev8
+
+The full local suite passes **200 Python tests** with the verified real rclone
+binary and no skipped tests; the Rust component remains at ten passing tests.
+Dropbox configuration/readiness requires the direct `dropbox` backend and reports
+aliases/type mismatches without claiming cloud authorization. Uploads retain
+immutable version paths, wait for synchronous batch commits and request an 8 MiB
+chunk buffer. Verification downloads and hashes actual remote bytes.
+
+New tests cover disabled defaults, strict/secret-free configuration, private
+credential-file enforcement, commit options, failed verification/source retention
+and actual rclone command compatibility against a temporary local alias. That
+alias is explicitly rejected as proof of a Dropbox backend by the readiness test.
+No Dropbox account, credential refresh or remote service behavior was tested.
+CLI planning confirms the separate example stays disabled with deletion false;
+Ruff and whitespace checks pass.
+
+The dev8 wheel SHA-256 is
+`ce2cc75295dec88ddd95f5337ed5bd23d3fc1e02f80c1a78d4d28edebe58edfb`.
+It has not replaced the running protected dev6 dashboard. The accepted dev7 Pi
+OAuth fixture is retained separately, and the dashboard-to-rclone token handoff
+and real cloud-account acceptance remain pending.

@@ -69,6 +69,19 @@ class CloudReadinessTests(unittest.TestCase):
             self.assertEqual(report["destinations"][0]["status"], expected)
             self.assertEqual(report["destinations"][1]["status"], "missing_remote")
 
+    def test_dropbox_requires_direct_dropbox_metadata_without_claiming_authorization(self):
+        self.settings = replace(self.settings, destinations=(("dropbox_rclone", "dropbox:Backups"),))
+        for backend, expected in (("dropbox", "backend_matches"), ("drive", "backend_mismatch"),
+                                  ("webdav", "backend_mismatch"), ("alias", "alias_backend"),
+                                  (None, "missing_remote")):
+            records = [{"name": "dropbox", "type": backend, "source": "file"}] if backend else []
+            report = self.metadata(records)
+            self.assertEqual(report["backend_types_match"], backend == "dropbox")
+            self.assertEqual(report["destinations"][0]["status"], expected)
+            self.assertEqual(report["destinations"][0]["expected_backend"], "dropbox")
+            self.assertFalse(report["cloud_accounts_verified"])
+            self.assertFalse(report["uploads_activated"])
+
     def test_insecure_or_symlink_config_and_unprotected_executable_never_run(self):
         with mock.patch("raspi_cloud_sync_pro.cloud_readiness._capture_inventory") as capture:
             self.config.chmod(0o644)
@@ -154,7 +167,10 @@ class CloudReadinessTests(unittest.TestCase):
         self.config.write_text('[koofr]\ntype = webdav\nurl = https://example.invalid\n'
                                'user = synthetic-user\npass = synthetic-obscured-value\n'
                                'description = PRIVATE-DESCRIPTION\n\n'
-                               '[gdrive]\ntype = drive\ntoken = {"access_token":"PRIVATE-TOKEN"}\n')
+                               '[gdrive]\ntype = drive\ntoken = {"access_token":"PRIVATE-TOKEN"}\n\n'
+                               '[dropbox]\ntype = dropbox\ntoken = {"access_token":"PRIVATE-DROPBOX-TOKEN"}\n')
+        self.settings = replace(self.settings, destinations=self.settings.destinations +
+                                (("dropbox_rclone", "dropbox:Backups"),))
         before = self.config.read_bytes()
         report = cloud_readiness(self.settings, executable=str(Path(RCLONE).absolute()))
         self.assertTrue(report["backend_types_match"], report)

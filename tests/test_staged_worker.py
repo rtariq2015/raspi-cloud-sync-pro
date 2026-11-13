@@ -171,6 +171,22 @@ class StagedWorkerTests(unittest.TestCase):
         with self.assertRaises(BackupError):
             WorkerSettings.load(path)
 
+    def test_dropbox_example_is_opt_in_and_rejects_inline_credentials_or_unknown_kind(self):
+        example = Path(__file__).resolve().parents[1] / "config/worker-dropbox.example.json"
+        settings = WorkerSettings.load(example)
+        self.assertFalse(settings.enabled)
+        self.assertEqual(settings.destinations, (("dropbox_rclone", "dropbox:RaspiCloudSyncPro"),))
+        self.assertFalse(settings.plan()["automatic_deletion"])
+        data = json.loads(example.read_text())
+        path = self.root / "dropbox-worker.json"
+        for destination in ({"kind": "dropbox", "remote": "dropbox:Backups"},
+                            {"kind": "dropbox_rclone", "remote": "dropbox:Backups", "token": "PRIVATE"},
+                            {"kind": "dropbox_rclone", "remote": "dropbox:../escape"}):
+            path.write_text(json.dumps({**data, "destinations": [destination]}))
+            with self.assertRaises(BackupError) as error:
+                WorkerSettings.load(path)
+            self.assertNotIn("PRIVATE", str(error.exception))
+
     def test_cached_global_full_does_not_override_usb_route_or_unknown_metering(self):
         report = {"preferred_ipv4_route": {"interface": "usb0"}, "cached_global_connectivity": "full",
                   "interfaces": {"usb0": {"state_code": 100, "type": "ethernet"},

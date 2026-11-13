@@ -14,7 +14,7 @@ from pathlib import Path
 from .config import _unique_object
 from .errors import BackupError
 
-EXPECTED_BACKENDS = {"koofr_webdav": "webdav", "google_drive_rclone": "drive"}
+EXPECTED_BACKENDS = {"koofr_webdav": "webdav", "google_drive_rclone": "drive", "dropbox_rclone": "dropbox"}
 MAX_INVENTORY_BYTES = 65536
 
 
@@ -132,7 +132,7 @@ def cloud_readiness(settings, *, executable=None):
         for destination in configured:
             name = destination["remote"].split(":", 1)[0]
             backend = remotes.get(name)
-            destination["configured_backend"] = backend if backend in ("drive", "webdav", "alias", "local") \
+            destination["configured_backend"] = backend if backend in ("drive", "webdav", "dropbox", "alias", "local") \
                 else "other" if backend else None
             destination["status"] = "missing_remote" if backend is None else \
                 "backend_matches" if backend == destination["expected_backend"] else \

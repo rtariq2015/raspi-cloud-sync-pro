@@ -83,6 +83,7 @@ jobs:
           raspi-cloud-sync-pro mode-plan config/device.example.json
           raspi-cloud-sync-pro diagnostics --mode ethernet_samba
           raspi-cloud-sync-pro worker-plan --config config/worker.example.json
+          raspi-cloud-sync-pro worker-plan --config config/worker-dropbox.example.json
           raspi-cloud-sync-pro wifi-plan config/wifi-enterprise.example.json
       - name: Check Python and retained shell syntax
         run: |
