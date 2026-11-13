@@ -154,8 +154,8 @@ older build needs replacement/restart to gain this behavior. No public signup,
 email reset or account invitations are implemented yet.
 
 Actual Pi loopback HTTP and private PTY recovery tests passed using disposable
-accounts. The existing public restricted service still runs dev3 pending its
-prepared administrator-authenticated upgrade. The test did not change its
+accounts. At the time of that isolated trial, the public service remained on dev3.
+The later protected-service upgrade is recorded below. The test did not change its
 accounts, USB profiles, Wi-Fi or stored user files.
 
 
@@ -164,3 +164,27 @@ Initialization and recovery require a secure interactive prompt; piped or
 noninteractive password entry is not a supported recovery channel. This refusal
 happens before account creation or an auth update. Actual Pi PTY recovery and
 no-terminal refusal both passed, with no generated credential printed.
+
+
+## Restricted dev6 deployment — 2026-11-13
+
+After private root-terminal authentication, the checksum-verified dev6 wheel was
+installed in a new root-owned version directory. Existing account hashes and
+uploads stayed in the same private service-owned state. Prior state/unit records
+and standalone rollback scripts were saved before changing the project service;
+the dev3 installation remains retained. Preparation and dependency checks completed
+before the old process stopped. Expected user/group, process arguments and bounded
+loopback HTTP health checks passed for the new restricted process.
+
+The temporary public HTTPS URL then passed owner/viewer login, three existing
+QA-file byte/SHA-256 downloads, anonymous/viewer-write/CSRF rejection and logout
+revocation. The Account form is reachable; real account passwords were not changed
+by acceptance. Cloud setup remained unconfigured. Wi-Fi stayed connected; the
+existing USB addressing instability remains a separate unresolved issue.
+
+The backend stays loopback-only under `raspi-dashboard`, NoNewPrivileges and
+read-only system/home restrictions. Neither dashboard nor tunnel is enabled at
+boot. No router/laptop networking, USB gadget settings, OS password or sudo policy
+was changed. The public URL is temporary; no physical off-LAN phone or stable
+hostname acceptance is claimed. Results: [deployment](acceptance/pi-restricted-dev6-2026-11-13.json)
+and [HTTPS](acceptance/pi-https-dev6-2026-11-13.json).

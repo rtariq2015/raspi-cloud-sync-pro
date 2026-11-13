@@ -12,8 +12,9 @@ for remote automated checks.
 - USB Ethernet management, home Wi-Fi and authenticated SSH access.
 - Dashboard login with owner/viewer accounts, phone-friendly screens, QA-file
   upload, bounded text preview and downloads with byte/SHA-256 checks.
-- Restricted dashboard service candidate with NoNewPrivileges and home/system
-  filesystem restrictions. Login and authenticated file access also passed through
+- Restricted dev6 dashboard service candidate with NoNewPrivileges and home/system
+  filesystem restrictions. The upgraded service passed process/HTTP health checks
+  and public HTTPS access checks; the dev3 version is retained for rollback. Login and authenticated file access also passed through
   a temporary public HTTPS tunnel; no router ports or VPN app were needed.
 - Rust watcher fixture trial: 398,048-byte ARM64 binary, 1,796 KiB parent idle RSS,
   incomplete batches ignored and completed unchanged work not retriggered.
@@ -45,12 +46,15 @@ for remote automated checks.
 - Five-minute Pi retention trial: ten more files, twenty more verified local
   copies, 20/20 Wi-Fi gateway probes and no reported power throttling.
 
+The root-terminal authentication was restored and the protected-service upgrade
+has completed. No account passwords, USB/Wi-Fi settings or boot enablement changed.
+
 ## Being worked on
 
 1. Replace the tested temporary HTTPS preview with a stable hostname/access policy,
    then accept an off-LAN phone connection.
-2. Upgrade the restricted service after renewed private administrator authentication;
-   the latest development package has passed its isolated Pi worker/account trials.
+2. Accept the actual Pi Samba server and file-locking contract on disposable
+   data, using private extracted packages without global service activation.
 3. Finish private cloud account authorization and actual cloud acceptance;
    account password change/recovery has now passed an isolated Pi HTTP trial.
 4. Resolve the observed existing USB profile auto-switcher/DHCP loop without

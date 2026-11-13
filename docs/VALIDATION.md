@@ -231,3 +231,22 @@ backs up private state and prior unit configuration, prepares the new version
 before stopping dev3, and includes checked process/HTTP rollback. It has not run:
 a privately authenticated administrator terminal remains required. Static and
 mocked transaction helper checks do not establish an executed upgrade.
+
+
+## Restricted dev6 deployment and public HTTPS follow-up
+
+Private root authentication was restored. The reviewed transaction validated the
+exact dev6 artifact, saved private state/unit and checked rollback commands,
+prepared the new root-owned environment, checked app construction as the actual
+service identity, then replaced only the transient project candidate. Expected
+systemd identity/MainPID/argv and nonredirecting loopback HTTP health passed.
+Dev3 remains retained; installation did not change account passwords, USB/Wi-Fi
+settings, sudo policy or boot enablement. [Deployment record](acceptance/pi-restricted-dev6-2026-11-13.json).
+
+Through public HTTPS, dev6 passed owner/viewer logins, all three existing QA-file
+byte/SHA checks, anonymous API rejection, viewer upload rejection, missing-CSRF
+rejection, logout revocation and Account-form access. The file checks reused
+existing staged QA samples; no real cloud account or new public upload is claimed.
+Wi-Fi stayed connected. USB NM state was30 (disconnected) at the sampled request;
+this test does not establish working USB IP connectivity. The upgrade changed no
+network profile. [HTTPS record](acceptance/pi-https-dev6-2026-11-13.json).
