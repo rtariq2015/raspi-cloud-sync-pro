@@ -17,6 +17,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--version", action="version", version=__version__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status", help="show this release's capabilities, without probing hardware")
+    commands.add_parser("network-status", help="inspect existing USB/Wi-Fi addressing without changing it")
     check = commands.add_parser("check-config", help="validate a non-secret planning configuration")
     check.add_argument("path", type=Path)
     history = commands.add_parser("history", help="read existing backup history without starting a worker")
@@ -40,6 +41,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
+    if args.command == "network-status":
+        from .network_diagnostics import network_status
+        print(json.dumps(network_status(), indent=2))
+        return 0
     if args.command == "status":
         print(json.dumps({
             "project": "Raspi Cloud Sync Pro",

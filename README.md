@@ -94,7 +94,13 @@ Inspect modes and readiness without applying settings:
 ```sh
 PYTHONPATH=src python3 -m raspi_cloud_sync_pro mode-plan config/device.example.json
 PYTHONPATH=src python3 -m raspi_cloud_sync_pro diagnostics --mode ethernet_samba
+PYTHONPATH=src python3 -m raspi_cloud_sync_pro network-status
 ```
+
+`network-status` reads existing USB/Wi-Fi addressing, IPv4 route preference and
+the official auto-switcher's status. It does not reconfigure a working connection
+or authorize uploads. See the [Pi connectivity baseline](docs/PI_CONNECTIVITY.md)
+for the verified network foundation and the remaining file-sharing acceptance work.
 
 `check-hardware` reports blockers and returns 2 in this gated build. The optional
 SMB dependency needs Python 3.10+; the core still supports 3.9+. Never run device

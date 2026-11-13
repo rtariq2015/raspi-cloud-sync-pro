@@ -42,3 +42,26 @@ binding, DHCP, authenticated SMB3, lease/share-mode enforcement, ext4/SD durabil
 enterprise/managed host restrictions and real cloud accounts remain unverified.
 The [first Pi trial guide](PI_TEST_GUIDE.md) defines the separate approval and
 acceptance steps. Simulations are not evidence of safe concurrent block access.
+
+## Connectivity follow-up — 2026-11-13
+
+Added `network-status`, a read-only CLI inventory of selected non-secret USB/Wi-Fi
+device fields, IPv4 default routes and the official USB auto-switcher. Six new
+regression tests cover existing USB client addressing, route priority/ties,
+malformed/multipath routes, missing tools, timeouts, unknown observations and CLI
+output without hardware authorization. All 117 tests run successfully locally;
+the optional real-rclone integration is skipped because rclone is unavailable.
+No cloud-account or real Samba test is claimed.
+
+Executed the new diagnostic function in memory on the verified Zero 2 W through
+the existing management session, without installing or enabling the project. It
+correctly observed connected USB and Wi-Fi interfaces, USB as the preferred IPv4
+route, the active official profile auto-switcher, and the mismatch with the fixed
+USB-local share configuration. The command changed no network/device settings.
+Also exercised the CLI on the development laptop; missing target interfaces and
+an unavailable provider service remained unknown rather than ready.
+
+The separate manual OS connectivity repair and five-minute Wi-Fi evidence are
+recorded in [PI_CONNECTIVITY.md](PI_CONNECTIVITY.md). They update the management
+baseline, not the earlier device/SMB/cloud acceptance limits. Reboot persistence,
+authenticated Wi-Fi SSH login and project runtime deployment remain untested.

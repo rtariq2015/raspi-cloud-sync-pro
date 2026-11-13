@@ -40,6 +40,12 @@ disabled. Follow [the exact Pi trial sequence](PI_TEST_GUIDE.md) only after sepa
 approval. Real Samba share-mode/lease, Windows driver, USB power and filesystem
 recovery tests are still required before deployment.
 
+The [2026-11-13 connectivity baseline](PI_CONNECTIVITY.md) now establishes working
+USB management and tested home Wi-Fi on the existing Pi. `network-status` exposes
+the current addressing/route/auto-switcher differences from the share runtime
+without changing them. Next is a reviewed disposable-file Samba test, preserving
+the working management path; cloud-account acceptance follows local capture.
+
 ## Phase 3 — cloud account acceptance and operational scheduler
 
 Configure a Koofr WebDAV remote with TLS and a separate app password; configure

@@ -139,4 +139,7 @@ OS/provider/driver versions, disposable data, offline capture first, power check
 server-enforced lock tests and failure injection. See
 [official provider findings](OFFICIAL_USB_ETHERNET.md) and
 [validation](VALIDATION.md). No physical Pi, live USB device, Samba server or cloud
-account has been used to validate Phase 2 during development.
+account has been used to validate the Phase 2 device/sharing runtimes during
+development. The later [management connectivity baseline](PI_CONNECTIVITY.md)
+records USB/Wi-Fi checks on a physical Pi separately; it does not validate those
+runtimes or lift their code gates.

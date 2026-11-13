@@ -5,6 +5,13 @@ future trial; Phase 2 does not authorize flashing, formatting, changing boot/net
 settings or starting hardware services. Live operations remain code-gated off.
 Use the preferred Ethernet/Samba mode first; mass storage is a separate trial.
 
+An existing Pi now has a verified USB/Wi-Fi management baseline; see
+[PI_CONNECTIVITY.md](PI_CONNECTIVITY.md). Preserve that working access. Do not
+reflash it or replace its USB profiles just to match the example configuration.
+Connectivity acceptance does not enable the project hardware gate or approve
+Samba/cloud services. Sections describing fresh-device provisioning apply only
+to the separately approved trial, not as an instruction to replace this baseline.
+
 ## 1. Approval and equipment record
 
 Obtain separate approval naming the disposable SD/image/share, Pi Zero 2 W,
@@ -34,6 +41,7 @@ These project commands are safe on a development machine too:
 PYTHONPATH=src python3 -m raspi_cloud_sync_pro status
 PYTHONPATH=src python3 -m raspi_cloud_sync_pro mode-plan config/device.example.json
 PYTHONPATH=src python3 -m raspi_cloud_sync_pro diagnostics --mode ethernet_samba
+PYTHONPATH=src python3 -m raspi_cloud_sync_pro network-status
 PYTHONPATH=src python3 -m raspi_cloud_sync_pro check-hardware --mode ethernet_samba
 ```
 

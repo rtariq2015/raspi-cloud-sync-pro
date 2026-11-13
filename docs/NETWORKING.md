@@ -4,6 +4,14 @@ Phase 1 implements `WifiProfile.validate()` and connectivity/metered upload
 policy only. It does not scan, store credentials, change the computer's network,
 or claim real Pi network support. OS integration is a future adapter.
 
+The separate read-only `network-status` command now inventories existing USB/Wi-Fi
+IPv4 addresses, preferred IPv4 default route and the official USB auto-switcher.
+It uses explicitly selected non-secret `nmcli device show` fields and cached
+connectivity, never connection profiles, credentials, scans or activation commands.
+Its output does not replace interface-bound connectivity tests or upload policy.
+See [the observed Pi baseline](PI_CONNECTIVITY.md); that manual OS repair is not
+an automatic network-management feature of the project.
+
 ## Network types and support boundaries
 
 | Network | Planned handling | Phase 1 validation/policy |
@@ -75,5 +83,7 @@ bounded retry policy.
 
 Test home reconnection, hotspot disappearance, metered opt-in, incorrect enterprise
 credentials, untrusted/expired server certificates, failed activation rollback,
-DNS outages, portal login/expiry and management recovery. None has yet been checked
-on a physical Zero 2 W for this project.
+DNS outages, portal login/expiry and management recovery. Home association,
+Wi-Fi-bound gateway/Internet/DNS/HTTPS and a controlled reconnect now have the
+limited physical evidence recorded in [PI_CONNECTIVITY.md](PI_CONNECTIVITY.md).
+Hotspot, enterprise, portal and automatic management acceptance remain pending.
