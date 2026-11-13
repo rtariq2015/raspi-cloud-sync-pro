@@ -21,6 +21,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     cloud = commands.add_parser("cloud-check", help="read local rclone backend types without contacting cloud accounts")
     cloud.add_argument("--config", type=Path, required=True)
     cloud.add_argument("--rclone", type=Path, help="reviewed absolute rclone executable; defaults to a protected PATH match")
+    export = commands.add_parser("google-export-authorization", help="operator-only private pipe handoff; no cloud request")
+    export.add_argument("--state", type=Path, required=True, help="private dashboard state owned by the current non-root user")
+    export.add_argument("--public-origin", required=True, help="exact registered HTTPS origin")
+    export.add_argument("--output-fd", type=int, required=True, help="dedicated inherited pipe or connected Unix stream, never stdio")
+    prepare = commands.add_parser("google-prepare-destination", help="prepare a disabled private Google remote from an inherited pipe")
+    prepare.add_argument("--state", type=Path, required=True, help="private backup state owned by the current non-root user")
+    prepare.add_argument("--input-fd", type=int, required=True, help="dedicated inherited pipe or connected Unix stream, never stdio")
+    prepare.add_argument("--folder-name", required=True, help="proposed app folder name; this does not create or verify it")
     wifi = commands.add_parser("wifi-plan", help="validate a non-secret Wi-Fi profile and show its NM mapping")
     wifi.add_argument("config", type=Path)
     account = commands.add_parser("dashboard-init", help="create a dashboard account with a private password prompt")
@@ -64,6 +72,19 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
+    if args.command in ("google-export-authorization", "google-prepare-destination"):
+        from .google_destination import export_google_authorization, prepare_google_destination
+        try:
+            if args.command == "google-export-authorization":
+                report = export_google_authorization(args.state, args.public_origin, args.output_fd)
+            else:
+                report = prepare_google_destination(args.state, args.input_fd, args.folder_name)
+            print(json.dumps(report, indent=2))
+            return 0
+        except (BackupError, OSError, ValueError, TypeError):
+            print("Google destination preparation unavailable; no uploads were enabled and no credentials were printed.",
+                  file=sys.stderr)
+            return 2
     if args.command == "cloud-check":
         from .cloud_readiness import cloud_readiness
         from .staged_worker import WorkerSettings

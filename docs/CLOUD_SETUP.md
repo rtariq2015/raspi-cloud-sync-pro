@@ -41,10 +41,23 @@ completed just by selecting a provider name.
 ## Guided account setup
 
 The intended workflow is **Connect → choose a folder → verify a test file →
-explicitly enable backups**. The current OAuth foundation implements the first
-step; it does not create rclone remotes, refresh credentials, select folders or
-enable uploads. It reports `authorization_saved_untested` after saving tokens,
-with `folder_selected`, `test_verified` and `uploads_enabled` all false.
+explicitly enable backups**. The current browser OAuth foundation implements the
+first step. It reports `authorization_saved_untested` after saving tokens, with
+`folder_selected`, `test_verified` and `uploads_enabled` all false. The browser
+does not yet prepare a destination or enable uploads.
+
+The dev9 source adds an operator-only, private Google authorization handoff and
+disabled rclone configuration preparation. It is separate from the running dev8
+dashboard and the historical one-file acceptance below. Two processes running as
+the separate dashboard and backup identities exchange credentials through a
+dedicated inherited descriptor; no credential travels in command arguments or
+stdout. The result is `prepared_untested`, with the account, proposed app folder
+and uploads still unverified/disabled. No cloud request or token refresh occurs.
+See [the exact commands and handoff contract](GOOGLE_HANDOFF.md) before using it.
+The synthetic two-identity CLI trial passed on the Pi; it did not import real
+credentials or connect the live dashboard to a production backup identity.
+The browser folder/test/enable wizard and recurring production worker remain
+unfinished. [Pi evidence](acceptance/pi-google-handoff-dev9-2026-11-13.json).
 
 | Destination | Account connection | Current acceptance |
 | --- | --- | --- |

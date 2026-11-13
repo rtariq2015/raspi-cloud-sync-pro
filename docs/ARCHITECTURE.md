@@ -21,6 +21,7 @@ quarantine. New code does not import those service loops.
 | `config.py`, `cli.py` | Strict planning schema, diagnostics and opt-in completed-batch worker commands |
 | `accounts.py` | Private durable account writes, explicit recovery, role preservation and credential-based session revocation |
 | `cloud_readiness.py` | Local-only rclone backend metadata checks; no account or cloud activation claim |
+| `google_destination.py` | Operator-only private OAuth handoff across separate identities and no-replace, disabled Google rclone preparation; no cloud requests |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
 | `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |
 | `wifi_plan.py` | Non-secret inactive NetworkManager profile plans; no OS mutation |
@@ -122,3 +123,35 @@ deny-write locks or mass-storage ownership. Uploads are retained locally while
 cloud configuration/scheduler work remains incomplete. The status UI reports that
 limit and does not manufacture verification events. See [DASHBOARD.md](DASHBOARD.md)
 and [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
+
+## Private Google authorization boundary
+
+The dev9 source separates dashboard-owned browser authorization from
+backup-owned rclone configuration. A trusted operator launches the exporter as
+the ordinary dashboard UID and the importer as the separate ordinary backup
+UID, connecting only a dedicated inherited anonymous pipe or already connected
+Unix stream. Both APIs refuse root and changed real/effective UIDs. The importer
+never opens dashboard authentication, account or web-inbox state. It cannot make
+those files accessible to the backup worker or grant that worker access to HTTP
+uploads. The operator's process/UID orchestration is outside these APIs.
+
+The exporter checks private source ownership, permissions, exact HTTPS origin,
+client/grant binding and the limited `drive.file` scope. A bounded length-prefixed
+frame and required EOF transfer the credential bundle without stdout or argument
+disclosure. The importer writes mode-0600 files inside a mode-0700 private
+preparation directory and publishes it with Linux no-replace semantics. Failed
+partial directories remain private for explicit recovery. Neither side contacts
+Google, refreshes a token, creates a remote folder, changes a service or enables
+uploads. [GOOGLE_HANDOFF.md](GOOGLE_HANDOFF.md) specifies the commands and limits.
+
+`prepared_untested` describes that completed preparation operation; it is not a
+live readiness report. The public result contains no credentials, origin,
+fingerprints, remote name or folder name. Private manifest hashes bind the
+exported authorization and prepared configuration, but no current-status reader
+revalidates later source/config changes. A dashboard must not infer readiness
+from directory existence or a saved success result. Historical verified jobs,
+including the one-file real Google Drive proof on dev8, do not verify a newly
+prepared destination. The live dashboard remains dev8 until a separately accepted
+upgrade. Dev9 preparation passed a synthetic two-identity CLI trial on the Pi;
+real-credential handoff between the live dashboard and a production backup
+identity remains pending.

@@ -28,6 +28,7 @@ Thumbs.db
 config.local.json
 rclone.conf
 rclone.conf.*
+google-drive.prepared/
 *.pem
 *.key
 credentials.json

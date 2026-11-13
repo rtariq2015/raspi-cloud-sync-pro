@@ -66,6 +66,13 @@ and tokens outside Git, mode 0600, owned by the service user. Confirm each backe
 and destination before enabling it. Koofr app-password and Dropbox real-account
 authorization/backup trials remain pending.
 
+Dev9 adds the private CLI preparation boundary: a bounded inherited channel
+passes validated authorization into a disabled backup-owned configuration.
+Synthetic separate-identity transfer and kernel access denials passed on the Pi.
+The live dashboard remains dev8; its integration with a production backup identity,
+current-state reporting and explicit Test/Enable controls still need completion.
+See [the handoff contract](GOOGLE_HANDOFF.md).
+
 Use test accounts for path encoding, empty/large/changed files, interrupted uploads,
 auth expiry, rate/quota failures and downloaded-content checks. Measure real
 throughput/memory on the Zero 2 W. Add cancellation, explicit failed-job recovery,

@@ -409,3 +409,38 @@ Focused reruns passed nine device-mode, twelve staged-worker and six
 network-diagnostics tests. `systemd-analyze verify` passed temporary unit copies
 with only `ExecStart` replaced by `/usr/bin/true`. This template fix installed or
 started no units and changed no network settings or Pi configuration.
+
+## Private Google preparation — development 0.1.0.dev9
+
+The full local Python suite passed **229 tests**, including real rclone against
+temporary local storage. Twenty-seven new preparation tests cover framed channel
+limits, standard-stream aliases, deadlines, strict client/origin/scope bindings,
+credential-safe errors, private filesystem paths, no-replace publication and
+retained interrupted data. Two additional CLI tests check standard-stream refusal
+and exception redaction. Python 3.9 grammar, compilation and focused Ruff checks
+pass; the CI matrix provides separate runtime compatibility evidence.
+
+The reviewed wheel was installed only into a new isolated QA environment on the
+Pi. The live dev8 dashboard was not upgraded. Two existing locked no-login QA
+identities ran the actual exporter/importer commands with synthetic credentials,
+cleared supplementary groups, no-new-privileges and no effective capabilities.
+The complete private handoff and configuration hashes passed. Real kernel reads
+across their private state boundaries were denied; unsafe source permissions and
+an attempt to replace an existing preparation were rejected. No real cloud
+credentials were read, no cloud request was made and no service was enabled.
+[Sanitized receipt](acceptance/pi-google-handoff-dev9-2026-11-13.json).
+
+The first fixture's root-owned 0711 container prevented the descriptor walk from
+opening ancestors read-only. Direct probes confirmed EACCES for that parent and
+successful access to each identity's own 0700 leaf. The failed fixture remains
+retained. The accepted continuation used a new root-owned 0755 container around
+unchanged 0700 private leaves; it did not relax real application state. It reused
+the frozen public installation read-only after checking wheel-provided source,
+assets and metadata, rejecting extra bytecode and directory symlinks.
+
+Wi-Fi and default routes were preserved, USB carrier remained available, accounts
+were unchanged and firmware reported `throttled=0x0` before and after. USB
+addresses differed between observations; this establishes no cause and does not
+resolve the previously observed automatic profile switching. No network/boot
+settings were changed by this trial. These synthetic tests do not establish
+real-account import, refresh, folder access or unattended backup readiness.

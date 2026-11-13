@@ -30,6 +30,11 @@ for remote automated checks.
   folder and passed independent downloaded-content SHA-256 verification. The
   original and private QA configuration are retained; background uploads remain
   disabled. [Sanitized evidence](acceptance/pi-google-drive-2026-11-13.json).
+- Dev9 private Google preparation passed a synthetic CLI handoff between two
+  restricted QA identities on the Pi. Actual kernel permissions prevented each
+  from reading the other's private state; unsafe permissions and overwrite
+  attempts were rejected. No real credentials or live service settings changed.
+  [Handoff evidence](acceptance/pi-google-handoff-dev9-2026-11-13.json).
 - Real encrypted Samba protocol fixture in an isolated Linux container: active
   writers defer capture; snapshot handles block new writes/deletes. This is
   separate from actual Pi/Windows/USB acceptance.
@@ -43,7 +48,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **200 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **229 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -59,7 +64,12 @@ for remote automated checks.
   tests use fake OAuth responses, not real accounts. These controls are now in the live dev8 preview.
 - Dev8 Dropbox rclone adapter with synchronous commits, smaller upload chunks and
   independent read-back verification. Local-alias integration passes; real
-  Dropbox authorization/backup and the dashboard-to-worker handoff remain pending.
+  Dropbox authorization/backup and the guided runtime integration remain pending.
+- Dev9 source adds a private Google authorization handoff into a disabled
+  backup-owned configuration. Dedicated inherited channels, credential/client/scope
+  bindings, private permissions, atomic no-replace publication and retained
+  incomplete transactions have focused tests. No cloud request or upload
+  activation occurs during preparation. [Operator guide](GOOGLE_HANDOFF.md).
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private
@@ -73,7 +83,8 @@ has completed. No account passwords, USB/Wi-Fi settings or boot enablement chang
 ## Being worked on
 
 1. Replace the tested temporary HTTPS preview with a stable hostname/access policy,
-   then accept an off-LAN phone connection.
+   then accept an off-LAN phone connection. A free service-provided hostname is
+   preferred; the owner does not currently have a domain.
 2. Extend the accepted Pi loopback Samba contract to actual Windows/USB host
    transfers after stable USB addressing is established.
 3. Complete the guided Google Drive folder/test/enable workflow and persistent

@@ -66,15 +66,20 @@ remain to be accepted.
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
 | First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
+| Private Google preparation; separate-identity synthetic Pi test | Connect preparation to the live dashboard and backup identity |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**200 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**229 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
+
+Dev9 adds an [operator-only private Google handoff](docs/GOOGLE_HANDOFF.md).
+It prepares a disabled configuration without contacting Google or enabling
+uploads. The running dashboard preview remains dev8 while integration continues.
 
 The dashboard currently lists completed **web uploads**. It does not yet browse
 all Pi folders or start cloud backup automatically. The Rust trial measured
