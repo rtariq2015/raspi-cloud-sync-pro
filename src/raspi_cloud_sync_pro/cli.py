@@ -1,4 +1,4 @@
-"""Read-only development commands; no mount, setup, sync, or deletion commands."""
+"""Development diagnostics, an authenticated dashboard and code-gated device tools."""
 
 import argparse
 import json
@@ -18,6 +18,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status", help="show this release's capabilities, without probing hardware")
     commands.add_parser("network-status", help="inspect existing USB/Wi-Fi addressing without changing it")
+    account = commands.add_parser("dashboard-init", help="create a dashboard account with a private password prompt")
+    account.add_argument("--state", type=Path, required=True)
+    account.add_argument("--username", default="owner")
+    account.add_argument("--role", choices=("owner", "viewer"), default="owner")
+    dashboard = commands.add_parser("dashboard", help="serve the authenticated dashboard on loopback only")
+    dashboard.add_argument("--state", type=Path, required=True)
+    dashboard.add_argument("--history", type=Path)
+    dashboard.add_argument("--port", type=int, default=8080)
+    dashboard.add_argument("--public-origin", help="reviewed HTTPS origin behind the reverse proxy")
     check = commands.add_parser("check-config", help="validate a non-secret planning configuration")
     check.add_argument("path", type=Path)
     history = commands.add_parser("history", help="read existing backup history without starting a worker")
@@ -41,6 +50,21 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
+    if args.command in ("dashboard-init", "dashboard"):
+        try:
+            from .dashboard import initialize_dashboard, serve_dashboard
+            if args.command == "dashboard-init":
+                initialize_dashboard(args.state, username=args.username, role=args.role)
+                print("Dashboard account created. No network or backup service was changed.")
+            else:
+                serve_dashboard(args.state, history=args.history, port=args.port,
+                                public_origin=args.public_origin)
+            return 0
+        except ImportError:
+            print("Install the optional dashboard dependencies in a virtual environment.", file=sys.stderr)
+        except (OSError, ValueError, TypeError, BackupError):
+            print("Dashboard configuration or I/O error; no credentials were printed.", file=sys.stderr)
+        return 2
     if args.command == "network-status":
         from .network_diagnostics import network_status
         print(json.dumps(network_status(), indent=2))
@@ -57,6 +81,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             "automatic_deletion": False,
             "preferred_usb_mode": "ethernet_samba",
             "live_mode_switch": "disabled",
+            "dashboard": "optional_authenticated_preview",
         }, indent=2))
         return 0
     if args.command in ("diagnostics", "check-hardware", "mode-plan", "controller-run",

@@ -106,5 +106,10 @@ class DeviceModeTests(unittest.TestCase):
             unit.read(path)
             self.assertNotIn("Install", unit)
             if "diagnostics" not in path.name:
-                self.assertIn("DISPOSABLE_TEST_APPROVED", unit["Unit"]["ConditionPathExists"])
+                marker = "DASHBOARD_APPROVED" if "dashboard" in path.name else "DISPOSABLE_TEST_APPROVED"
+                self.assertIn(marker, unit["Unit"]["ConditionPathExists"])
                 self.assertEqual(unit["Service"]["Restart"], "no")
+            if "dashboard" in path.name:
+                self.assertEqual(unit["Service"]["User"], "raspi-dashboard")
+                self.assertEqual(unit["Service"]["NoNewPrivileges"], "yes")
+                self.assertEqual(unit["Service"]["ProtectHome"], "yes")

@@ -19,6 +19,8 @@ quarantine. New code does not import those service loops.
 | `providers.py` | Explicitly enabled rclone adapter; bounded copies, immutable version paths and downloaded-content SHA-256 verification |
 | `network.py` | Non-secret personal/enterprise profile validation and connectivity policy; no OS changes |
 | `config.py`, `cli.py` | Strict planning schema, status/config checks and bounded read-only history output; no live backup command |
+| `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
+| `web_ingest.py` | Pi-owned HTTP ingress, streaming hashes, size/space limits, retained incomplete uploads and atomic ready publication |
 
 ## Data flow
 
@@ -99,3 +101,20 @@ together when no worker is running. History schema migrations, all-disk-full
 database recovery, cancellation, a long-running scheduler and durable hardware
 ownership recovery remain work before deployment. File payloads are streamed;
 manifest/job metadata scales with inventory size and still needs Pi benchmarking.
+
+## Dashboard boundary
+
+The dashboard binds to loopback and is intended to run under an unprivileged
+identity behind a reviewed HTTPS proxy for remote browser access. Local accounts
+use scrypt hashes; sessions expire and are revoked server-side on logout/restart.
+POST requests require a CSRF token. It never accepts arbitrary commands, paths,
+network profiles or gadget actions from a browser. Private data is not cached by
+the PWA worker. Browser file names/content are rendered as text.
+
+HTTP uploads enter a separate private inbox, not the Samba source tree or a USB
+image. Only a complete received stream with flushed payload/manifest becomes a
+ready batch. This gives HTTP its own completion protocol without bypassing Samba
+deny-write locks or mass-storage ownership. Uploads are retained locally while
+cloud configuration/scheduler work remains incomplete. The status UI reports that
+limit and does not manufacture verification events. See [DASHBOARD.md](DASHBOARD.md)
+and [PRODUCT_PLAN.md](PRODUCT_PLAN.md).

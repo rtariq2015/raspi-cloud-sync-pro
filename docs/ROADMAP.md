@@ -69,13 +69,22 @@ Record home/router, Android/iPhone hotspot and managed enterprise test results.
 
 ## Phase 5 — local dashboard
 
-Build independent Overview, Wi-Fi, Cloud and History views, informed by Cloud
-Stick Pro's feature concepts. Include first-run authentication, protected sessions,
+The `0.1.0.dev3` preview now implements Overview, Files, Backups, Wi-Fi/access and
+History views with owner/viewer accounts, protected sessions, CSRF and private
+web-upload staging. It has passed local and real Pi QA-file checks; see
+[DASHBOARD.md](DASHBOARD.md). The phone layout and PWA foundation share this app.
+
+Continue with operational setup controls, account recovery and invitations,
+browser-only HTTPS remote access (no Tailscale requirement), physical Android
+installation, Samba file browsing and cloud-worker integration. Include
 CSRF protection, safe LAN access, redacted diagnostics and accessible mobile UI.
 Display live ownership, observed connectivity, per-file version, upload result,
 verification method/time, retry time and failure code. Never show verified merely
 because upload completed or turn a past result into a claim about current contents.
 The web process must remain unprivileged and expose only validated narrow actions.
+
+The expanded [product plan](PRODUCT_PLAN.md) records research, supported network
+types from the user's screenshots, replication requirements and acceptance order.
 
 ## Deployment acceptance
 

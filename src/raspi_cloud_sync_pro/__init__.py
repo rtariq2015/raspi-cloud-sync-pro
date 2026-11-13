@@ -1,3 +1,3 @@
-"""Raspi Cloud Sync Pro: backup core and gated Phase 2 device prototypes."""
+"""Raspi Cloud Sync Pro: backup core, guarded devices and authenticated dashboard."""
 
-__version__ = "0.1.0.dev2"
+__version__ = "0.1.0.dev3"

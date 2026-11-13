@@ -125,12 +125,17 @@ detach the gadget and release all local image references. Unknown/busy evidence
 is rejected. Phase 2 supports only reviewed offline provisioning plus reboot;
 there is no live switch or automatic driver unload.
 
-All new units are static (no `[Install]` section), with no automatic restart.
-Device/server units also require an absent-by-default approval marker and the
+All Phase 2 units are static (no `[Install]` section), with no automatic restart.
+Device/Samba units also require an absent-by-default approval marker and the
 Python code gate. The marker alone enables nothing. The mass-storage controller
 requires root in the host mount namespace and is not a hardened production
 service. The share worker runs as `raspi-backup`; Samba/DHCP are separate units.
 Do not copy/install/enable templates on the development computer.
+
+The later dashboard preview has a separate static template with its own approval
+marker and unprivileged identity. It does not use the gadget code gate because
+it exposes no device/network mutation API; it does not enable the gated services.
+See [DASHBOARD.md](DASHBOARD.md) for its separate acceptance evidence.
 
 ## Before real testing
 

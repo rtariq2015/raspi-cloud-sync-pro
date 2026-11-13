@@ -48,3 +48,12 @@ Use ignored `config/config.local.json` for local settings. Never add credentials
 to tracked legacy `config.json` or `scp-copy.exp`: ignore rules do not protect
 already tracked files. Inspect staged changes for passwords, tokens, device logs
 and user data before committing. Justify new dependencies against Pi constraints.
+
+## Editor setup
+
+Recommended VS Code extensions are Microsoft Remote - SSH (`ms-vscode-remote.remote-ssh`),
+Python (`ms-python.python`), Pylance (`ms-python.vscode-pylance`) and Astral Ruff
+(`charliermarsh.ruff`). Select the project's virtual environment for Python/tests.
+Remote - SSH should use verified host keys and a project-specific key; no password
+or key belongs in workspace settings or Git. Ruff is for new project code; avoid
+automatically reformatting the preserved upstream tree or generated Windows files.

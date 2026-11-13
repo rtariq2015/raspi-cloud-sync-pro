@@ -32,6 +32,12 @@ rclone.conf.*
 *.key
 credentials.json
 token.json
+auth.json
+auth-backup-*.json
+first-login.json
+dashboard.local.json
+dashboard.env
+cloudflared.local.yml
 
 # Runtime data, USB backing images, staging, and logs
 *.log

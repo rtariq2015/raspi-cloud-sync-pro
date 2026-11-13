@@ -65,3 +65,28 @@ The separate manual OS connectivity repair and five-minute Wi-Fi evidence are
 recorded in [PI_CONNECTIVITY.md](PI_CONNECTIVITY.md). They update the management
 baseline, not the earlier device/SMB/cloud acceptance limits. Reboot persistence,
 authenticated Wi-Fi SSH login and project runtime deployment remain untested.
+
+## Dashboard preview — 2026-11-13
+
+Version `0.1.0.dev3`: 131 tests ran locally with the dashboard dependencies;
+130 passed and the optional rclone integration was skipped. New tests cover
+account hashes/permissions, login throttling, owner/viewer roles, CSRF, revoked
+sessions, host restrictions, Secure-cookie/HTTPS settings, private-cache exclusion,
+traversal/symlink refusal, streamed upload manifests, client interruption, low
+space and failed publication. No test formats a disk or configures a gadget.
+
+Built a wheel including templates, CSS/JavaScript, icon and GPL/Apache notices.
+Installed it in an isolated user virtual environment on the verified Pi (Python
+3.13.5) and started a transient NoNewPrivileges user service bound to loopback.
+It was not enabled at boot. A pinned-host-key SSH session forwarded the browser
+connection. A fresh authenticated SSH connection over Wi-Fi succeeded in this
+follow-up; the older connectivity record's SSH-banner-only limitation is historical.
+
+Live acceptance: three disposable QA uploads; downloaded byte and SHA-256 matches
+for all three; anonymous API rejection, viewer upload rejection, CSRF rejection,
+logout revocation and both USB/Wi-Fi still connected. The browser rendered the
+Pi-backed dashboard at desktop and phone widths with no reported API errors.
+README screenshots show this preview with the Wi-Fi address replaced by a generic
+label. No cloud verification, public tunnel, physical Android installation or
+real Samba session is claimed. System-wide deployment awaits administrator
+authentication; the local preview did not change system services or networks.

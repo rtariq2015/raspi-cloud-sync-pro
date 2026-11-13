@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "raspi-cloud-sync-pro"
-version = "0.1.0.dev2"
+version = "0.1.0.dev3"
 description = "A safety-first Raspberry Pi USB-to-cloud backup project"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -22,6 +22,7 @@ raspi-cloud-sync-pro = "raspi_cloud_sync_pro.cli:main"
 
 [project.optional-dependencies]
 ethernet = ["smbprotocol>=1.15,<2; python_version >= '3.10'"]
+dashboard = ["Flask>=3.1,<4", "waitress>=3.0.2,<4"]
 
 [project.urls]
 Repository = "https://github.com/rtariq2015/raspi-cloud-sync-pro"
@@ -34,3 +35,6 @@ namespaces = false
 
 [tool.setuptools]
 license-files = ["LICENSE", "licenses/*.txt"]
+
+[tool.setuptools.package-data]
+raspi_cloud_sync_pro = ["templates/*.html", "static/*.css", "static/*.js", "static/*.svg"]

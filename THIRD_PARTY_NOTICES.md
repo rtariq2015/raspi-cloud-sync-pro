@@ -19,6 +19,15 @@ see its [license](https://github.com/jborean93/smbprotocol/blob/master/LICENSE).
 It is installed separately, not vendored. Preserve its and its dependencies'
 notices when distributing an environment that includes them.
 
+The optional dashboard uses [Flask](https://flask.palletsprojects.com/) (Pallets
+contributors, BSD-3-Clause) and [Waitress](https://github.com/Pylons/waitress)
+(Pylons contributors, Zope Public License 2.1). These and their dependencies are
+installed separately, not vendored. Preserve their license files/notices in any
+distributed virtual environment. Dashboard HTML/CSS/JavaScript, the simple project
+icon and screenshots of the running QA preview were created for this GPL project;
+no external UI assets, fonts or screenshot files from the reference project were
+copied.
+
 [rclone](https://rclone.org/licence/) is an external MIT-licensed executable;
 Samba, NetworkManager, dnsmasq and the Linux kernel remain independently licensed
 system dependencies. No Microsoft driver binaries are redistributed here.

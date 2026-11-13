@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#172c45"><title>Sign in · Raspi Cloud Sync Pro</title><link rel="stylesheet" href="/static/dashboard.css"><link rel="manifest" href="/manifest.webmanifest"></head>
+<body class="login-page"><main class="login-card"><div class="brand-symbol">R</div><p class="eyebrow">YOUR FILES. YOUR CLOUD.</p><h1>Raspi Cloud Sync Pro</h1><p class="muted">Sign in to your device.</p>
+{% if message %}<p class="notice error" role="alert">{{ message }}</p>{% endif %}
+<form method="post" action="/login"><input type="hidden" name="csrf" value="{{ csrf }}"><label for="username">Username</label><input id="username" name="username" autocomplete="username" maxlength="64" required autofocus><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required><button class="primary wide" type="submit">Sign in →</button></form>
+<p class="fine">Owner and viewer accounts keep access simple. Your password stays on your device.</p></main></body></html>
