@@ -30,9 +30,72 @@ browser. Keep the client secret and tokens private; organization policy may
 require administrator approval. See [rclone Drive](https://rclone.org/drive/) and
 [remote setup](https://rclone.org/remote_setup/).
 
-This version does not yet provide cloud credential-entry or OAuth screens in the
-dashboard. Never enter cloud credentials into the dashboard login/password form.
-No account authorization is completed just by selecting a provider name.
+The dev7 source adds Google Drive and Dropbox **Connect** controls to the
+dashboard. They require private registered-app configuration first. The running
+dev6 preview has not been upgraded by adding this source. Never enter cloud
+credentials into the dashboard login/password form. No account authorization is
+completed just by selecting a provider name.
+
+## Guided account setup
+
+The intended workflow is **Connect → choose a folder → verify a test file →
+explicitly enable backups**. The current OAuth foundation implements the first
+step; it does not create rclone remotes, refresh credentials, select folders or
+enable uploads. It reports `authorization_saved_untested` after saving tokens,
+with `folder_selected`, `test_verified` and `uploads_enabled` all false.
+
+| Destination | Account connection | Current acceptance |
+| --- | --- | --- |
+| Google Drive | Google's own sign-in and consent page | OAuth source/tests; real consent and rclone handoff pending |
+| Dropbox | Dropbox's own sign-in and consent page | OAuth source/tests; upload adapter and real consent pending |
+| Koofr | HTTPS WebDAV with a Koofr app password | Adapter implemented; private form and real-account tests pending |
+| Synology NAS | Dedicated NAS account, validated HTTPS WebDAV or SFTP endpoint | Connector/setup design; no NAS acceptance yet |
+| OneDrive / S3-compatible storage | Provider-specific authorization or scoped credentials | Future connectors |
+
+Google's `drive.file` scope is intentionally limited to app-created or explicitly
+selected files/folders. The current source has no Picker or existing-folder
+browser; it must not imply access to arbitrary Drive folders. Dropbox's eventual
+app registration should use App Folder access when that meets the backup need.
+See [Google's scope guidance](https://developers.google.com/workspace/drive/api/guides/api-specific-auth)
+and [Dropbox authorization](https://docs.dropboxapi.com/dropbox-api/docs/oauth).
+
+### Private OAuth application configuration
+
+A stable HTTPS hostname and registered provider applications are needed before
+real sign-in. A temporary tunnel's address can change and is unsuitable as a
+permanent registered callback. Register the exact callback paths:
+
+- `https://YOUR-DEVICE-HOST/oauth/callback/google_drive`
+- `https://YOUR-DEVICE-HOST/oauth/callback/dropbox`
+
+An administrator installs `oauth-clients.json` in the dashboard's private state
+directory, owned by its service identity with mode 0600; the directory stays 0700.
+Use the [non-secret example](../config/oauth-clients.example.json) as the schema.
+Either provider may be omitted. `public_origin` must equal the configured
+dashboard HTTPS origin. Client secrets belong only in that private file, outside
+Git, web uploads and Samba shares. Registration/organizational approval and the
+user's private consent cannot be performed by the test fixtures.
+
+The owner starts Connect with CSRF protection. Fixed provider endpoints receive
+an authorization-code request with S256 PKCE and five-minute one-use state bound
+to the initiating owner session. The callback removes code/state from the next
+page URL; a short-lived opaque cookie resumes same-origin completion. The Pi
+rechecks the live owner session and password version before publishing tokens.
+Provider errors and token responses are never reflected into the dashboard.
+Token files remain private and are not returned by status APIs.
+
+Each exchange bounds response bytes, socket waits and total caller wait, with
+at most two transport threads. Slow transports keep their slot until they exit;
+late results cannot publish tokens. Account replacement/revocation and token
+refresh are separate work; an existing authorization is never silently replaced.
+Restarting the dashboard discards unfinished in-memory authorization flows.
+
+Before accepting a real provider, test browser SameSite behavior, expired/replayed
+callbacks, revoked credentials, token refresh and the protected rclone handoff.
+Configure every reverse proxy/access log to omit callback query strings; TLS
+alone does not keep authorization codes out of an access log. Never capture
+provider sign-in, callback URLs or tokens in screenshots or acceptance records.
+See [Google's web-server flow](https://developers.google.com/identity/protocols/oauth2/web-server).
 
 ## Check local configuration without contacting the cloud
 

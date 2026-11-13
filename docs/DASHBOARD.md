@@ -188,3 +188,22 @@ boot. No router/laptop networking, USB gadget settings, OS password or sudo poli
 was changed. The public URL is temporary; no physical off-LAN phone or stable
 hostname acceptance is claimed. Results: [deployment](acceptance/pi-restricted-dev6-2026-11-13.json)
 and [HTTPS](acceptance/pi-https-dev6-2026-11-13.json).
+
+## Guided cloud connection foundation — dev7 source
+
+Backup destinations now includes owner-only **Connect Google Drive** and
+**Connect Dropbox** controls. The registered-app configuration must be installed
+privately before either can start sign-in. The provider handles its own login and
+consent; the dashboard never asks for a Google/Dropbox password. Viewers cannot
+start or complete an authorization.
+
+The current implementation stops after saving a private authorization and labels
+it **Not tested**. Folder selection, a real read-back verification, token refresh,
+rclone credential handoff and explicit enablement are still required. It does not
+start a worker or claim a cloud backup from a successful consent response.
+Koofr's app-password form and Synology NAS setup are separate planned connectors.
+
+See [private cloud setup](CLOUD_SETUP.md) for the example schema, fixed callback
+paths, permissions and acceptance limits. The running protected dev6 preview is
+unchanged by this source update. Do not restart a dashboard during an account
+change or provider consent flow; unfinished in-memory flows will be discarded.

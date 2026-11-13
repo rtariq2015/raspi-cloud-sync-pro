@@ -10,12 +10,13 @@ import shutil
 import stat
 import threading
 import time
+from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from . import __version__
-from .accounts import change_dashboard_password, initialize_dashboard as initialize_dashboard, read_auth as _read_auth
+from .accounts import _auth_lock, change_dashboard_password, initialize_dashboard as initialize_dashboard, read_auth as _read_auth
 from .config import _unique_object
 from .errors import BackupError
 from .history import read_history
@@ -95,9 +96,10 @@ def worker_snapshot(directory, *, now=None):
         return unavailable
 
 
-def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status):
+def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status, oauth_transport=None):
     from flask import Flask, abort, g, jsonify, redirect, render_template, request, send_file, session, url_for
     from werkzeug.security import check_password_hash, generate_password_hash
+    from .oauth import OAuthError, OAuthManager, OwnerProof
 
     state = Path(state).absolute()
     if state.is_symlink() or state.stat().st_uid != os.getuid() or state.stat().st_mode & 0o077:
@@ -118,6 +120,7 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
     sessions, failures, account_attempts = {}, [], []
     cache = {"at": 0, "data": None}
     dummy_hash = generate_password_hash(secrets.token_urlsafe(32))
+    oauth = OAuthManager(state, public_origin, transport=oauth_transport)
 
     def current_user():
         if hasattr(g, "login"):
@@ -159,7 +162,7 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
             if not isinstance(supplied, str) or not supplied.isascii() or len(supplied) > 256 or not session.get("csrf") \
                     or not secrets.compare_digest(supplied, session["csrf"]):
                 abort(403)
-        if request.endpoint not in ("login", "static", "manifest", "service_worker"):
+        if request.endpoint not in ("login", "static", "manifest", "service_worker", "oauth_callback", "oauth_return"):
             if not current_user():
                 if request.path.startswith("/api/"):
                     abort(401)
@@ -276,6 +279,80 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
                 session.clear()
                 return redirect(url_for("login"))
         return render_template("account.html", user=user, csrf=csrf(), message=message), code
+
+    def owner_proof():
+        user = current_user()
+        if not user or user["role"] != "owner":
+            abort(403)
+        return OwnerProof(user["username"], session["sid"], user["credential_tag"])
+
+    @contextmanager
+    def oauth_commit_guard(proof):
+        # Never reuse Flask.g's request-level authentication cache after exchange.
+        # Serialize against password changes while checking and publishing tokens.
+        try:
+            with _auth_lock(state), lock:
+                current_auth = _read_auth(state)
+                user = current_auth["users"].get(proof.username)
+                live = sessions.get(proof.session_id)
+                if not user or user["role"] != "owner" or current_auth["secret"] != auth["secret"] \
+                        or not live or live["expires"] <= time.time() or live["username"] != proof.username \
+                        or live["role"] != "owner" or live["credential_tag"] != proof.credential_tag \
+                        or hashlib.sha256(user["hash"].encode()).hexdigest() != proof.credential_tag:
+                    raise OAuthError("oauth_owner_session_changed")
+                yield
+        except (OSError, ValueError, TypeError, BackupError) as error:
+            if isinstance(error, OAuthError):
+                raise
+            raise OAuthError("oauth_owner_session_changed") from None
+
+    @app.get("/api/destinations")
+    def destinations():
+        return jsonify(providers=oauth.readiness(), uploads_enabled=False)
+
+    @app.post("/api/destinations/<provider>/connect")
+    def oauth_start(provider):
+        proof = owner_proof()
+        try:
+            return jsonify(oauth.start(provider, proof))
+        except OAuthError as error:
+            return jsonify(error=error.code, uploads_enabled=False), 409
+
+    @app.get("/oauth/callback/<provider>")
+    def oauth_callback(provider):
+        if request.method != "GET":
+            abort(405)
+        response = redirect("/oauth/return", code=303)
+        try:
+            if any(len(request.args.getlist(name)) > 1 for name in ("state", "code", "error")):
+                raise OAuthError("oauth_return_invalid")
+            ticket = oauth.callback(provider, request.args.get("state"), request.args.get("code"), request.args.get("error"))
+            response.set_cookie("raspi_oauth_handoff", ticket, max_age=90, secure=True,
+                                httponly=True, samesite="Strict", path="/api/oauth/complete")
+        except OAuthError:
+            pass
+        return response
+
+    @app.get("/oauth/return")
+    def oauth_return():
+        return render_template("oauth_return.html")
+
+    @app.get("/api/oauth/context")
+    def oauth_context():
+        owner_proof()
+        return jsonify(csrf=csrf())
+
+    @app.post("/api/oauth/complete")
+    def oauth_complete():
+        proof = owner_proof()
+        try:
+            response = jsonify(oauth.complete(request.cookies.get("raspi_oauth_handoff"), proof, oauth_commit_guard))
+        except OAuthError as error:
+            response = jsonify(error=error.code, uploads_enabled=False)
+            response.status_code = 409
+        response.delete_cookie("raspi_oauth_handoff", secure=True, httponly=True,
+                               samesite="Strict", path="/api/oauth/complete")
+        return response
 
     @app.get("/api/status")
     def status():

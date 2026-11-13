@@ -107,3 +107,12 @@ Before Samba deployment, inspect the existing Ethernet profile matching and the
 watcher's current state, keep authenticated Wi-Fi management open, back up
 settings, and perform a separately reviewed USB-only repair with rollback.
 Never restart all networking or remove Wi-Fi access to make that repair.
+
+The operator confirmed that the Pi's data cable is connected to a Windows
+computer, not the development laptop. A thirty-second passive capture on the Pi
+observed four outbound USB DHCP Discover packets and no host DHCP replies.
+Carrier stayed up, receive counters did not advance and Wi-Fi management stayed
+connected. No packets were saved or transmitted by the observer. This narrows
+the next test to Windows adapter/DHCP state and USB link behavior; it does not
+establish a Windows driver, firewall, cable or Pi profile root cause. Do not enable
+Internet sharing or change host security settings to hide the missing evidence.

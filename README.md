@@ -18,7 +18,7 @@ Local storage · Verified cloud backups · Desktop and phone dashboard
 
 > **Development preview — 13 November 2026.** The dashboard runs on a real Pi,
 > and authenticated access through a temporary HTTPS tunnel has passed testing.
-> Real cloud-account backups, Samba hardware acceptance and a ready-to-flash
+> Real cloud-account backups, Windows/USB share acceptance and a ready-to-flash
 > image are still ahead. No production release has been published.
 
 ## Meet your dashboard
@@ -44,6 +44,8 @@ automatically deletes originals or staged files.
 **Back up with evidence.** Koofr WebDAV and Google Drive use rclone adapters with
 separate jobs per destination. “Verified” means remote contents were downloaded
 and checked against SHA-256. Real account authorization and acceptance are pending.
+The dev7 source adds guided Google Drive/Dropbox sign-in foundations; folder
+selection, account testing and upload enablement remain separate steps.
 
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
@@ -63,11 +65,11 @@ remain to be accepted.
 | Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
 | Versioned backup engine, retries and independent read-back verification | Private Koofr and Google Drive test accounts |
 | Opt-in completed-batch worker and small Rust scheduler | Real cloud accounts and sustained-load acceptance |
-| Guarded USB controller; actual Samba protocol-lock fixture | Pi/Windows share locks, host behavior and power-loss tests |
+| Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**177 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**195 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).

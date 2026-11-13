@@ -37,14 +37,16 @@ composite switching are unsupported.
 Read-only readiness/power diagnostics, gated runtimes, static service/deployment
 templates and fault simulations are present. All hardware/network mutations remain
 disabled. Follow [the exact Pi trial sequence](PI_TEST_GUIDE.md) only after separate
-approval. Real Samba share-mode/lease, Windows driver, USB power and filesystem
-recovery tests are still required before deployment.
+approval. Samba share-mode behavior passed an isolated container and an encrypted
+loopback share on the actual Pi. Windows/USB transfers, leases/reopens, USB power
+and filesystem recovery tests are still required before deployment.
 
-The [2026-11-13 connectivity baseline](PI_CONNECTIVITY.md) now establishes working
-USB management and tested home Wi-Fi on the existing Pi. `network-status` exposes
-the current addressing/route/auto-switcher differences from the share runtime
-without changing them. Next is a reviewed disposable-file Samba test, preserving
-the working management path; cloud-account acceptance follows local capture.
+The [2026-11-13 connectivity baseline](PI_CONNECTIVITY.md) established home Wi-Fi
+and initial USB management; later observation found unstable USB addressing.
+`network-status` exposes current addressing/route/auto-switcher differences from
+the share runtime without changing them. The Pi loopback Samba test is accepted;
+stable USB addressing and actual Windows-host transfers remain, preserving the
+working Wi-Fi management path. Cloud-account acceptance follows local capture.
 
 ## Phase 3 — scheduler implemented; cloud account acceptance pending
 

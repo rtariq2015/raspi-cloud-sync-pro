@@ -265,3 +265,58 @@ parent RSS/high-water RSS was 1,784 KiB. Only disposable fixture children ran; n
 real worker, cloud account, USB setting or Wi-Fi setting was used. Fixture data
 remains retained. [Result](acceptance/pi-rust-paused-2026-11-13.json).
 This is a process-launch comparison, not an energy or whole-appliance benchmark.
+
+## OAuth connection foundation — development 0.1.0.dev7
+
+The full local suite passes **195 Python tests**, with no skipped tests, using
+the verified rclone 1.76.0 binary against temporary local storage. Eighteen new
+tests cover Google/Dropbox PKCE and fixed endpoints, owner/CSRF/session binding,
+expired/replayed callbacks, Strict-cookie omission/resumption, credential changes
+during exchange, bounded transports, private no-replace storage and sanitized
+errors. Ruff F/E9, JavaScript syntax, compilation and whitespace checks pass.
+An independent source review and targeted rerun found no blocking defect.
+
+The packaged dev7 wheel includes the callback template/script and OAuth module,
+with no credential files. SHA-256:
+`ef355d2c404e1329ecc6e35362814b9eafa4da7768072c13a9969fd4ca3792d4`.
+This is source/package acceptance; real browser/provider consent, registered
+stable callback hosting, refresh, folder selection, rclone handoff and actual
+cloud backups remain unaccepted. The live dev6 dashboard has not been replaced.
+
+That exact wheel also passed a separate unprivileged trial on the Pi: actual
+ephemeral loopback HTTP checked owner/viewer access, CSRF and missing-setup
+refusal. Flask's HTTPS-origin test client on the Pi checked a fake provider
+exchange, callback handoff/replay, private token storage and password revocation
+during exchange. The unrelated viewer remained valid. These cookie/provider
+semantics were simulated; no real provider request, browser consent, production
+account or service replacement occurred. Disposable fixture state stays retained.
+[Pi result](acceptance/pi-oauth-dev7-2026-11-13.json).
+
+## Actual Pi Samba protocol acceptance
+
+An isolated Samba 4.22.11 server on the physical Zero 2 W passed encrypted
+SMB 3.1.1 checks using disposable files. An active writer deferred staging before
+batch creation; the snapshot handle blocked new writes/deletes; the backup
+identity could not write; post-close staged bytes and SHA-256 matched. An injected
+read failure retained an incomplete batch, originals stayed present and a changed
+version preserved the previous snapshot. [Result](acceptance/pi-samba-protocol-2026-11-13.json).
+
+The server bound only `127.0.0.1:1445` and stopped after the test. Official Debian
+packages were privately extracted, without package maintainer hooks or global
+Samba configuration. Fresh private account-database backups preceded two new
+locked/no-login QA identities; all prior account records stayed unchanged. QA
+files, identities and backups remain retained; no boot service was enabled.
+
+Firmware power flags were `0x0` before and after. Wi-Fi stayed connected; USB
+carrier stayed present with its existing DHCP state70. No network, firewall,
+gadget setting or production hardware gate changed. This establishes the
+same-Pi protocol contract, not Windows/USB driver or transfer behavior, electrical
+power-failure recovery, whole-appliance memory limits or real cloud backup.
+
+Earlier private harness attempts failed before protocol acceptance: a sandboxed
+firmware-device read, a chmod on read-only package code, then an unsupported
+`useradd -K CREATE_MAIL_SPOOL=no` override. The final trial moved the read-only
+power probe outside the device sandbox, prepared only reviewed public-code
+permissions before sandboxing, and used Trixie's existing no-mail-spool default.
+The last failed attempt's proven empty QA group was validated and reused; no
+existing group was deleted or recreated. Failed-attempt evidence remains private.

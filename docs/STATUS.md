@@ -28,12 +28,17 @@ for remote automated checks.
 - Real encrypted Samba protocol fixture in an isolated Linux container: active
   writers defer capture; snapshot handles block new writes/deletes. This is
   separate from actual Pi/Windows/USB acceptance.
+- The same locking contract now passes with actual Samba 4.22.11 on the Pi,
+  using an isolated encrypted loopback share. Active writes defer capture,
+  snapshots block writes/deletes, interrupted reads retain incomplete data,
+  and old versions remain intact. The temporary server stopped after the test;
+  Windows/USB transfers remain unaccepted.
 
 ![Actual dashboard on the Pi](images/dashboard-desktop.png)
 
 ## Implemented and tested locally
 
-- **177 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **195 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -43,6 +48,10 @@ for remote automated checks.
 - USB/Samba ownership, staging, controller and recovery simulations from Phase 2.
 - Local-only cloud backend checks: missing/mismatched/alias configurations are
   distinguished without claiming account access or making a cloud request.
+- Dev7 Google Drive/Dropbox Connect foundation: owner-only consent initiation,
+  PKCE, one-use session-bound returns and private token storage. Missing registered
+  clients show setup-required; authorization never enables uploads. Eighteen new
+  tests use fake OAuth responses, not real accounts. The live preview is still dev6.
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private
@@ -57,8 +66,8 @@ has completed. No account passwords, USB/Wi-Fi settings or boot enablement chang
 
 1. Replace the tested temporary HTTPS preview with a stable hostname/access policy,
    then accept an off-LAN phone connection.
-2. Accept the actual Pi Samba server and file-locking contract on disposable
-   data, using private extracted packages without global service activation.
+2. Extend the accepted Pi loopback Samba contract to actual Windows/USB host
+   transfers after stable USB addressing is established.
 3. Finish private cloud account authorization and actual cloud acceptance;
    account password change/recovery has now passed an isolated Pi HTTP trial.
 4. Resolve the observed existing USB profile auto-switcher/DHCP loop without
