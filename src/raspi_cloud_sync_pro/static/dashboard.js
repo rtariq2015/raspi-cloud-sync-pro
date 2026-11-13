@@ -1,5 +1,7 @@
 'use strict';
 let files = [];
+let googlePreparationTimer = null;
+let googlePreparationRetryUntil = 0;
 const $ = id => document.getElementById(id);
 const text = (tag, value, className) => { const el = document.createElement(tag); el.textContent = value; if(className) el.className = className; return el; };
 const bytes = n => n < 1024 ? `${n} B` : n < 1048576 ? `${(n/1024).toFixed(1)} KB` : n < 1073741824 ? `${(n/1048576).toFixed(1)} MB` : `${(n/1073741824).toFixed(1)} GB`;
@@ -18,14 +20,63 @@ function workerReport(report) {
     $('worker-detail').textContent=queue+' · '+report.destination_count+' destinations · Reported '+age+' ago. '+policy+'. '+(report.reconciliation_pending?'More completed batches await reconciliation. ':'')+'This is a last report, not a live heartbeat or proof of cloud-account setup.';
   } else $('worker-detail').textContent='Reports do not start a worker or authorize cloud accounts. A parked scheduler may have no recent report. File verification is shown separately in history.';
 }
+function scheduleGooglePreparationRefresh() {
+  if(googlePreparationTimer!==null) {clearTimeout(googlePreparationTimer);googlePreparationTimer=null;}
+  if(performance.now()>=googlePreparationRetryUntil) return;
+  googlePreparationTimer=setTimeout(async()=>{
+    googlePreparationTimer=null;
+    try {destinationSetup(await api('/api/destinations'));}
+    catch(error){message(error.message,true);scheduleGooglePreparationRefresh();}
+  },3000);
+}
 function destinationSetup(data) {
+  if(googlePreparationTimer!==null) {clearTimeout(googlePreparationTimer);googlePreparationTimer=null;}
+  let preparationPending=false;
   for(const provider of data.providers||[]) {
     const label=$('oauth-'+provider.provider+'-status');
     if(label) label.textContent=provider.authorization==='authorization_saved_untested'?'Authorization saved · Not tested':provider.client_ready?'Ready for provider sign-in':'Private app setup required';
     const button=document.querySelector('.oauth-connect[data-provider="'+provider.provider+'"]');
     if(button) {button.disabled=provider.authorization==='authorization_saved_untested'; button.dataset.ready=provider.client_ready?'yes':'no';}
+    if(provider.provider==='google_drive') {
+      const report=provider.preparation||{},state=report.preparation_state||'unavailable';
+      const labels={not_requested:'Configuration not prepared',requested:'Preparation requested',expired:'Preparation request expired',prepared_untested:'Configuration prepared · Test required',stale_source:'Authorization changed · Prepare again',stale_receipt:'Previous preparation needs review',invalid:'Preparation status could not be validated',unavailable:'Preparation status unavailable'};
+      $('google-preparation-status').textContent=labels[state]||labels.unavailable;
+      let detail=state==='requested'?'Waiting for the device setup service. Automatic backups remain off.':state==='prepared_untested'?'This is the last preparation report. The current worker configuration has not been checked; a cloud test and explicit enablement are still required.':state==='expired'?'No completed preparation was reported before this request expired. You can request preparation again.':'Preparation does not create a cloud folder, test access or enable automatic backups.';
+      if(!provider.preparation_requests_available) detail='The device setup service is not connected yet. Automatic backups remain off.';
+      if(report.historical&&Number.isFinite(report.age_seconds)) detail+=' Reported '+Math.floor(report.age_seconds)+' seconds ago.';
+      $('google-preparation-detail').textContent=detail;
+      const prepare=$('google-prepare-button'),folder=$('google-folder-name');
+      const disabled=!provider.preparation_requests_available||provider.authorization!=='authorization_saved_untested'||['requested','invalid','unavailable'].includes(state);
+      if(prepare) prepare.disabled=disabled;
+      if(folder) folder.disabled=disabled;
+      if(state==='requested'&&provider.preparation_requests_available) {
+        if(!googlePreparationRetryUntil) googlePreparationRetryUntil=performance.now()+Math.max(0,600-(Number.isFinite(report.age_seconds)?Math.max(0,report.age_seconds):0))*1000;
+        preparationPending=performance.now()<googlePreparationRetryUntil;
+      } else if(state==='unavailable'&&provider.preparation_requests_available) {
+        preparationPending=performance.now()<googlePreparationRetryUntil;
+      } else googlePreparationRetryUntil=0;
+    }
   }
+  if(preparationPending) scheduleGooglePreparationRefresh();
 }
+document.getElementById('google-prepare-form')?.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=$('google-prepare-button'),folder=$('google-folder-name');
+  if(button.disabled||folder.disabled) return;
+  const name=folder.value.trim();button.disabled=true;folder.disabled=true;
+  try {
+    const response=await fetch('/api/destinations/google_drive/prepare',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({folder_name:name})});
+    if(response.status===401) {location.href='/login';return;}
+    const data=await response.json();
+    if(!response.ok) {
+      const errors={google_setup_service_unavailable:'The device setup service is not ready yet.',google_folder_name_invalid:'Use 1–64 letters or numbers, with spaces, periods, underscores or hyphens inside the name.',google_setup_source_unavailable:'Finish Google sign-in before preparing a backup destination.'};
+      throw new Error(response.status===403?'Your sign-in expired or this account cannot prepare backups. Refresh and sign in again.':errors[data.error]||'Preparation could not be requested. Refresh to check its status before trying again.');
+    }
+    if(data.preparation?.preparation_state==='requested') googlePreparationRetryUntil=performance.now()+600000;
+    message(data.preparation?.preparation_state==='prepared_untested'?'Configuration was already prepared. A cloud test is still required; automatic backups remain off.':'Preparation requested. Automatic backups remain off.');
+  }catch(error){message(error.message,true);}
+  finally{try{destinationSetup(await api('/api/destinations'));}catch(error){message(error.message,true);scheduleGooglePreparationRefresh();}}
+});
 document.querySelectorAll('.oauth-connect').forEach(button=>button.addEventListener('click',async()=>{
   if(button.dataset.ready!=='yes') {message('This provider needs a registered application and exact HTTPS callback configuration installed privately on the Pi before sign-in can begin.',true);return;}
   button.disabled=true;

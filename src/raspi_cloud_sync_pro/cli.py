@@ -29,6 +29,29 @@ def main(argv: Optional[List[str]] = None) -> int:
     prepare.add_argument("--state", type=Path, required=True, help="private backup state owned by the current non-root user")
     prepare.add_argument("--input-fd", type=int, required=True, help="dedicated inherited pipe or connected Unix stream, never stdio")
     prepare.add_argument("--folder-name", required=True, help="proposed app folder name; this does not create or verify it")
+    setup_export = commands.add_parser("google-setup-export", help="broker-only private export of a current owner preparation request")
+    setup_export.add_argument("--state", type=Path, required=True)
+    setup_export.add_argument("--public-origin", required=True)
+    setup_export.add_argument("--request-id", required=True)
+    setup_export.add_argument("--metadata-fd", type=int, required=True)
+    setup_export.add_argument("--authorization-fd", type=int, required=True)
+    setup_record = commands.add_parser("google-setup-record", help="broker-only private receipt recording; never enable uploads")
+    setup_record.add_argument("--state", type=Path, required=True)
+    setup_record.add_argument("--public-origin", required=True)
+    setup_record.add_argument("--request-id", required=True)
+    setup_record.add_argument("--receipt-fd", type=int, required=True)
+    setup_receipt = commands.add_parser("google-setup-receipt", help="privately describe an untested worker preparation")
+    setup_receipt.add_argument("--state", type=Path, required=True)
+    setup_receipt.add_argument("--request-id", required=True)
+    setup_receipt.add_argument("--output-fd", type=int, required=True)
+    setup_import = commands.add_parser("google-setup-import", help="prepare under an anchored private backup root as its ordinary identity")
+    setup_import.add_argument("--state", type=Path, required=True)
+    setup_import.add_argument("--request-id", required=True)
+    setup_import.add_argument("--root-fd", type=int, required=True)
+    setup_import.add_argument("--input-fd", type=int, required=True)
+    setup_import.add_argument("--folder-name", required=True)
+    setup_broker = commands.add_parser("google-setup-broker", help="gated Pi-only preparation broker; no network or upload actions")
+    setup_broker.add_argument("--config", type=Path, required=True)
     wifi = commands.add_parser("wifi-plan", help="validate a non-secret Wi-Fi profile and show its NM mapping")
     wifi.add_argument("config", type=Path)
     account = commands.add_parser("dashboard-init", help="create a dashboard account with a private password prompt")
@@ -44,6 +67,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     dashboard.add_argument("--worker-state", type=Path, help="read only the completed-batch worker's status directory")
     dashboard.add_argument("--port", type=int, default=8080)
     dashboard.add_argument("--public-origin", help="reviewed HTTPS origin behind the reverse proxy")
+    dashboard.add_argument("--google-setup-requests", action="store_true",
+                           help="allow owner preparation requests only after the separate setup service is installed")
     for command in ("worker-plan", "backup-staged"):
         worker = commands.add_parser(command, help="inspect or run an opt-in completed-batch backup worker")
         worker.add_argument("--config", type=Path, required=True)
@@ -72,6 +97,32 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
+    if args.command in ("google-setup-export", "google-setup-record", "google-setup-receipt",
+                        "google-setup-import", "google-setup-broker"):
+        try:
+            if args.command == "google-setup-export":
+                from .google_setup import export_requested_google_setup
+                report = export_requested_google_setup(args.state, args.public_origin, args.request_id,
+                                                      args.metadata_fd, args.authorization_fd)
+            elif args.command == "google-setup-record":
+                from .google_setup import record_google_setup_receipt
+                report = record_google_setup_receipt(args.state, args.public_origin, args.request_id, args.receipt_fd)
+            elif args.command == "google-setup-receipt":
+                from .google_broker import export_google_preparation_receipt
+                report = export_google_preparation_receipt(args.state, args.request_id, args.output_fd)
+            elif args.command == "google-setup-import":
+                from .google_broker import import_requested_google_setup
+                report = import_requested_google_setup(args.state, args.request_id, args.root_fd,
+                                                       args.input_fd, args.folder_name)
+            else:
+                from .google_broker import GoogleBrokerSettings, run_google_setup_broker
+                report = run_google_setup_broker(GoogleBrokerSettings.load(args.config))
+            print(json.dumps(report, indent=2))
+            return 2 if report.get("status") == "failed" else 0
+        except (BackupError, OSError, ValueError, TypeError):
+            print("Google preparation workflow unavailable; no uploads were enabled and no private details were printed.",
+                  file=sys.stderr)
+            return 2
     if args.command in ("google-export-authorization", "google-prepare-destination"):
         from .google_destination import export_google_authorization, prepare_google_destination
         try:
@@ -127,7 +178,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print("Dashboard password reset. This account's existing sessions are revoked on their next request.")
             else:
                 serve_dashboard(args.state, history=args.history, worker_state=args.worker_state, port=args.port,
-                                public_origin=args.public_origin)
+                                public_origin=args.public_origin, google_setup_requests=args.google_setup_requests)
             return 0
         except ImportError:
             print("Install the optional dashboard dependencies in a virtual environment.", file=sys.stderr)

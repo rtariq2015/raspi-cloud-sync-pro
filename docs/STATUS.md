@@ -48,7 +48,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **229 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **326 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -70,6 +70,21 @@ for remote automated checks.
   bindings, private permissions, atomic no-replace publication and retained
   incomplete transactions have focused tests. No cloud request or upload
   activation occurs during preparation. [Operator guide](GOOGLE_HANDOFF.md).
+- Dev10 adds owner-only preparation requests, a separately gated local broker,
+  and historical preparation status in the dashboard. Source and configuration
+  bindings, owner revocation, expiration, private channels, retained interrupted
+  work, and bounded browser status retries have automated tests. A protected
+  dev10 code directory is installed on the Pi; the live dashboard remains dev8
+  until the new integration passes its separate acceptance checks. Neither
+  preparation nor its status enables automatic backups.
+- The dev10 synthetic Pi trial now passes owner HTTP-handler requests, the actual
+  root broker, separate ordinary service identities, historical status and
+  recovery from a prepared destination whose receipt was not recorded. Existing
+  configuration inodes/bytes and source files were retained; actual kernel reads
+  across private identity boundaries were denied. A separate backed-up setup step
+  created the locked backup identity with its own group, preserving every old
+  account entry/password. The trial changed no live service or network settings.
+  [Dev10 evidence](acceptance/pi-google-setup-dev10-2026-11-13.json).
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private

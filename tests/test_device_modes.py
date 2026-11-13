@@ -2,6 +2,8 @@ import configparser
 import dataclasses
 import io
 import ipaddress
+import json
+import shlex
 import subprocess
 import unittest
 from contextlib import redirect_stdout
@@ -107,6 +109,7 @@ class DeviceModeTests(unittest.TestCase):
             self.assertNotIn("Install", unit)
             if "diagnostics" not in path.name:
                 marker = "DASHBOARD_APPROVED" if "dashboard" in path.name else \
+                    "GOOGLE_SETUP_APPROVED" if path.name == "raspi-cloud-google-setup.service" else \
                     "STAGED_WORKER_APPROVED" if path.name == "cloudstick.service" else "DISPOSABLE_TEST_APPROVED"
                 self.assertIn(marker, unit["Unit"]["ConditionPathExists"])
                 self.assertEqual(unit["Service"]["Restart"], "no")
@@ -114,3 +117,55 @@ class DeviceModeTests(unittest.TestCase):
                 self.assertEqual(unit["Service"]["User"], "raspi-dashboard")
                 self.assertEqual(unit["Service"]["NoNewPrivileges"], "yes")
                 self.assertEqual(unit["Service"]["ProtectHome"], "yes")
+
+    def test_google_preparation_units_are_explicit_local_only_and_bound_to_disabled_example(self):
+        service = configparser.ConfigParser(interpolation=None)
+        service.read(ROOT / "deploy/systemd/raspi-cloud-google-setup.service")
+        watcher = configparser.ConfigParser(interpolation=None)
+        watcher.read(ROOT / "deploy/systemd/raspi-cloud-google-setup.path")
+        example = json.loads((ROOT / "config/google-setup-broker.example.json").read_text())
+        self.assertIs(example["enabled"], False)
+        self.assertEqual(example["schema_version"], 1)
+        for unit in (service, watcher):
+            self.assertNotIn("Install", unit)
+            self.assertEqual(unit["Unit"]["ConditionPathExists"], example["approval_file"])
+        process = service["Service"]
+        self.assertEqual(process["Type"], "oneshot")
+        self.assertEqual(process["User"], "root")
+        self.assertEqual(process["Group"], "root")
+        self.assertEqual(shlex.split(process["ExecStart"]), [
+            example["interpreter"], "-I", "-B", "-m", "raspi_cloud_sync_pro",
+            "google-setup-broker", "--config", "/etc/raspi-cloud-sync-pro/google-setup-broker.json"])
+        self.assertEqual(example["interpreter"], "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev10/venv/bin/python3")
+        self.assertNotIn("/current/", process["ExecStart"])
+        self.assertEqual(process["RestrictAddressFamilies"].split(), ["AF_UNIX"])
+        self.assertEqual(process["CapabilityBoundingSet"].split(),
+                         ["CAP_DAC_OVERRIDE", "CAP_SETUID", "CAP_SETGID"])
+        self.assertEqual(process["AmbientCapabilities"], "")
+        for key in ("PrivateNetwork", "NoNewPrivileges", "ProtectHome", "PrivateTmp",
+                    "PrivateDevices", "ProtectKernelTunables", "ProtectKernelModules",
+                    "ProtectKernelLogs", "ProtectControlGroups", "RestrictSUIDSGID",
+                    "RestrictNamespaces", "RestrictRealtime", "LockPersonality"):
+            self.assertEqual(process[key], "yes")
+        self.assertEqual(process["ProtectSystem"], "strict")
+        self.assertEqual(process["ReadWritePaths"].split(), [
+            example["source_state"], example["backup_state"], str(Path(example["lock_file"]).parent)])
+        self.assertEqual(process["RuntimeDirectory"], Path(example["lock_file"]).parent.name)
+        self.assertEqual(process["RuntimeDirectoryMode"], "0700")
+        self.assertEqual(process["RuntimeDirectoryPreserve"], "yes")
+        self.assertEqual(process["UMask"], "0077")
+        self.assertEqual(process["LimitCORE"], "0")
+        self.assertEqual(process["Restart"], "no")
+        self.assertEqual(process["KillMode"], "control-group")
+        self.assertEqual(process["SendSIGKILL"], "yes")
+        self.assertEqual(process["TimeoutStartSec"], "30")
+        self.assertEqual(process["TimeoutStopSec"], "5")
+        self.assertEqual(process["StandardInput"], "null")
+        self.assertEqual(watcher["Path"]["PathChanged"],
+                         str(Path(example["source_state"]) / "google-setup/current.json"))
+        self.assertEqual(watcher["Path"]["Unit"], "raspi-cloud-google-setup.service")
+        self.assertNotIn("PathExists", watcher["Path"])
+        self.assertNotIn("MakeDirectory", watcher["Path"])
+        for section in (service["Unit"], process, watcher["Unit"], watcher["Path"]):
+            self.assertNotIn("ExecStartPre", section)
+            self.assertNotIn("ExecStartPost", section)

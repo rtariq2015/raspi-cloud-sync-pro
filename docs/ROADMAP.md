@@ -73,6 +73,13 @@ The live dashboard remains dev8; its integration with a production backup identi
 current-state reporting and explicit Test/Enable controls still need completion.
 See [the handoff contract](GOOGLE_HANDOFF.md).
 
+Dev10 adds durable owner requests, private source/configuration bindings, a
+gated root coordinator, and historical dashboard receipts. Its native synthetic
+Pi trial passed separate identities, interrupted-receipt recovery and retained
+configuration checks. A dedicated locked backup identity is prepared. Accept
+the systemd event/sandbox path and live dashboard integration next; preparation
+still performs no cloud test or automatic upload.
+
 Use test accounts for path encoding, empty/large/changed files, interrupted uploads,
 auth expiry, rate/quota failures and downloaded-content checks. Measure real
 throughput/memory on the Zero 2 W. Add cancellation, explicit failed-job recovery,

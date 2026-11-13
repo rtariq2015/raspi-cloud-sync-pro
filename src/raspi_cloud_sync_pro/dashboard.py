@@ -96,10 +96,15 @@ def worker_snapshot(directory, *, now=None):
         return unavailable
 
 
-def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status, oauth_transport=None):
+def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status,
+               oauth_transport=None, google_setup_requests=False):
     from flask import Flask, abort, g, jsonify, redirect, render_template, request, send_file, session, url_for
     from werkzeug.security import check_password_hash, generate_password_hash
     from .oauth import OAuthError, OAuthManager, OwnerProof
+    from .google_setup import GoogleSetupError, google_setup_status, request_google_setup
+
+    if type(google_setup_requests) is not bool:
+        raise ValueError("Google setup request availability must be an explicit boolean")
 
     state = Path(state).absolute()
     if state.is_symlink() or state.stat().st_uid != os.getuid() or state.stat().st_mode & 0o077:
@@ -308,7 +313,26 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
 
     @app.get("/api/destinations")
     def destinations():
-        return jsonify(providers=oauth.readiness(), uploads_enabled=False)
+        providers = oauth.readiness()
+        for provider in providers:
+            if provider["provider"] == "google_drive":
+                provider["preparation"] = google_setup_status(state, public_origin)
+                provider["preparation_requests_available"] = google_setup_requests
+        return jsonify(providers=providers, uploads_enabled=False)
+
+    @app.post("/api/destinations/google_drive/prepare")
+    def google_prepare():
+        proof = owner_proof()
+        if not google_setup_requests:
+            return jsonify(error="google_setup_service_unavailable", uploads_enabled=False), 409
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict) or set(data) != {"folder_name"}:
+            return jsonify(error="google_setup_request_invalid", uploads_enabled=False), 400
+        try:
+            report = request_google_setup(state, public_origin, data["folder_name"], proof, oauth_commit_guard)
+        except (GoogleSetupError, OAuthError) as error:
+            return jsonify(error=error.code, uploads_enabled=False), 409
+        return jsonify(preparation=report, uploads_enabled=False), 202
 
     @app.post("/api/destinations/<provider>/connect")
     def oauth_start(provider):
@@ -479,12 +503,14 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
     return app
 
 
-def serve_dashboard(state, *, history=None, worker_state=None, port=8080, public_origin=None):
+def serve_dashboard(state, *, history=None, worker_state=None, port=8080, public_origin=None,
+                    google_setup_requests=False):
     from waitress import serve
     if type(port) is not int or not 1024 <= port <= 65535:
         raise ValueError("Use an unprivileged dashboard port")
     # Always loopback. A reviewed HTTPS reverse proxy supplies external access.
-    app = create_app(state, history=history, worker_state=worker_state, public_origin=public_origin)
+    app = create_app(state, history=history, worker_state=worker_state, public_origin=public_origin,
+                     google_setup_requests=google_setup_requests)
     serve(app, host="127.0.0.1", port=port, threads=2, connection_limit=32,
           channel_timeout=30, max_request_body_size=102 * 1024 * 1024,
           clear_untrusted_proxy_headers=True)

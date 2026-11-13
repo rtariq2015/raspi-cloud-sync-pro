@@ -1,0 +1,49 @@
+[Unit]
+Description=Raspi Cloud Sync Pro private disabled Google preparation
+ConditionPathExists=/etc/raspi-cloud-sync-pro/GOOGLE_SETUP_APPROVED
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/
+# This pinned interpreter must be an actual root-owned file in a --copies venv.
+# The broker rejects current links, interpreter symlinks and writable ancestors.
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev10/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-setup-broker --config /etc/raspi-cloud-sync-pro/google-setup-broker.json
+Restart=no
+TimeoutStartSec=30
+TimeoutStopSec=5
+KillMode=control-group
+SendSIGKILL=yes
+UMask=0077
+LimitCORE=0
+RuntimeDirectory=raspi-cloud-google-setup
+RuntimeDirectoryMode=0700
+# Keep the protected lock inode across one-shot exits and concurrent manual runs.
+RuntimeDirectoryPreserve=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+ReadWritePaths=/var/lib/raspi-cloud-sync-pro/dashboard /var/lib/raspi-cloud-sync-pro/google-setup-backup /run/raspi-cloud-google-setup
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX
+CapabilityBoundingSet=CAP_DAC_OVERRIDE CAP_SETUID CAP_SETGID
+AmbientCapabilities=
+MemoryMax=160M
+TasksMax=16
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+# No Install section. The JSON configuration is disabled until separately reviewed.

@@ -451,3 +451,59 @@ pipe with bounded nonblocking writes, leaves room for a partial frame, and check
 the timeout and restored flags. All 33 preparation/CLI tests then passed under
 actual CPython 3.9.25 in a non-root, network-disabled, read-only container. The
 application module and the Pi-tested wheel were unchanged by this correction.
+
+## Owner-requested Google preparation — development 0.1.0.dev10
+
+The local suite passed **326 Python tests**, including actual rclone against
+temporary local storage and seven Node VM tests of the dashboard's actual
+preparation polling functions. The polling tests cover temporary lock/network
+failures, bounded retries, terminal states, and stopping after a result. The new
+workflow keeps preparation separate from a cloud test and upload enablement.
+
+An additional **108 Google/CLI tests passed under CPython 3.9.25** in a non-root,
+network-disabled, read-only container. These include the source/worker config
+binding, private channel lifecycle, expiry, owner credential revocation, failed
+transactions, conservative status, CLI dispatch and private error suppression.
+Dashboard HTTP tests use fake authorization and run locally with the optional
+Flask dependencies. Focused Ruff checks, JavaScript syntax, Python 3.9 grammar
+and whitespace checks pass.
+
+The reviewed dev10 wheel is installed in a separate protected Pi prefix. Its
+interpreter is an actual copied file, with protected existing dashboard
+dependencies reused offline. Archive-provided code/assets/metadata and runtime
+versions were checked. This installation changed no accounts, live services,
+private dashboard state or network settings. Live dev8 remains active while the
+new integration is accepted.
+
+The new root broker and path unit templates are disabled by default. Static
+tests check the explicit approval gate, private network namespace, restricted
+address families/capabilities, process cleanup and pinned interpreter. A local
+`systemd-analyze verify` check used temporary copies with the intentionally
+absent executable replaced by `/usr/bin/true`; it does not establish actual
+systemd sandbox or event-delivery acceptance on the Pi.
+
+The native synthetic trial now passes on the Pi with the reviewed wheel:
+owner-only CSRF-protected Flask HTTP handlers write intent; the actual root CLI
+broker transfers authorization between distinct ordinary identities; source
+HTTP handlers report the saved preparation as historical and untested. Actual
+kernel reads across the private state boundary are denied. A separate recovery
+fixture prepares configuration without recording its receipt, then the broker
+reconciles it without replacing the existing files. A repeat of a completed
+request is refused; source and prepared files remain unchanged.
+[Sanitized receipt](acceptance/pi-google-setup-dev10-2026-11-13.json).
+
+The initial trial was correctly refused with `google_broker_identity_unsafe`:
+the reused Samba QA users had separate UIDs but shared their primary GID. That
+failed fixture remains intact. A separate installation step backed up the
+account databases, created locked no-login `raspi-backup` with a dedicated group
+and private empty backup state, and verified every existing account/password
+entry remained byte-for-byte unchanged. A new fixture requires distinct positive
+UIDs/GIDs before creation; the application and wheel were not changed to bypass
+the safety check. Account databases were unchanged throughout the accepted trial.
+
+The live dashboard process/state metadata, Wi-Fi/default routes and USB carrier
+were preserved. USB addresses were also unchanged during this observation;
+that does not resolve earlier auto-switcher behavior. Firmware reported
+`throttled=0x0` before and after. This exercised Flask `test_client`, not a TCP
+server, browser, HTTPS proxy or real provider account. No real credential was
+read and no cloud request, automatic upload or service activation occurred.

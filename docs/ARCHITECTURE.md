@@ -21,7 +21,9 @@ quarantine. New code does not import those service loops.
 | `config.py`, `cli.py` | Strict planning schema, diagnostics and opt-in completed-batch worker commands |
 | `accounts.py` | Private durable account writes, explicit recovery, role preservation and credential-based session revocation |
 | `cloud_readiness.py` | Local-only rclone backend metadata checks; no account or cloud activation claim |
-| `google_destination.py` | Operator-only private OAuth handoff across separate identities and no-replace, disabled Google rclone preparation; no cloud requests |
+| `google_destination.py` | Private OAuth handoff across separate identities and no-replace, disabled Google rclone preparation; no cloud requests |
+| `google_setup.py` | Durable owner preparation intent, source/credential bindings, consumed private export and strict historical receipt projection |
+| `google_broker.py` | Opt-in protected-root coordinator with ordinary source/backup children, private source/config hash checks and bounded preparation only |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
 | `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |
 | `wifi_plan.py` | Non-secret inactive NetworkManager profile plans; no OS mutation |
@@ -126,32 +128,106 @@ and [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
 
 ## Private Google authorization boundary
 
-The dev9 source separates dashboard-owned browser authorization from
-backup-owned rclone configuration. A trusted operator launches the exporter as
-the ordinary dashboard UID and the importer as the separate ordinary backup
-UID, connecting only a dedicated inherited anonymous pipe or already connected
-Unix stream. Both APIs refuse root and changed real/effective UIDs. The importer
-never opens dashboard authentication, account or web-inbox state. It cannot make
-those files accessible to the backup worker or grant that worker access to HTTP
-uploads. The operator's process/UID orchestration is outside these APIs.
+Dev9 separates dashboard-owned browser authorization from backup-owned rclone
+configuration. Its operator exporter/importer passed a synthetic two-identity CLI
+trial on the Pi; this did not connect real dashboard credentials to production
+backup state. The earlier one-file Google proof on dev8 describes a separate
+historical QA configuration and job. Neither verifies a new destination.
+The live protected dashboard remains dev8 until a separately accepted upgrade.
+The dev10 candidate adds the following owner-intent and broker boundary. Its
+native synthetic HTTP-handler/root-broker and recovery trial now passes on the
+Pi, with [separate evidence](acceptance/pi-google-setup-dev10-2026-11-13.json).
+Systemd path/sandbox activation, live deployment and real-account integration
+remain outside that trial.
 
-The exporter checks private source ownership, permissions, exact HTTPS origin,
-client/grant binding and the limited `drive.file` scope. A bounded length-prefixed
-frame and required EOF transfer the credential bundle without stdout or argument
-disclosure. The importer writes mode-0600 files inside a mode-0700 private
-preparation directory and publishes it with Linux no-replace semantics. Failed
-partial directories remain private for explicit recovery. Neither side contacts
-Google, refreshes a token, creates a remote folder, changes a service or enables
-uploads. [GOOGLE_HANDOFF.md](GOOGLE_HANDOFF.md) specifies the commands and limits.
+```mermaid
+flowchart LR
+    O[Owner with live session and CSRF] --> D[Dashboard UID: durable preparation request]
+    D --> P[Private atomic current pointer]
+    P --> C[Opt-in protected root coordinator]
+    C --> E[Dashboard UID: revalidate owner and source]
+    E --> M[Private expected authorization and config hashes]
+    E -->|Dedicated credential pipe| I[Backup UID: prepare disabled config]
+    M --> C
+    I --> R[Backup UID: inspect actual config and manifest]
+    R -->|Private receipt and actual config hash| C
+    C --> S[Dashboard UID: independently revalidate and record]
+    S --> H[Historical safe status: test required, uploads off]
+```
 
-`prepared_untested` describes that completed preparation operation; it is not a
-live readiness report. The public result contains no credentials, origin,
-fingerprints, remote name or folder name. Private manifest hashes bind the
-exported authorization and prepared configuration, but no current-status reader
-revalidates later source/config changes. A dashboard must not infer readiness
-from directory existence or a saved success result. Historical verified jobs,
-including the one-file real Google Drive proof on dev8, do not verify a newly
-prepared destination. The live dashboard remains dev8 until a separately accepted
-upgrade. Dev9 preparation passed a synthetic two-identity CLI trial on the Pi;
-real-credential handoff between the live dashboard and a production backup
-identity remains pending.
+`google_setup.py` saves versioned immutable request/receipt files under the
+mode-0700 dashboard-owned `google-setup` directory, with mode-0600 files and an
+atomic `current.json` pointer. It retains previous records and incomplete writes.
+The request endpoint accepts only a short constrained folder label. The default
+dashboard disables requests; the explicit `--google-setup-requests` switch
+exposes them after separate service setup. The live owner/session commit guard
+and current credential/role checks protect publication. Lock order is auth then
+workflow; the guard already owns the auth lock during request creation.
+
+Requests expire after ten minutes and bind to the owner credential tag and the
+canonical source origin/client-secret/grant snapshot. Password or role changes
+and source changes prevent pending export or receipt recording. An identical
+live request is idempotent; an explicitly renewed expired/stale request gets a
+new ID while preserving history. Request metadata never stores session IDs,
+passwords, tokens or client secrets. The private current pointer contains only
+schema version and request ID.
+
+The root broker requires a reviewed Linux aarch64 Raspberry Pi Zero 2 W, enabled
+root-protected configuration, exact root-owned approval JSON, protected installed
+code/interpreter, distinct restricted local service identities and a stable
+broker lock. It reads the bounded current pointer and private metadata/receipts,
+not credential files or authorization bytes. Credentials pass directly between
+ordinary dashboard and backup children. Root remains trusted; this boundary
+limits the coordinator's implemented behavior, not root's OS authority. Children
+clear supplementary groups/capabilities, drop all UID/GID forms, disable dumps
+and use no-new-privileges before isolated execution with fixed arguments.
+
+The source exporter validates one in-memory authorization snapshot. Its private
+metadata binds both the canonical bundle SHA-256 and the expected rendered
+rclone configuration SHA-256 to the request/folder. Metadata is framed and closed
+for EOF before credentials are sent on their separate channel. The importer,
+only after UID drop, validates the inherited backup-root directory anchor and
+prepares under `<backup-state>/<request-id>/google-drive.prepared`. It uses the
+existing no-replace publication, private permissions and retained partials.
+No extra copy of the grant bundle is saved.
+
+The backup inspector validates the exact disabled direct-drive config/manifest
+and reports the actual configuration hash. The parent compares both hashes with
+authoritative source metadata; the source recorder independently reloads current
+owner/source state and recomputes the expected configuration hash before durable
+receipt publication. A backup-side config edit plus a recomputed backup manifest
+hash cannot forge this binding. Stdio/aliases, unsafe paths, unexpected fields,
+duplicate/deep JSON, extra frames and missing EOF fail closed. Channels are
+bounded, deadline-limited and consumed on accepted success or failure. Neither
+ordinary source/backup API accepts root or unequal real/effective UIDs.
+
+The browser receives only state, age and conservative flags. A historical
+`prepared_untested` report always carries `current_worker_state_checked: false`,
+`enabled: false`, `test_required: true`, `account_verified: false`,
+`folder_exists_verified: false` and `automatic_deletion: false`. It exposes no
+origin, hash, request ID, folder, path, client or account identifier. Pending
+source/owner changes yield `stale_source`; a historical receipt whose source or
+expected configuration binding changes yields `stale_receipt`. Status does not
+open the current worker config, so later backup-side edits or deletion are not
+observed by a saved receipt. It cannot establish account access, folder existence,
+refresh validity or ongoing worker readiness.
+
+The uninstalled one-shot and `PathChanged` templates target a real copied
+interpreter at `/opt/raspi-cloud-sync-pro/releases/0.1.0.dev10/venv/bin/python3`,
+existing dashboard state, and separate mode-0700 `raspi-backup` state at
+`/var/lib/raspi-cloud-sync-pro/google-setup-backup`. The release venv must use
+`--copies`; protected interpreter/path symlinks are rejected. The example JSON
+is disabled and the approval file is
+`/etc/raspi-cloud-sync-pro/GOOGLE_SETUP_APPROVED`. There is no installation script
+or automatic startup. The watcher observes future pointer replacements; old
+pending intent needs a deliberate one-shot start. An existing exact matching
+preparation may be reconciled only for the same current unexpired request.
+Previous completed/incomplete artifacts are never silently replaced or removed.
+
+Neither this workflow nor its templates contact Google, refresh a token, create
+a remote folder, invoke rclone, change host networking, start a worker or enable
+uploads. The service template adds a private network namespace, bounded runtime
+and restricted capabilities, rather than changing the Pi's working network.
+Real provider tests, folder checks, independent read-back verification and explicit
+activation remain separate acceptance steps. [GOOGLE_HANDOFF.md](GOOGLE_HANDOFF.md)
+specifies the private contracts, templates and recovery limits.
