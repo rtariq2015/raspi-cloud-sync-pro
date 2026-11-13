@@ -1,0 +1,23 @@
+[Unit]
+Description=Raspi Cloud Sync Pro Rust staged-file watcher
+After=network.target
+ConditionPathExists=/etc/raspi-cloud-sync-pro/STAGED_WORKER_APPROVED
+
+[Service]
+Type=simple
+User=raspi-backup
+Group=raspi-backup
+ExecStart=/opt/raspi-cloud-sync-pro/current/bin/cloudstick-watcher --staging /var/lib/raspi-cloud-sync-pro/smb-staging --runner /usr/local/libexec/raspi-cloud-sync-pro/upload.sh --config /etc/raspi-cloud-sync-pro/worker.local.json --interval 10
+Restart=no
+KillMode=control-group
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/raspi-cloud-sync-pro/smb-state
+ReadOnlyPaths=/var/lib/raspi-cloud-sync-pro/smb-staging
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

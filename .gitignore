@@ -38,6 +38,7 @@ first-login.json
 dashboard.local.json
 dashboard.env
 cloudflared.local.yml
+/rust/target/
 
 # Runtime data, USB backing images, staging, and logs
 *.log

@@ -106,7 +106,8 @@ class DeviceModeTests(unittest.TestCase):
             unit.read(path)
             self.assertNotIn("Install", unit)
             if "diagnostics" not in path.name:
-                marker = "DASHBOARD_APPROVED" if "dashboard" in path.name else "DISPOSABLE_TEST_APPROVED"
+                marker = "DASHBOARD_APPROVED" if "dashboard" in path.name else \
+                    "STAGED_WORKER_APPROVED" if path.name == "cloudstick.service" else "DISPOSABLE_TEST_APPROVED"
                 self.assertIn(marker, unit["Unit"]["ConditionPathExists"])
                 self.assertEqual(unit["Service"]["Restart"], "no")
             if "dashboard" in path.name:

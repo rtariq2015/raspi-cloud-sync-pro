@@ -28,6 +28,12 @@ icon and screenshots of the running QA preview were created for this GPL project
 no external UI assets, fonts or screenshot files from the reference project were
 copied.
 
+The Rust staged-file watcher links serde_json and its dependencies under their
+upstream MIT/Apache-2.0 licensing; `rust/Cargo.lock` records exact dependency
+versions. It uses the Rust standard library. Preserve the corresponding upstream
+notices when distributing compiled binaries. The root GPL-3.0 project license
+and Koseng attribution remain unchanged.
+
 [rclone](https://rclone.org/licence/) is an external MIT-licensed executable;
 Samba, NetworkManager, dnsmasq and the Linux kernel remain independently licensed
 system dependencies. No Microsoft driver binaries are redistributed here.

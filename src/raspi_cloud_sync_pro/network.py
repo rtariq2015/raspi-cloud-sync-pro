@@ -36,6 +36,7 @@ class WifiProfile:
     client_certificate: Optional[str] = None
     private_key_ref: Optional[str] = None
     phase2: Optional[str] = None
+    anonymous_identity: Optional[str] = None
 
     def validate(self):
         if not isinstance(self.ssid, str) or not self.ssid or "\0" in self.ssid \
@@ -46,11 +47,12 @@ class WifiProfile:
                 or type(self.metered) is not bool or type(self.hidden) is not bool:
             raise ValueError("invalid Wi-Fi profile options")
         for value in (self.password_ref, self.identity, self.eap, self.ca_certificate,
-                      self.server_domain, self.client_certificate, self.private_key_ref, self.phase2):
-            if value is not None and (not isinstance(value, str) or not value or "\0" in value):
+                      self.server_domain, self.client_certificate, self.private_key_ref, self.phase2,
+                      self.anonymous_identity):
+            if value is not None and (not isinstance(value, str) or not value or any(ord(c) < 32 for c in value)):
                 raise ValueError("invalid Wi-Fi authentication field")
         enterprise = (self.identity, self.eap, self.ca_certificate, self.server_domain,
-                      self.client_certificate, self.private_key_ref, self.phase2)
+                      self.client_certificate, self.private_key_ref, self.phase2, self.anonymous_identity)
         if self.security == Security.ENTERPRISE:
             if not all((self.identity, self.ca_certificate, self.server_domain)):
                 raise ValueError("enterprise requires identity, CA certificate and server domain")

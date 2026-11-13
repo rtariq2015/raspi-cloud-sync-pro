@@ -18,6 +18,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status", help="show this release's capabilities, without probing hardware")
     commands.add_parser("network-status", help="inspect existing USB/Wi-Fi addressing without changing it")
+    wifi = commands.add_parser("wifi-plan", help="validate a non-secret Wi-Fi profile and show its NM mapping")
+    wifi.add_argument("config", type=Path)
     account = commands.add_parser("dashboard-init", help="create a dashboard account with a private password prompt")
     account.add_argument("--state", type=Path, required=True)
     account.add_argument("--username", default="owner")
@@ -27,6 +29,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     dashboard.add_argument("--history", type=Path)
     dashboard.add_argument("--port", type=int, default=8080)
     dashboard.add_argument("--public-origin", help="reviewed HTTPS origin behind the reverse proxy")
+    for command in ("worker-plan", "backup-staged"):
+        worker = commands.add_parser(command, help="inspect or run an opt-in completed-batch backup worker")
+        worker.add_argument("--config", type=Path, required=True)
+        if command == "backup-staged":
+            worker.add_argument("--once", action="store_true")
     check = commands.add_parser("check-config", help="validate a non-secret planning configuration")
     check.add_argument("path", type=Path)
     history = commands.add_parser("history", help="read existing backup history without starting a worker")
@@ -50,6 +57,26 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
+    if args.command == "wifi-plan":
+        from .wifi_plan import load_wifi_profile, wifi_plan
+        try:
+            print(json.dumps(wifi_plan(load_wifi_profile(args.config)), indent=2))
+            return 0
+        except (BackupError, ValueError):
+            print("Invalid non-secret Wi-Fi profile plan", file=sys.stderr)
+            return 2
+    if args.command in ("worker-plan", "backup-staged"):
+        from .staged_worker import WorkerSettings, run_staged_worker
+        try:
+            settings = WorkerSettings.load(args.config)
+            print(json.dumps(settings.plan() if args.command == "worker-plan" else
+                             run_staged_worker(settings, once=args.once), indent=2))
+            return 0
+        except BackupError as exc:
+            print(f"Staged worker unavailable: {exc.code}", file=sys.stderr)
+        except (OSError, ValueError, TypeError):
+            print("Staged worker configuration or I/O error", file=sys.stderr)
+        return 2
     if args.command in ("dashboard-init", "dashboard"):
         try:
             from .dashboard import initialize_dashboard, serve_dashboard
