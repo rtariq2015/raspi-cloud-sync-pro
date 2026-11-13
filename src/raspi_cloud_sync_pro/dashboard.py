@@ -1,6 +1,6 @@
 """Authenticated dashboard/PWA. No gadget, network mutation or cloud activation API."""
 
-import getpass
+import hashlib
 import json
 import math
 import os
@@ -15,67 +15,13 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from . import __version__
+from .accounts import change_dashboard_password, initialize_dashboard as initialize_dashboard, read_auth as _read_auth
 from .config import _unique_object
 from .errors import BackupError
 from .history import read_history
 from .network_diagnostics import network_status
 from .staging import open_regular, relative_path
 from .web_ingest import stage_upload
-
-
-def initialize_dashboard(state, *, username="owner", role="owner", password=None):
-    """CLI-only account creation; secret never appears in command arguments/output."""
-    from werkzeug.security import generate_password_hash
-    if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,64}", username) or role not in ("owner", "viewer"):
-        raise ValueError("Invalid account name or role")
-    if password is None:
-        password = getpass.getpass("New dashboard password: ")
-        if password != getpass.getpass("Confirm dashboard password: "):
-            raise ValueError("Passwords do not match")
-    if not isinstance(password, str) or len(password) < 12 or len(password) > 256:
-        raise ValueError("Use a password between 12 and 256 characters")
-    state = Path(state).absolute()
-    state.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if state.is_symlink() or state.stat().st_uid != os.getuid() or state.stat().st_mode & 0o077:
-        raise ValueError("Dashboard state must be private and owned by the service user")
-    path = state / "auth.json"
-    if path.exists():
-        data = _read_auth(state)
-        if username in data["users"]:
-            raise ValueError("Account exists; password reset needs an explicit recovery workflow")
-    else:
-        data = {"secret": secrets.token_hex(32), "users": {}}
-    data["users"][username] = {"role": role, "hash": generate_password_hash(password)}
-    temporary = state / ("auth-" + secrets.token_hex(8) + ".tmp")
-    fd = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
-    with os.fdopen(fd, "w") as stream:
-        json.dump(data, stream)
-        stream.flush()
-        os.fsync(stream.fileno())
-    if path.exists():
-        backup = state / ("auth-backup-" + str(time.time_ns()) + ".json")
-        shutil.copy2(path, backup)
-        backup.chmod(0o600)
-    os.replace(temporary, path)
-    from .staging import _fsync_directory
-    _fsync_directory(state)
-
-
-def _read_auth(state):
-    with open_regular(state, "auth.json") as stream:
-        info = os.fstat(stream.fileno())
-        if info.st_uid != os.getuid() or info.st_mode & 0o077 or info.st_size > 1024 * 1024:
-            raise ValueError("Dashboard authentication file must be private")
-        data = json.load(stream)
-    if set(data) != {"secret", "users"} or not isinstance(data["secret"], str) \
-            or len(data["secret"]) < 64 or not isinstance(data["users"], dict) or not data["users"]:
-        raise ValueError("Invalid authentication configuration")
-    for username, user in data["users"].items():
-        if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,64}", username) or not isinstance(user, dict) \
-                or set(user) != {"role", "hash"} or user["role"] not in ("owner", "viewer") \
-                or not isinstance(user["hash"], str):
-            raise ValueError("Invalid authentication configuration")
-    return data
 
 
 def worker_snapshot(directory, *, now=None):
@@ -150,7 +96,7 @@ def worker_snapshot(directory, *, now=None):
 
 
 def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status):
-    from flask import Flask, abort, jsonify, redirect, render_template, request, send_file, session, url_for
+    from flask import Flask, abort, g, jsonify, redirect, render_template, request, send_file, session, url_for
     from werkzeug.security import check_password_hash, generate_password_hash
 
     state = Path(state).absolute()
@@ -169,18 +115,33 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
                       PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
                       TRUSTED_HOSTS=["localhost", "127.0.0.1", origin.hostname])
     lock = threading.RLock()
-    sessions, failures = {}, []
+    sessions, failures, account_attempts = {}, [], []
     cache = {"at": 0, "data": None}
     dummy_hash = generate_password_hash(secrets.token_urlsafe(32))
 
     def current_user():
+        if hasattr(g, "login"):
+            return g.login
+        try:
+            current_auth = _read_auth(state)
+        except (OSError, ValueError, TypeError, BackupError):
+            with lock:
+                sessions.clear()
+            g.login = None
+            return None
         with lock:
             now = time.time()
             for sid in list(sessions):
                 if sessions[sid]["expires"] <= now:
                     del sessions[sid]
             login = sessions.get(session.get("sid"))
-            return login if login and login["expires"] > now else None
+            user = current_auth["users"].get(login["username"]) if login else None
+            valid = user and current_auth["secret"] == auth["secret"] and login["role"] == user["role"] \
+                and secrets.compare_digest(login["credential_tag"], hashlib.sha256(user["hash"].encode()).hexdigest())
+            if login and not valid:
+                sessions.pop(session.get("sid"), None)
+            g.login = login if valid and login["expires"] > now else None
+            return g.login
 
     def csrf():
         if "csrf" not in session:
@@ -195,7 +156,7 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
             abort(405)
         if request.method == "POST":
             supplied = request.headers.get("X-CSRF-Token") or request.form.get("csrf", "")
-            if not isinstance(supplied, str) or not session.get("csrf") \
+            if not isinstance(supplied, str) or not supplied.isascii() or len(supplied) > 256 or not session.get("csrf") \
                     or not secrets.compare_digest(supplied, session["csrf"]):
                 abort(403)
         if request.endpoint not in ("login", "static", "manifest", "service_worker"):
@@ -245,7 +206,13 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
                     abort(429)
                 failures.append(now)
             username, password = request.form.get("username", ""), request.form.get("password", "")
-            user = auth["users"].get(username) if len(username) <= 64 else None
+            try:
+                current_auth = _read_auth(state)
+                if current_auth["secret"] != auth["secret"]:
+                    abort(503)
+            except (OSError, ValueError, TypeError, BackupError):
+                abort(503)
+            user = current_auth["users"].get(username) if len(username) <= 64 else None
             valid = len(password) <= 256 and check_password_hash(user["hash"] if user else dummy_hash, password)
             if valid and user:
                 old = session.get("sid")
@@ -253,7 +220,8 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
                 sid = secrets.token_urlsafe(32)
                 with lock:
                     sessions.pop(old, None)
-                    sessions[sid] = {"username": username, "role": user["role"], "expires": now + 1800}
+                    sessions[sid] = {"username": username, "role": user["role"], "expires": now + 1800,
+                                     "credential_tag": hashlib.sha256(user["hash"].encode()).hexdigest()}
                 session["sid"] = sid
                 csrf()
                 return redirect(url_for("index"))
@@ -270,6 +238,44 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
     @app.get("/")
     def index():
         return render_template("dashboard.html", user=current_user(), csrf=csrf(), version=__version__)
+
+    @app.route("/account", methods=["GET", "POST"])
+    def account():
+        user = current_user()
+        message = None
+        code = 200
+        if request.method == "POST":
+            now = time.time()
+            with lock:
+                account_attempts[:] = [stamp for stamp in account_attempts if stamp > now - 60]
+                if len(account_attempts) >= 6:
+                    abort(429)
+                account_attempts.append(now)
+            if set(request.form) != {"csrf", "current_password", "password", "confirmation"} \
+                    or any(len(request.form.getlist(key)) != 1 for key in request.form):
+                abort(400)
+            try:
+                change_dashboard_password(state, user["username"], request.form["current_password"],
+                                          request.form["password"], request.form["confirmation"])
+            except ValueError:
+                message = "Use a different password of 12–256 characters and matching confirmation."
+                code = 400
+            except BackupError as exc:
+                if exc.code == "current_password_rejected":
+                    message = "The current password was not accepted."
+                    code = 400
+                else:
+                    abort(503)
+            except OSError:
+                abort(503)
+            else:
+                with lock:
+                    for sid in list(sessions):
+                        if sessions[sid]["username"] == user["username"]:
+                            del sessions[sid]
+                session.clear()
+                return redirect(url_for("login"))
+        return render_template("account.html", user=user, csrf=csrf(), message=message), code
 
     @app.get("/api/status")
     def status():

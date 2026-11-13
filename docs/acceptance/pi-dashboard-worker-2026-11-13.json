@@ -1,0 +1,12 @@
+{
+  "version": "0.1.0.dev4",
+  "actual_pi_dashboard_api_worker_counts": true,
+  "recorded_local_verifications": 6,
+  "cloud_configuration_claimed": false,
+  "empty_web_inbox_not_conflated_with_trial_files": true,
+  "server_socket_started": false,
+  "no_usb_or_network_changes": true,
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "method": "Flask test client on the physical Pi; not a public HTTP test"
+}

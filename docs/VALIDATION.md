@@ -145,7 +145,8 @@ work. This was not a power cut or real cloud account test.
 The [sanitized Pi record](acceptance/pi-worker-2026-11-13.json) includes exact
 artifacts. No disk image, device configuration or network profile was modified.
 A follow-up found the existing official USB auto-switcher repeatedly trying DHCP
-against an autoconnected generic Ethernet profile, with changing USB addressing.
+and changing USB addressing. A generic autoconnected Ethernet profile was also
+observed on usb0; its causal role is not established.
 Wi-Fi SSH remained available. USB carrier presence does not prove working USB IP
 access; stable USB addressing remains unresolved and requires a focused repair.
 
@@ -161,3 +162,49 @@ The restricted system preview still runs the earlier dev3 artifact. Its upgrade
 and actual Pi Samba provisioning need a privately authenticated administrator
 session; the earlier authentication expired. Unprivileged development/testing
 continues. No administrator policy or account password was changed to bypass that.
+
+
+The dev4 dashboard API was also exercised with Flask's test client **on the Pi**
+against the real local trial database and worker report. Authenticated responses
+showed two destinations, zero pending jobs and six recorded local verifications;
+cloud configuration remained unclaimed and the separate empty web inbox stayed
+empty. This is an application/API test on the target CPU, not a new public HTTP
+or physical-phone acceptance test. [Result](acceptance/pi-dashboard-worker-2026-11-13.json).
+
+
+## Five-minute Pi retention trial and dev5 accounts
+
+The dev4 Rust/Python/rclone loop ran for 300.8 seconds on the physical Pi with
+local alias destinations. Ten added files produced twenty added verified copies
+(26 total jobs including the earlier six), all sources and the incomplete batch
+remained present, and 20/20 Wi-Fi-bound gateway probes passed. Firmware reported
+`throttled=0x0`. [Result](acceptance/pi-retention-soak-2026-11-13.json).
+
+Sampled process high-water RSS was 1,812 KiB for the Rust watcher, 22,224 KiB for
+Python and 60,672 KiB for rclone; minimum observed system MemAvailable was
+117,988 KiB. These per-process samples are not a whole-appliance total, a hard
+memory cap or a guarantee for large/cloud transfers. No electrical power cut,
+cloud account or multi-day endurance is implied.
+
+Dev5: **176 Python tests and six Rust tests pass**. Account changes add locked,
+private, durable auth writes and backups, browser current/new/confirmation checks,
+CSRF/throttling, per-account session revocation and interactive CLI recovery.
+Read-only cloud readiness adds protected config/executable checks, bounded
+local-only metadata capture, raw-output suppression, backend distinctions,
+malformed-output/timeout cases and actual rclone metadata integration.
+
+The dev5 wheel SHA-256 is
+`2083db4f02307547305b1159e49e2d6fe44c078da6501fc7269aafcb8e0ac870`.
+It was installed in another private unprivileged Pi virtual environment.
+A temporary NoNewPrivileges loopback service passed actual HTTP password change,
+old-session rejection, preserved unrelated viewer session, role retention and
+private backup checks. Actual CLI recovery passed through an echo-disabled PTY;
+no generated credential appeared in captured prompt output or the report. The
+service was stopped after acceptance; test data remains retained.
+
+The same Pi artifact inspected the earlier fixture's real rclone metadata and
+correctly reported alias backends, exit2 and no cloud acceptance without changing
+configuration. [Account/readiness result](acceptance/pi-accounts-2026-11-13.json).
+The restricted public dev3 service and its accounts were not replaced by this
+trial. Its dev5 upgrade is prepared with backup/rollback and awaits a privately
+authenticated administrator terminal.

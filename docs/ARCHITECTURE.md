@@ -19,6 +19,8 @@ quarantine. New code does not import those service loops.
 | `providers.py` | Explicitly enabled rclone adapter; bounded copies, immutable version paths and downloaded-content SHA-256 verification |
 | `network.py` | Non-secret personal/enterprise profile validation and connectivity policy; no OS changes |
 | `config.py`, `cli.py` | Strict planning schema, diagnostics and opt-in completed-batch worker commands |
+| `accounts.py` | Private durable account writes, explicit recovery, role preservation and credential-based session revocation |
+| `cloud_readiness.py` | Local-only rclone backend metadata checks; no account or cloud activation claim |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
 | `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |
 | `wifi_plan.py` | Non-secret inactive NetworkManager profile plans; no OS mutation |

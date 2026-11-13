@@ -18,12 +18,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status", help="show this release's capabilities, without probing hardware")
     commands.add_parser("network-status", help="inspect existing USB/Wi-Fi addressing without changing it")
+    cloud = commands.add_parser("cloud-check", help="read local rclone backend types without contacting cloud accounts")
+    cloud.add_argument("--config", type=Path, required=True)
+    cloud.add_argument("--rclone", type=Path, help="reviewed absolute rclone executable; defaults to a protected PATH match")
     wifi = commands.add_parser("wifi-plan", help="validate a non-secret Wi-Fi profile and show its NM mapping")
     wifi.add_argument("config", type=Path)
     account = commands.add_parser("dashboard-init", help="create a dashboard account with a private password prompt")
     account.add_argument("--state", type=Path, required=True)
     account.add_argument("--username", default="owner")
     account.add_argument("--role", choices=("owner", "viewer"), default="owner")
+    recovery = commands.add_parser("dashboard-reset-password", help="reset an existing local dashboard account privately")
+    recovery.add_argument("--state", type=Path, required=True)
+    recovery.add_argument("--username", required=True)
     dashboard = commands.add_parser("dashboard", help="serve the authenticated dashboard on loopback only")
     dashboard.add_argument("--state", type=Path, required=True)
     dashboard.add_argument("--history", type=Path)
@@ -58,6 +64,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
+    if args.command == "cloud-check":
+        from .cloud_readiness import cloud_readiness
+        from .staged_worker import WorkerSettings
+        try:
+            report = cloud_readiness(WorkerSettings.load(args.config), executable=args.rclone)
+            print(json.dumps(report, indent=2))
+            return 0 if report["backend_types_match"] else 2
+        except (BackupError, OSError, ValueError, TypeError):
+            print("Cloud metadata configuration unavailable; no account was contacted or enabled.", file=sys.stderr)
+            return 2
     if args.command == "wifi-plan":
         from .wifi_plan import load_wifi_profile, wifi_plan
         try:
@@ -78,12 +94,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         except (OSError, ValueError, TypeError):
             print("Staged worker configuration or I/O error", file=sys.stderr)
         return 2
-    if args.command in ("dashboard-init", "dashboard"):
+    if args.command in ("dashboard-init", "dashboard-reset-password", "dashboard"):
         try:
             from .dashboard import initialize_dashboard, serve_dashboard
             if args.command == "dashboard-init":
                 initialize_dashboard(args.state, username=args.username, role=args.role)
                 print("Dashboard account created. No network or backup service was changed.")
+            elif args.command == "dashboard-reset-password":
+                from .accounts import reset_dashboard_password
+                reset_dashboard_password(args.state, username=args.username)
+                print("Dashboard password reset. This account's existing sessions are revoked on their next request.")
             else:
                 serve_dashboard(args.state, history=args.history, worker_state=args.worker_state, port=args.port,
                                 public_origin=args.public_origin)

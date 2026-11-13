@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from raspi_cloud_sync_pro.dashboard import create_app, initialize_dashboard, worker_snapshot
 
@@ -245,3 +246,81 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(self.client.get("/api/history").json, {"available": False, "jobs": []})
         self.assertFalse((worker / "history.sqlite3").exists())
         self.assertEqual(list(worker.iterdir()), [status])
+
+    def change_password(self, current="test-owner-password", password="new-owner-password", confirmation=None, **extra):
+        return self.client.post("/account", data={"csrf": self.csrf(), "current_password": current,
+                                "password": password, "confirmation": password if confirmation is None else confirmation,
+                                **extra})
+
+    def test_password_change_revokes_account_sessions_and_preserves_other_roles(self):
+        self.assertEqual(self.client.get("/account").status_code, 302)
+        self.login()
+        other_owner = self.app.test_client()
+        viewer = self.app.test_client()
+        for client, username, password in ((other_owner, "owner", "test-owner-password"),
+                                            (viewer, "viewer", "test-viewer-password")):
+            client.get("/login")
+            with client.session_transaction() as session:
+                token = session["csrf"]
+            self.assertEqual(client.post("/login", data={"csrf": token, "username": username,
+                                                       "password": password}).status_code, 302)
+        old_cookie = self.client.get_cookie("session").value
+        response = self.change_password()
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].endswith("/login"))
+        self.assertEqual(other_owner.get("/api/status").status_code, 401)
+        self.assertEqual(viewer.get("/api/status").json["role"], "viewer")
+        self.client.set_cookie("session", old_cookie)
+        self.assertEqual(self.client.get("/api/status").status_code, 401)
+        self.assertEqual(self.login().status_code, 200)
+        self.assertEqual(self.login(password="new-owner-password").status_code, 302)
+        self.assertEqual(self.client.get("/api/status").json["role"], "owner")
+
+    def test_viewer_password_change_cannot_target_another_account_or_change_role(self):
+        before = json.loads((self.root / "auth.json").read_text())
+        self.login("viewer", "test-viewer-password")
+        response = self.change_password(current="test-viewer-password", password="new-viewer-password", username="owner")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads((self.root / "auth.json").read_text()), before)
+        self.assertEqual(self.change_password(current="test-viewer-password", password="new-viewer-password").status_code, 302)
+        after = json.loads((self.root / "auth.json").read_text())
+        self.assertEqual(after["users"]["owner"], before["users"]["owner"])
+        self.assertEqual(after["users"]["viewer"]["role"], "viewer")
+        self.assertEqual(self.login("viewer", "new-viewer-password").status_code, 302)
+        self.assertEqual(self.upload().status_code, 403)
+
+    def test_password_form_requires_csrf_and_rejects_bad_input_without_secret_echo(self):
+        self.login()
+        original = (self.root / "auth.json").read_bytes()
+        self.assertEqual(self.client.post("/account", data={"current_password": "private-wrong-password"}).status_code, 403)
+        self.assertEqual(self.client.post("/account", data={"csrf": "\u2603"}).status_code, 403)
+        for arguments in ({"current": "private-wrong-password"}, {"confirmation": "private-confirmation"},
+                          {"password": "short"}, {"password": "x" * 257}):
+            response = self.change_password(**arguments)
+            self.assertEqual(response.status_code, 400)
+            self.assertNotIn(b"private-wrong-password", response.data)
+            self.assertNotIn(b"private-confirmation", response.data)
+            self.assertNotIn(b"new-owner-password", response.data)
+            self.assertEqual((self.root / "auth.json").read_bytes(), original)
+        self.assertEqual(self.client.get("/api/status").status_code, 200)
+        self.assertIn(b'autocomplete="new-password"', self.client.get("/account").data)
+
+    def test_password_changes_are_throttled_and_cli_reset_revokes_without_restart(self):
+        self.login()
+        for _ in range(6):
+            self.assertEqual(self.change_password(current="wrong-current-password").status_code, 400)
+        self.assertEqual(self.change_password().status_code, 429)
+        from raspi_cloud_sync_pro.accounts import reset_dashboard_password
+        reset_dashboard_password(self.root, username="owner", password="recovered-owner-password")
+        self.assertEqual(self.client.get("/api/status").status_code, 401)
+        self.assertEqual(self.login(password="recovered-owner-password").status_code, 302)
+        self.assertEqual(self.client.get("/api/status").json["role"], "owner")
+
+    def test_account_storage_failure_does_not_claim_success_or_revoke_valid_password(self):
+        self.login()
+        with mock.patch("raspi_cloud_sync_pro.accounts.os.replace", side_effect=OSError("private-storage-error")):
+            response = self.change_password()
+        self.assertEqual(response.status_code, 503)
+        self.assertNotIn(b"private-storage-error", response.data)
+        self.assertEqual(self.client.get("/api/status").status_code, 200)
+        self.assertEqual((self.root / "auth.json").read_bytes(), self.auth)

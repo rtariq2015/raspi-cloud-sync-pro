@@ -78,7 +78,8 @@ History views with owner/viewer accounts, protected sessions, CSRF and private
 web-upload staging. It has passed local and real Pi QA-file checks; see
 [DASHBOARD.md](DASHBOARD.md). The phone layout and PWA foundation share this app.
 
-Continue with operational setup controls, account recovery and invitations,
+Dev5 adds tested browser password changes and private CLI account recovery.
+Continue with operational setup controls and invitations,
 a stable hostname for the tested browser-only HTTPS preview (no Tailscale requirement), physical Android
 installation, Samba file browsing and cloud-worker integration. Include
 CSRF protection, safe LAN access, redacted diagnostics and accessible mobile UI.

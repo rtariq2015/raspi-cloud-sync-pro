@@ -28,7 +28,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **153 Python tests and 6 Rust tests pass locally.** Python includes real rclone
+- **176 Python tests and 6 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -36,6 +36,14 @@ for remote automated checks.
 - Non-secret enterprise Wi-Fi plans including PEAP/MSCHAPv2, anonymous identity,
   CA/server validation and EAP-TLS references. Planning does not activate Wi-Fi.
 - USB/Samba ownership, staging, controller and recovery simulations from Phase 2.
+- Local-only cloud backend checks: missing/mismatched/alias configurations are
+  distinguished without claiming account access or making a cloud request.
+
+- Dev5 password change/recovery: actual Pi loopback HTTP, private interactive
+  recovery prompt, own-session revocation, preserved viewer session and private
+  hash backups. Only disposable test accounts changed.
+- Five-minute Pi retention trial: ten more files, twenty more verified local
+  copies, 20/20 Wi-Fi gateway probes and no reported power throttling.
 
 ## Being worked on
 
@@ -43,7 +51,8 @@ for remote automated checks.
    then accept an off-LAN phone connection.
 2. Upgrade the restricted service after renewed private administrator authentication;
    the new development package has already passed its isolated Pi worker trial.
-3. Finish browser account management and private cloud account onboarding.
+3. Finish private cloud account authorization and actual cloud acceptance;
+   account password change/recovery has now passed an isolated Pi HTTP trial.
 4. Resolve the observed existing USB profile auto-switcher/DHCP loop without
    interrupting Wi-Fi management, then accept actual Pi Samba and host transfers.
 
@@ -65,6 +74,7 @@ and rclone/Samba for their protocols.
 - [What the product will do](PRODUCT_PLAN.md)
 - [Dashboard and Android web app](DASHBOARD.md)
 - [Backup worker](STAGED_WORKER.md)
+- [Private cloud setup and acceptance](CLOUD_SETUP.md)
 - [Rust decision and measurements](RUST_EVALUATION.md)
 - [Another Pi](REPLICATION.md)
 - [Custom appliance image and updates](APPLIANCE_IMAGE.md)

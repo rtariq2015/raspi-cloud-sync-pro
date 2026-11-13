@@ -1,4 +1,4 @@
-name: Python Phase 2 checks
+name: Development checks
 
 on:
   push:
@@ -20,6 +20,16 @@ jobs:
           rustup run 1.100.0 cargo test --locked
           rustup run 1.100.0 cargo fmt --all -- --check
           rustup run 1.100.0 cargo clippy --locked --all-targets -- -D warnings
+      - name: Cross-build for the Pi using the reviewed Debian toolchain
+        run: |
+          docker build -t raspi-cloud-rust-ci tools/rust-build
+          mkdir -p "$RUNNER_TEMP/raspi-cargo"
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -e CARGO_HOME=/cargo \
+            -v "$RUNNER_TEMP/raspi-cargo":/cargo \
+            -v "$GITHUB_WORKSPACE":/work -w /work/rust \
+            raspi-cloud-rust-ci \
+            cargo build --locked --release --target aarch64-unknown-linux-gnu
   tests:
     runs-on: ubuntu-latest
     strategy:
@@ -60,9 +70,12 @@ jobs:
           raspi-cloud-sync-pro check-config config/config.example.json
           raspi-cloud-sync-pro mode-plan config/device.example.json
           raspi-cloud-sync-pro diagnostics --mode ethernet_samba
+          raspi-cloud-sync-pro worker-plan --config config/worker.example.json
+          raspi-cloud-sync-pro wifi-plan config/wifi-enterprise.example.json
       - name: Check Python and retained shell syntax
         run: |
           python -m compileall -q src/raspi_cloud_sync_pro src/home/pi tests
           sh -n src/home/pi/execute_setup_bullseye.sh
           sh -n src/home/pi/execute_setup_bookworm.sh
+          sh -n tools/cloudstick/upload.sh
           git diff --check

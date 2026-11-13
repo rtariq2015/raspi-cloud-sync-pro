@@ -59,7 +59,7 @@ remain to be accepted.
 | Working and tested | Next acceptance step |
 | --- | --- |
 | Pi USB management, home Wi-Fi and authenticated SSH | Reboot and long-duration connectivity checks |
-| Dashboard login, owner/viewer roles, uploads, text previews and downloads | Account recovery, invitations and broader file browsing |
+| Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
 | Versioned backup engine, retries and independent read-back verification | Private Koofr and Google Drive test accounts |
 | Opt-in completed-batch worker and small Rust scheduler | Real cloud accounts and sustained-load acceptance |
@@ -67,7 +67,7 @@ remain to be accepted.
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**153 Python tests and 6 Rust tests pass locally.** Python tests include actual
+**176 Python tests and 6 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -100,7 +100,7 @@ together. See [the USB architecture](docs/PHASE2.md).
 - **Preparing a hardware trial?** Read [Pi test guide](docs/PI_TEST_GUIDE.md) and
   [the existing connectivity baseline](docs/PI_CONNECTIVITY.md).
 - **Contributing?** Read [Contributing](CONTRIBUTING.md),
-  [Architecture](docs/ARCHITECTURE.md) and [Backup worker](docs/STAGED_WORKER.md).
+  [Architecture](docs/ARCHITECTURE.md) and [Backup worker](docs/STAGED_WORKER.md) and [Private cloud setup](docs/CLOUD_SETUP.md).
 
 Historical scripts under `src/home/pi/` and guides under `doc/` are preserved
 upstream material. They are quarantined and are not current installation steps.

@@ -86,3 +86,24 @@ Before enabling a file-transfer test:
 
 All existing source-code gates remain disabled. This baseline establishes working
 management connectivity, not a completed backup appliance or a release.
+
+
+## Later development-session observation — 2026-11-13
+
+Authenticated SSH over home Wi-Fi is now established and has been used for the
+isolated dashboard/worker trials. The earlier banner-only limitation above is
+historical. The target still reports the same Zero 2 W model and kernel.
+
+During the dev4 follow-up, the existing official `rpi-usb-gadget` 1.0.6
+`rpi-usb-gadget-ics.service` repeatedly logged DHCP-client attempts and GLib
+`g_strjoinv` assertions. USB carrier stayed present, but its IPv4 address changed
+between local fallback and no IPv4 address. A generic autoconnected Ethernet
+profile was observed on usb0; this is evidence to investigate, not a proven root
+cause. Home Wi-Fi remained connected and supplied the default route.
+
+No project trial command modified profiles, routes, gadget drivers or the
+watcher. Do not claim USB management works merely from carrier or an earlier IP.
+Before Samba deployment, inspect the existing Ethernet profile matching and the
+watcher's current state, keep authenticated Wi-Fi management open, back up
+settings, and perform a separately reviewed USB-only repair with rollback.
+Never restart all networking or remove Wi-Fi access to make that repair.

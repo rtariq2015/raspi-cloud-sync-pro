@@ -122,3 +122,38 @@ reports. An older report does not establish the service is dead; an idle Rust
 scheduler may be parked. Queue/destination counts are projected without exposing
 remote names or provider output. Reports cannot declare cloud accounts accepted
 or set per-file cloud verification on the web-inbox listing.
+
+
+## Password management — development 0.1.0.dev5
+
+Open **Account** while signed in to change your own password. Both owner and
+viewer accounts must enter their current password and matching new password
+(12–256 characters). CSRF and attempt limits apply. Account roles cannot be
+changed in this form. Successful changes sign that account out on all devices;
+unrelated accounts remain signed in.
+
+For local recovery, run this as the OS identity that owns the private dashboard
+state, in a trusted interactive terminal:
+
+```sh
+raspi-cloud-sync-pro dashboard-reset-password \
+  --state /absolute/private/dashboard-state --username owner
+```
+
+It prompts privately twice; there is no password command-line argument or public
+password-reset endpoint. Private state access is the recovery authority. The
+restricted system service's state belongs to `raspi-dashboard`, so an ordinary
+`pi` shell needs administrator authentication to run recovery as that identity.
+Do not change permissions to make recovery available to unrelated users.
+
+Writes use a cross-process lock, private hash-only backups, fsynced files and
+atomic replacement. Current dev5 app requests compare the session's credential
+tag with current auth state, so CLI resets revoke that account's existing
+sessions on the next request without restarting a dev5 server. An already-running
+older build needs replacement/restart to gain this behavior. No public signup,
+email reset or account invitations are implemented yet.
+
+Actual Pi loopback HTTP and private PTY recovery tests passed using disposable
+accounts. The existing public restricted service still runs dev3 pending its
+prepared administrator-authenticated upgrade. The test did not change its
+accounts, USB profiles, Wi-Fi or stored user files.
