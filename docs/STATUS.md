@@ -13,9 +13,9 @@ for remote automated checks.
   stable USB addressing remains an outstanding acceptance item.
 - Dashboard login with owner/viewer accounts, phone-friendly screens, QA-file
   upload, bounded text preview and downloads with byte/SHA-256 checks.
-- Restricted dev6 dashboard service candidate with NoNewPrivileges and home/system
+- Restricted dev8 dashboard service candidate with NoNewPrivileges and home/system
   filesystem restrictions. The upgraded service passed process/HTTP health checks
-  and public HTTPS access checks; the dev3 version is retained for rollback. Login and authenticated file access also passed through
+  and public HTTPS access checks; dev6 is retained for rollback. Login and authenticated file access also passed through
   a temporary public HTTPS tunnel; no router ports or VPN app were needed.
 - Rust watcher fixture trial: 398,048-byte ARM64 binary, 1,796 KiB parent idle RSS,
   incomplete batches ignored and completed unchanged work not retriggered.
@@ -51,7 +51,7 @@ for remote automated checks.
 - Dev7 Google Drive/Dropbox Connect foundation: owner-only consent initiation,
   PKCE, one-use session-bound returns and private token storage. Missing registered
   clients show setup-required; authorization never enables uploads. Eighteen new
-  tests use fake OAuth responses, not real accounts. The live preview is still dev6.
+  tests use fake OAuth responses, not real accounts. These controls are now in the live dev8 preview.
 - Dev8 Dropbox rclone adapter with synchronous commits, smaller upload chunks and
   independent read-back verification. Local-alias integration passes; real
   Dropbox authorization/backup and the dashboard-to-worker handoff remain pending.
@@ -71,7 +71,7 @@ has completed. No account passwords, USB/Wi-Fi settings or boot enablement chang
    then accept an off-LAN phone connection.
 2. Extend the accepted Pi loopback Samba contract to actual Windows/USB host
    transfers after stable USB addressing is established.
-3. Finish private cloud account authorization and actual cloud acceptance;
+3. Finish Google Drive authorization and actual cloud acceptance first;
    account password change/recovery has now passed an isolated Pi HTTP trial.
 4. Resolve the observed existing USB profile auto-switcher/DHCP loop without
    interrupting Wi-Fi management, then accept actual Pi Samba and host transfers.

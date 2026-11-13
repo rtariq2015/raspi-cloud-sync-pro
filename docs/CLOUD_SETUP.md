@@ -32,7 +32,7 @@ require administrator approval. See [rclone Drive](https://rclone.org/drive/) an
 
 The dev7 source adds Google Drive and Dropbox **Connect** controls to the
 dashboard. They require private registered-app configuration first. The running
-dev6 preview has not been upgraded by adding this source. Never enter cloud
+protected preview is now dev8. Never enter cloud
 credentials into the dashboard login/password form. No account authorization is
 completed just by selecting a provider name.
 
@@ -61,9 +61,10 @@ and [Dropbox authorization](https://docs.dropboxapi.com/dropbox-api/docs/oauth).
 
 ### Private OAuth application configuration
 
-A stable HTTPS hostname and registered provider applications are needed before
-real sign-in. A temporary tunnel's address can change and is unsuitable as a
-permanent registered callback. Register the exact callback paths:
+Registered provider applications and exact HTTPS callbacks are needed before
+real web sign-in. A stable hostname is required for reliable ongoing use. A
+temporary tunnel can be used for a bounded test only if the provider accepts
+that exact registered callback; its address can change. Register the paths:
 
 - `https://YOUR-DEVICE-HOST/oauth/callback/google_drive`
 - `https://YOUR-DEVICE-HOST/oauth/callback/dropbox`
@@ -75,6 +76,12 @@ Either provider may be omitted. `public_origin` must equal the configured
 dashboard HTTPS origin. Client secrets belong only in that private file, outside
 Git, web uploads and Samba shares. Registration/organizational approval and the
 user's private consent cannot be performed by the test fixtures.
+
+Google's External/Testing mode is suitable for a disposable acceptance test,
+not indefinite unattended backup: Drive-scope refresh tokens expire after seven
+days in that mode. Production publishing/verification is separate from this
+development test and requires owner approval. See
+[Google's token-expiration rules](https://developers.google.com/identity/protocols/oauth2).
 
 The owner starts Connect with CSRF protection. Fixed provider endpoints receive
 an authorization-code request with S256 PKCE and five-minute one-use state bound

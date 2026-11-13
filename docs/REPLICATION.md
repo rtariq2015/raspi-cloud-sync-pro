@@ -52,6 +52,14 @@ by that identity; auth files must be mode 0600. File uploads must stay outside t
 Samba source tree. A later backup identity receives narrowly reviewed access to
 completed staging, never browser-supplied arbitrary paths or commands.
 
+Keep public release code traversable/readable by its service identity: root-owned
+directories normally use 0755, code/assets 0644 and executables 0755, without group
+or world write permission. A restrictive installer umask can otherwise create an
+unusable 0700 root-owned venv. Verify app construction as the actual service user
+before replacing the working service. Normalize only verified public code, never
+recursively widen the whole project prefix, private artifacts, credentials, state
+or backups. Private state/configuration remains 0700/0600.
+
 Public browser access requires the reviewed HTTPS hostname/proxy and account
 policy from [PRODUCT_PLAN.md](PRODUCT_PLAN.md). Keep the backend loopback-only.
 Use `--public-origin` to configure the exact hostname and Secure cookies. Test

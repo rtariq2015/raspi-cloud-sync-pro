@@ -343,3 +343,30 @@ The dev8 wheel SHA-256 is
 It has not replaced the running protected dev6 dashboard. The accepted dev7 Pi
 OAuth fixture is retained separately, and the dashboard-to-rclone token handoff
 and real cloud-account acceptance remain pending.
+
+The exact dev8 wheel subsequently passed a separate unprivileged Pi trial with
+the official ARM64 rclone binary: three local-alias files (including empty and
+Unicode names) verified, deliberate remote-fixture corruption was rejected, and
+all source batches remained retained. Readiness correctly refused to call the
+alias a direct Dropbox backend. No actual Dropbox API/chunk-buffer behavior,
+credentials, production service or network setting was exercised.
+[Pi result](acceptance/pi-dropbox-dev8-2026-11-13.json).
+
+## Restricted dev8 deployment and HTTPS acceptance
+
+The protected dashboard now runs the exact dev8 artifact under its existing
+restricted service identity. The first preparation stopped safely before service
+replacement because umask 0077 made the new public release code inaccessible.
+A read-only identity probe confirmed that cause. The continuation verified the
+installed source/assets and bytecode against the tested wheel, took fresh private
+backups, normalized only public release/venv access, then passed actual-identity
+app construction and exact process/nonredirect HTTP health. Private artifact,
+account/token state and backup permissions stayed unchanged. Dev6 is retained
+with checked rollback commands. [Deployment record](acceptance/pi-restricted-dev8-2026-11-13.json).
+
+Actual public HTTPS repeated owner/viewer authentication, all three retained QA
+file bytes/SHA checks, anonymous rejection, viewer upload rejection, CSRF and
+logout revocation. Missing OAuth-client setup was reported without enabling
+uploads. No new file upload, real cloud account, boot enablement or network change
+is claimed. Wi-Fi remained connected; USB was still in its existing DHCP state70.
+[HTTPS record](acceptance/pi-https-dev8-2026-11-13.json).

@@ -116,3 +116,12 @@ connected. No packets were saved or transmitted by the observer. This narrows
 the next test to Windows adapter/DHCP state and USB link behavior; it does not
 establish a Windows driver, firewall, cable or Pi profile root cause. Do not enable
 Internet sharing or change host security settings to hide the missing evidence.
+
+A follow-up correlated NetworkManager's own journal with its persistent profile:
+at 14:41:33 EST, policy auto-activated the generic `netplan-eth0` profile on
+`usb0`. Its Netplan source has an empty interface match. The official watcher
+leaves other named active profiles alone, so this generic profile can occupy the
+USB interface in DHCP-client mode. This interaction is proven; it does not explain
+all absent host traffic or establish a sole root cause. No profile was changed.
+The next Windows observation is the RNDIS device status and that adapter's
+DHCP/media/address details, without enabling sharing or changing security.

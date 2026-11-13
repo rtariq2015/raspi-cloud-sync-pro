@@ -204,6 +204,16 @@ start a worker or claim a cloud backup from a successful consent response.
 Koofr's app-password form and Synology NAS setup are separate planned connectors.
 
 See [private cloud setup](CLOUD_SETUP.md) for the example schema, fixed callback
-paths, permissions and acceptance limits. The running protected dev6 preview is
-unchanged by this source update. Do not restart a dashboard during an account
+paths, permissions and acceptance limits. These controls are now deployed in the
+protected dev8 preview. Do not restart a dashboard during an account
 change or provider consent flow; unfinished in-memory flows will be discarded.
+
+The dev8 installation retained all account credentials and QA files. Its preflight
+caught root-only permissions on newly installed public code before stopping dev6;
+only the verified release directory/venv permissions were corrected. Private
+artifacts, account/token state and backups kept their original restrictions.
+The actual service identity then passed app construction and process/HTTP health.
+Public HTTPS repeated login, role, CSRF, logout and all three file SHA checks.
+Dev6 remains available for rollback; no boot service, USB or Wi-Fi setting changed.
+[Deployment](acceptance/pi-restricted-dev8-2026-11-13.json) ·
+[HTTPS checks](acceptance/pi-https-dev8-2026-11-13.json).
