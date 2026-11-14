@@ -69,16 +69,27 @@ authorization/backup trials remain pending.
 Dev9 adds the private CLI preparation boundary: a bounded inherited channel
 passes validated authorization into a disabled backup-owned configuration.
 Synthetic separate-identity transfer and kernel access denials passed on the Pi.
-The live dashboard remains dev8; its integration with a production backup identity,
-current-state reporting and explicit Test/Enable controls still need completion.
+That trial left the live dev8 dashboard unchanged. Dev10 now connects its owner
+preparation request to the production backup identity; current worker reporting
+and explicit Test/Enable controls still need completion.
 See [the handoff contract](GOOGLE_HANDOFF.md).
 
 Dev10 adds durable owner requests, private source/configuration bindings, a
 gated root coordinator, and historical dashboard receipts. Its native synthetic
 Pi trial passed separate identities, interrupted-receipt recovery and retained
-configuration checks. A dedicated locked backup identity is prepared. Accept
-the systemd event/sandbox path and live dashboard integration next; preparation
-still performs no cloud test or automatic upload.
+configuration checks. A dedicated locked backup identity is prepared. Actual
+systemd event delivery, kernel sandbox checks, observed lock-failure retry and
+manual recovery now pass in a synthetic fixture. A separate three-attempt
+slow-failure trial also passes. The protected live dev10 upgrade and real owner
+HTTPS preparation now pass too; preparation still performs no cloud test or
+automatic upload.
+
+The next source foundation creates private operational generations from
+independently approved preparation bindings. It preserves immutable seed proof,
+separates future token-refresh writes and scopes job identity to the generation.
+Its filesystem/history tests pass; it is not wired into the live worker. Next
+implement Test/Enable, the completed-file/status bridges and enforced Wi-Fi
+egress before automatic Google backup acceptance.
 
 Use test accounts for path encoding, empty/large/changed files, interrupted uploads,
 auth expiry, rate/quota failures and downloaded-content checks. Measure real

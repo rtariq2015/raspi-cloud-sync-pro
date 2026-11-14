@@ -72,16 +72,21 @@ remain to be accepted.
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**326 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**351 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
 
 Dev10 adds an [owner-requested Google preparation workflow](docs/GOOGLE_HANDOFF.md),
 with separate dashboard and backup identities, private credential transfer, and
-recovery checks. Its synthetic Pi trial passed; preparation leaves uploads
-disabled and still requires a cloud test. The running dashboard remains dev8
-until the live setup service is accepted and deployed.
+recovery checks. The protected dev10 dashboard now runs on the Pi. Its actual
+owner HTTPS form and systemd service prepared the private Google configuration
+successfully; uploads remain disabled and require the separate Test/Enable
+workflow. [Live acceptance evidence](docs/acceptance/pi-google-setup-live-dev10-2026-11-13.json).
+
+The next backup-engine foundation creates separate private operational config
+generations so future token refresh cannot overwrite immutable preparation proof.
+It is tested locally and remains unconnected to the live dashboard or worker.
 
 The dashboard currently lists completed **web uploads**. It does not yet browse
 all Pi folders or start cloud backup automatically. The Rust trial measured

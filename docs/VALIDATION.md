@@ -532,5 +532,94 @@ root identity. It retries a failed preparation at most three times in a
 five-minute start-limit window; the window exceeds three ordinary configured
 start/stop timeout cycles. This also handles atomic pointer publication while
 the owner's authorization lock is still held. No boot enablement is added.
-Actual event delivery, contention recovery and slow-failure limit acceptance are
-being checked separately from the capability probes.
+Event delivery, contention recovery and slow-failure limits have separate
+acceptance records below.
+
+### Actual systemd event delivery and lock recovery
+
+A fresh synthetic fixture now passes the actual systemd path/service flow on
+the Pi. Atomic publication occurred while the source held its real account lock;
+an inherited private pipe released that lock only after a completed failed broker
+attempt was observed. The event then produced exactly one receipt on the second
+attempt. A separate held-lock case produced three failures and a trusted PID1
+rate-limit event. Releasing the lock caused no further automatic attempt;
+explicitly resetting those temporary units and starting the retained request
+prepared it successfully. Earlier configurations retained their inodes and bytes.
+
+The accepted trial observed seven broker starts and three successful
+preparations, kernel sandbox properties and cross-identity read denials. It
+stopped its own QA units, retained all synthetic originals and preserved existing
+accounts, the live dashboard, Wi-Fi and default routes. USB addresses differed
+between observations; this does not establish a cause or resolve the existing
+auto-switcher behavior. Power flags were zero before and after.
+[Sanitized event/recovery evidence](acceptance/pi-google-setup-systemd-2026-11-13.json).
+
+The first contention fixture used a fixed two-second delay that did not actually
+force failure on this Pi. A slow-failure fixture also expected `start-limit-hit`
+while this systemd retained `exit-code` alongside an explicit rate-limit event.
+Those incomplete fixtures remain retained. The accepted event fixture uses
+observed failure barriers and trusted PID1 events instead of either assumption.
+Its HTTP handlers use Flask `test_client`, not a browser or TCP server, and all
+credentials are synthetic. Real-account preparation, slow-failure timing and
+production deployment have separate acceptance checks.
+
+A fresh slow-failure trial also passes. Its only command is a fixed Python
+sleep followed by exit status 2, under the final service policy. Three actual
+executions lasted 25.407, 25.340 and 25.370 seconds; the span reached 78.498
+seconds. Trusted PID1 events proved that the next start was rate-limited, and
+a further 3.152-second observation saw no fourth start. Three unique live kernel
+sandbox samples were flushed to private records during execution. The temporary
+service stopped, its empty provider state stayed empty, and existing accounts,
+the live dashboard, Wi-Fi/default routes and observed USB addresses were
+preserved. Power flags stayed zero.
+[Sanitized slow-failure evidence](acceptance/pi-google-setup-slow-retries-2026-11-13.json).
+This fault command does not invoke the broker, exercise path events or establish
+timing guarantees for uninterruptible kernel I/O.
+
+### Live protected upgrade and actual owner preparation
+
+The production preparation files were installed inactive first, then their
+future-request watcher was activated after validating all three accepted private
+trial receipts. It started no broker until an owner request arrived. Neither
+unit is enabled at boot. The protected dashboard was upgraded from dev8 to the
+reviewed dev10 wheel with private backups and a standalone service rollback
+prepared beforehand. Its exact process, ordinary service UID, empty capability
+bound, no-new-privileges, mode mask 0077 and loopback HTTP health passed. The old
+dev8 installation remains retained; a live rollback was not exercised.
+
+Preflight first refused a missing configuration directory, then an audit that
+incorrectly treated a root-owned internal `lib64` symlink's 0777 mode as writable
+ordinary code. The new private directory was separately recorded; the audit now
+checks link ownership, resolved target and protected ancestors without changing
+the link. Three old QA upload manifests also had mode 0664. Each was backed up
+before tightening it to 0600 in place; contents, inodes and owners were preserved.
+The source uploader now explicitly creates private manifests independently of a
+permissive process umask, with a real filesystem regression. The new live service
+also sets umask 0077. No account credential or USB/Wi-Fi setting was changed.
+
+After the restart cleared old sessions, the owner signed in privately again.
+The actual HTTPS Backups form submitted one request, received HTTP 202 and
+reached historical `prepared_untested`. One mode-0700 backup-owned preparation
+with mode-0600 files was independently observed without opening its credential
+contents. The existing three QA files remain listed. Account/folder verification,
+current worker validation and upload enablement remain false. Preparation made
+no cloud request or token refresh. Authorized upgrade backups do contain private
+credential copies; the broker itself keeps its separate direct-pipe contract.
+[Sanitized live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
+
+Wi-Fi/default routes and USB carrier were preserved. USB addresses differed
+during deployment, consistent with the separately observed auto-switcher issue;
+this does not establish causality. Firmware reported zero throttling flags.
+
+### Separate operational generation foundation
+
+The complete local suite now passes **351 Python tests**, including actual rclone
+against temporary local storage. Twenty-four new filesystem/history tests cover
+source-approved preparation bindings, private no-replace generation publication,
+retained failures, unchanged prepared bytes/inodes and distinct destination job
+identities. A real SQLite history test verifies that an old verified job is
+deduplicated for its old destination but queued for a new folder generation.
+Inspection reports mutable seed equality only, always disabled and untested;
+it never authorizes refreshed bytes or current cloud access. Independent review
+and Python 3.9 syntax checks pass. This module has no live CLI/dashboard/worker
+integration and ran no provider request.

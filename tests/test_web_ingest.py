@@ -1,5 +1,7 @@
 import io
 import json
+import os
+import stat
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,6 +24,16 @@ class WebIngestTests(unittest.TestCase):
             self.assertEqual(ReadyBatch.load(batch.root).files, batch.files)
             self.assertEqual((batch.root / "files" / name).read_bytes(), content)
             self.assertEqual(batch.files[0].size, len(content))
+
+    def test_manifest_and_payload_stay_private_with_permissive_umask(self):
+        previous = os.umask(0)
+        try:
+            batch = stage_upload(io.BytesIO(b"retained QA data"), "report.txt", self.root)
+        finally:
+            os.umask(previous)
+        for path in (batch.root / "manifest.json", batch.root / "files/report.txt"):
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+        self.assertEqual(ReadyBatch.load(batch.root).files, batch.files)
 
     def test_unsafe_names_are_rejected_before_creating_a_batch(self):
         for name in ("../secret", "/etc/passwd", "folder/file", "..", ".env", "a\\b", "a\nb"):

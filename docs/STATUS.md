@@ -13,9 +13,9 @@ for remote automated checks.
   stable USB addressing remains an outstanding acceptance item.
 - Dashboard login with owner/viewer accounts, phone-friendly screens, QA-file
   upload, bounded text preview and downloads with byte/SHA-256 checks.
-- Restricted dev8 dashboard service candidate with NoNewPrivileges and home/system
+- Restricted dev10 dashboard service candidate with NoNewPrivileges and home/system
   filesystem restrictions. The upgraded service passed process/HTTP health checks
-  and public HTTPS access checks; dev6 is retained for rollback. Login and authenticated file access also passed through
+  and public HTTPS access checks; dev8 is retained for rollback. Login and authenticated file access also passed through
   a temporary public HTTPS tunnel; no router ports or VPN app were needed.
 - Rust watcher fixture trial: 398,048-byte ARM64 binary, 1,796 KiB parent idle RSS,
   incomplete batches ignored and completed unchanged work not retriggered.
@@ -48,7 +48,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **326 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **351 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -61,7 +61,7 @@ for remote automated checks.
 - Dev7 Google Drive/Dropbox Connect foundation: owner-only consent initiation,
   PKCE, one-use session-bound returns and private token storage. Missing registered
   clients show setup-required; authorization never enables uploads. Eighteen new
-  tests use fake OAuth responses, not real accounts. These controls are now in the live dev8 preview.
+  tests use fake OAuth responses, not real accounts. These controls are now in the live dev10 preview.
 - Dev8 Dropbox rclone adapter with synchronous commits, smaller upload chunks and
   independent read-back verification. Local-alias integration passes; real
   Dropbox authorization/backup and the guided runtime integration remain pending.
@@ -73,10 +73,11 @@ for remote automated checks.
 - Dev10 adds owner-only preparation requests, a separately gated local broker,
   and historical preparation status in the dashboard. Source and configuration
   bindings, owner revocation, expiration, private channels, retained interrupted
-  work, and bounded browser status retries have automated tests. A protected
-  dev10 code directory is installed on the Pi; the live dashboard remains dev8
-  until the new integration passes its separate acceptance checks. Neither
+  work, and bounded browser status retries have automated tests. The protected
+  dev10 dashboard and request watcher now run on the Pi. A real owner HTTPS
+  request prepared one private backup configuration successfully. Neither
   preparation nor its status enables automatic backups.
+  [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
 - The dev10 synthetic Pi trial now passes owner HTTP-handler requests, the actual
   root broker, separate ordinary service identities, historical status and
   recovery from a prepared destination whose receipt was not recorded. Existing
@@ -85,6 +86,21 @@ for remote automated checks.
   created the locked backup identity with its own group, preserving every old
   account entry/password. The trial changed no live service or network settings.
   [Dev10 evidence](acceptance/pi-google-setup-dev10-2026-11-13.json).
+
+- Actual Pi systemd event/recovery tests now pass with synthetic credentials:
+  a blocked owner lock recovers on retry, persistent failures stop after three
+  starts, and deliberate recovery preserves earlier configurations. The separate
+  slow-failure trial observed three 25-second executions over 78.5 seconds and
+  refused a fourth start. Kernel sandbox/identity checks passed. Temporary QA
+  units are stopped. These synthetic checks have separate evidence from the
+  accepted live preparation. [Event/recovery evidence](acceptance/pi-google-setup-systemd-2026-11-13.json),
+  [slow-failure evidence](acceptance/pi-google-setup-slow-retries-2026-11-13.json).
+
+- The next operational-config foundation passes 24 local filesystem/history
+  tests. It preserves preparation proof, separates future mutable token writes,
+  retains failures and prevents a new destination generation from reusing old
+  verified jobs. It is disabled, untested against a provider and not connected
+  to the live worker. Test/Enable and automatic file backup remain unfinished.
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private

@@ -1,12 +1,18 @@
 # Private Google destination preparation
 
+Current acceptance: protected dev10 live preparation passes. Automatic backup
+Test/Enable remains unfinished. The locally tested operational-generation API
+described at the end is a separate foundation, not a live upload control.
+
 The dev9 source can transfer an existing Google browser authorization between
 separate ordinary service identities and prepare a disabled private rclone
-configuration. It requires Python 3.9 or later on Linux. The dev10 candidate
+configuration. It requires Python 3.9 or later on Linux. Dev10
 adds an owner-requested preparation workflow and a protected local broker,
-described below. The running protected dashboard remains dev8 until a separately
-accepted upgrade. The dev10 synthetic Pi broker trial now passes; it is separate
-from live dashboard deployment and systemd event/sandbox acceptance.
+described below. The protected dev10 dashboard now runs on the Pi. An actual owner
+HTTPS form request passed through the systemd watcher and broker into a private
+backup-owned preparation. It remains untested, with automatic uploads disabled.
+[Live evidence](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
+Synthetic fixtures and systemd fault/recovery trials retain separate evidence.
 
 A synthetic CLI transfer has now passed on the physical Pi using two existing
 restricted QA identities. The accounts could not read each other's private
@@ -199,7 +205,7 @@ enablement. Dev9's accepted synthetic handoff and the earlier dev8 cloud job
 remain historical evidence for their own configurations. The dev10 native
 synthetic HTTP-handler/root-broker trial and interrupted-receipt recovery passed;
 see its [sanitized receipt](acceptance/pi-google-setup-dev10-2026-11-13.json).
-The live dev8 dashboard remains unchanged until its own accepted upgrade. The
+That dev9 trial left the live dev8 dashboard unchanged. The
 trial does not establish actual systemd path delivery, sandbox operation or a
 real-account handoff into production backup state.
 
@@ -452,5 +458,30 @@ binding matches. Mismatches fail closed; no existing configuration is replaced.
 An expired request needs a fresh owner request and receives a new target ID.
 Old completed and incomplete directories remain for private review; they are not
 automatically migrated, deleted or enabled. The native Pi receipt covers direct
-broker execution and synthetic HTTP handlers; path events and the systemd
-sandbox still require their own acceptance before live activation.
+broker execution and synthetic HTTP handlers. Path events, systemd sandbox and
+live activation now have their own accepted records in [VALIDATION.md](VALIDATION.md).
+
+## Separate operational configuration foundation
+
+`google_operational.py` creates and inspects disabled generations as the ordinary
+backup identity. Callers must provide the independently validated source request
+ID, folder label, authorization digest and expected seed-config digest. A
+backup-owned manifest or browser-supplied digest cannot supply that authority.
+Both private roots must already exist; operational storage cannot be inside or
+above preparation storage. Prepared files remain read-only and retain their
+bytes/inodes. Private incomplete directories and published failures are retained.
+
+Each generation has private provenance and a separate writable `config/` directory
+for future rclone token replacement. Its history identity includes the generation
+and complete source binding. A later coordinator must explicitly use that identity
+and bind the actual cloud folder; existing providers are not changed by this API.
+Changing the destination folder requires a new generation so old verified jobs
+cannot suppress backups to a different folder.
+
+Inspection checks historical provenance and private filesystem access. A matching
+mutable seed hash describes bytes only. Changed token/config bytes stay unvalidated;
+neither case establishes current consent, account/folder access or enablement.
+The safe projection always says disabled, untested and validation required. There
+is no CLI, web action, provider call or live service integration for this module.
+Test/Enable, actual refresh, completed-file/status transfer and enforced Wi-Fi
+egress remain the next integration work.

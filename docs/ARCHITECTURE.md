@@ -24,6 +24,7 @@ quarantine. New code does not import those service loops.
 | `google_destination.py` | Private OAuth handoff across separate identities and no-replace, disabled Google rclone preparation; no cloud requests |
 | `google_setup.py` | Durable owner preparation intent, source/credential bindings, consumed private export and strict historical receipt projection |
 | `google_broker.py` | Opt-in protected-root coordinator with ordinary source/backup children, private source/config hash checks and bounded preparation only |
+| `google_operational.py` | Disabled operational config generations with independent source bindings and separate mutable token storage; no network or worker integration |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
 | `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |
 | `wifi_plan.py` | Non-secret inactive NetworkManager profile plans; no OS mutation |
@@ -133,12 +134,15 @@ configuration. Its operator exporter/importer passed a synthetic two-identity CL
 trial on the Pi; this did not connect real dashboard credentials to production
 backup state. The earlier one-file Google proof on dev8 describes a separate
 historical QA configuration and job. Neither verifies a new destination.
-The live protected dashboard remains dev8 until a separately accepted upgrade.
-The dev10 candidate adds the following owner-intent and broker boundary. Its
+The protected dev10 dashboard and request watcher now run on the Pi. Its real
+owner HTTPS form has prepared a private configuration across these identities,
+with uploads still disabled and a cloud test still required.
+[Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
+The owner-intent and broker boundary follows. Its
 native synthetic HTTP-handler/root-broker and recovery trial now passes on the
 Pi, with [separate evidence](acceptance/pi-google-setup-dev10-2026-11-13.json).
-Systemd path/sandbox activation, live deployment and real-account integration
-remain outside that trial.
+Actual systemd path/sandbox and live preparation have separate records; they
+remain outside that earlier synthetic trial. Preparation does not test the cloud.
 
 ```mermaid
 flowchart LR

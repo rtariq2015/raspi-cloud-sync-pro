@@ -45,7 +45,9 @@ def stage_upload(stream, filename, destination, *, max_bytes=100 * 1024 * 1024,
             output.flush()
             os.fsync(output.fileno())
         item = StagedFile(filename, size, digest.hexdigest())
-        with (temporary / "manifest.json").open("x", encoding="utf-8") as manifest:
+        manifest_fd = os.open(temporary / "manifest.json",
+                              os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(manifest_fd, "w", encoding="utf-8") as manifest:
             json.dump({"schema_version": 1, "files": [vars(item)]}, manifest)
             manifest.flush()
             os.fsync(manifest.fileno())
