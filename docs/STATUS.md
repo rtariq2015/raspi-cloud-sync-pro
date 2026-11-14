@@ -80,7 +80,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **618 Python tests and 11 Rust tests pass locally.** Python includes real rclone
+- **665 Python tests and 11 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -199,6 +199,22 @@ The protected dev11 dashboard upgrade has completed. Google request flags and
 automatic uploads remain off. No account passwords, USB/Wi-Fi settings or boot
 enablement changed. USB currently presents Ethernet; a working mapped Samba
 drive and classic mass-storage mode have not been accepted on the host.
+
+**Dev14 source integration:** a sanitized one-scan SMB capture command now has
+disabled configuration and uninstalled service/timer examples. The Google
+coordinator can record existing Enable/Disable decisions through the source
+identity's independent checks. A separate private batch-upload API uses a fresh
+batch-bound owner admission and root release, retains generation-wide history,
+and distinguishes newly verified files from historical reuse. These additions
+are not running services and do not enable automatic backups.
+
+The isolated dev13 coordinator idle trial failed before processing an intent.
+Read-only follow-up identified a concrete Debian path mismatch: `/usr/sbin/ip`
+is a symlink, which the strict executable check refuses. Dev14 uses the verified
+regular `/usr/bin/ip` binary without weakening that check. Kernel sandbox
+observations from the failed trial are recorded separately from startup
+acceptance. The owned test service stopped and existing access was preserved.
+[Trial and finding](acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
 
 ## Being worked on
 

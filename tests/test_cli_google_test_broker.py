@@ -32,6 +32,7 @@ class GoogleTestBrokerCliTests(unittest.TestCase):
     def test_exact_config_dispatch_and_fixed_status_exit_codes(self):
         settings = broker.GoogleTestBrokerSettings()
         cases = (("disabled", "disabled", 0), ("idle", "no_request", 0), ("idle", "no_test", 0),
+                 ("applied", "control_applied", 0),
                  ("tested", "test_verified_not_enabled", 0), ("failed", "cleanup_unconfirmed", 2),
                  ("failed", "configuration_invalid", 2))
         for status, suffix, expected in cases:
@@ -122,7 +123,9 @@ class GoogleTestBrokerCliTests(unittest.TestCase):
         cases = [{**safe, "private": PRIVATE}, {**safe, "code": PRIVATE}, {**safe, "status": PRIVATE},
                  {**safe, "uploads_enabled": True}, {**safe, "account_verified": 0},
                  {**safe, "current_worker_state_checked": True}, {**safe, "status": "tested"},
-                 {**safe, "status": "failed"}, None]
+                 {**safe, "status": "failed"}, {**safe, "status": "applied"},
+                 broker._result("failed", "google_test_broker_control_applied"),
+                 {**broker._result("applied", "google_test_broker_control_applied"), "uploads_enabled": True}, None]
         for report in cases:
             with self.subTest(report_type=type(report).__name__), \
                     mock.patch.object(broker.GoogleTestBrokerSettings, "load", return_value=broker.GoogleTestBrokerSettings()), \
@@ -151,7 +154,7 @@ class GoogleTestBrokerExamplesTests(unittest.TestCase):
         self.assertFalse(loaded.enabled)
         self.assertEqual(example["rclone_sha256"], "0" * 64)
         self.assertEqual(example["wifi_profile_uuid"], "00000000-0000-0000-0000-000000000000")
-        self.assertEqual(example["interpreter"], "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev13/venv/bin/python3")
+        self.assertEqual(example["interpreter"], "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev14/venv/bin/python3")
         self.assertEqual(Path(example["lock_file"]).parent, Path(example["runtime_directory"]))
 
     def test_service_example_is_uninstalled_oneshot_and_matches_disabled_config(self):

@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from raspi_cloud_sync_pro.errors import BackupError
-from raspi_cloud_sync_pro.staging import ReadyBatch, relative_path, stage_snapshot
+from raspi_cloud_sync_pro.staging import CHUNK_SIZE, ReadyBatch, hash_stream, relative_path, stage_snapshot
 from raspi_cloud_sync_pro.storage import Ownership, StorageOwnership
 
 
@@ -22,6 +22,17 @@ def staging_owner():
 
 
 class OwnershipTests(unittest.TestCase):
+    def test_hash_stream_deadline_callback_stops_after_one_actual_chunk(self):
+        with tempfile.TemporaryFile() as stream:
+            stream.write(b"x" * (CHUNK_SIZE * 3 + 17))
+            stream.seek(0)
+            def check():
+                if stream.tell() >= CHUNK_SIZE:
+                    raise BackupError("synthetic_deadline")
+            with self.assertRaisesRegex(BackupError, "synthetic_deadline"):
+                hash_stream(stream, check=check)
+            self.assertEqual(stream.tell(), CHUNK_SIZE)
+
     def test_startup_and_host_ownership_refuse_reads(self):
         owner = StorageOwnership()
         self.assertEqual(owner.state, Ownership.UNKNOWN)

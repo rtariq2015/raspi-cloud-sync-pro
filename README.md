@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**618 Python tests and 11 Rust tests pass locally.** Python tests include actual
+**665 Python tests and 11 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -114,6 +114,14 @@ check now passes on the Pi: private channels, the Wi-Fi-only kernel policy,
 DNS/HTTPS probes and invalid-gate refusal. It used no cloud credentials and
 enabled neither uploads nor USB sharing. The live dashboard remains dev11.
 [Native worker evidence](docs/acceptance/pi-google-test-source-dev13-2026-11-14.json).
+
+Dev14 adds a one-scan SMB capture command and disabled service/timer examples,
+plus a private Google batch-upload API that binds each attempt to an owner
+admission and independently verified batch. Enable/Disable decisions now have
+a coordinator application path. These additions are source-tested and remain
+undeployed. A separate coordinator startup trial caught Debian's linked legacy
+`ip` path; the source now uses the canonical executable and still refuses
+symlinks. [Startup finding](docs/acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
 
 A confirmed small-upload bug is fixed in development: the multipart parser's
 32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the

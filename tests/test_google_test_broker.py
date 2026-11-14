@@ -424,12 +424,58 @@ class GoogleTestBrokerTests(unittest.TestCase):
             self.run_protocol()
         self.assertEqual(list(self.runtime.iterdir()), [])
 
-    def test_enable_disable_intents_never_start_test_or_mint_enable_receipt(self):
-        self.value["action"] = "enable"
-        result, manager, source = self.run_protocol()
-        self.assertEqual(result["code"], "google_test_broker_no_test")
-        self.assertEqual(source.recorded, [])
-        self.assertEqual(list(self.runtime.iterdir()), [])
+    def decision(self, action="enable"):
+        value = request()
+        value.update(action=action, fixture=None)
+        value["test"] = {"request_id": "9" * 32, "generation_id": GENERATION, "folder_id": PRIVATE,
+                         "tested_at": value["requested_at"] - 1, "receipt_sha256": "4" * 64,
+                         "operational_settings_sha256": "5" * 64}
+        if action == "disable":
+            value.update(preparation=None, test=None)
+        return value
+
+    def test_enable_disable_apply_only_after_fresh_source_export_without_cloud_or_worker(self):
+        for action in ("enable", "disable"):
+            with self.subTest(action=action):
+                self.value = self.decision(action)
+                with mock.patch.object(broker, "_network", side_effect=AssertionError("No network")), \
+                        mock.patch.object(broker, "_runtime", side_effect=AssertionError("No runtime")):
+                    result, manager, source = self.run_protocol()
+                self.assertEqual(result, broker._result("applied", "google_test_broker_control_applied"))
+                self.assertEqual(source.exports, 2)
+                self.assertEqual(len(source.recorded), 1)
+                identifier, applied = source.recorded[0]
+                self.assertEqual(identifier, REQUEST)
+                self.assertEqual(control._validate_receipt(applied, self.value, time.time(), None), applied)
+                self.assertEqual(applied["outcome"], "applied")
+                self.assertIs(applied["enabled"], action == "enable")
+                self.assertIsNone(applied["result"])
+                self.assertFalse(manager.released)
+                self.assertEqual(manager.stopped, [])
+                self.assertEqual(list(self.runtime.iterdir()), [])
+
+    def test_apply_rejects_changed_source_or_recording_failure_without_worker(self):
+        self.value = self.decision()
+        for options in ({"change_at": 2}, {"record_failure": True}):
+            with self.subTest(options=options), self.assertRaises((BackupError, ValueError)):
+                self.run_protocol(source_options=options)
+            self.assertEqual(list(self.runtime.iterdir()), [])
+
+    def test_local_decision_strict_schema_expiry_test_freshness_and_disable_without_cloud_fields(self):
+        value = self.decision()
+        self.assertEqual(broker._control_decision(value, REQUEST), value)
+        self.assertEqual(broker._control_decision(self.decision("disable"), REQUEST)["action"], "disable")
+        cases = [{**value, "extra": True}, {**value, "fixture": {}}, {**value, "request_id": "0" * 32},
+                 {**value, "test": None}, {**value, "preparation": None},
+                 {**value, "expires_at": value["requested_at"] + 601},
+                 {**value, "requested_at": 1, "expires_at": 601},
+                 {**value, "test": {**value["test"], "tested_at": value["requested_at"] + 1}},
+                 {**value, "test": {**value["test"], "tested_at": time.time() - 601}},
+                 {**self.decision("disable"), "preparation": value["preparation"]},
+                 {**self.decision("disable"), "test": value["test"]}]
+        for bad in cases:
+            with self.subTest(fields=set(bad)), self.assertRaises(BackupError):
+                broker._control_decision(bad, REQUEST)
 
     def test_unit_plan_preserves_narrow_network_syscall_and_write_policy(self):
         properties = broker._unit_properties(self.settings, self.backup, self.runtime, self.runtime / "resolv.conf")
@@ -537,6 +583,66 @@ class GoogleTestBrokerTests(unittest.TestCase):
                     broker._no_overrides("raspi-cloud-google-test-" + "4" * 32 + ".service")
 
 
+
+
+    def test_gates_validate_fixed_regular_ip_target_and_network_invokes_that_same_target(self):
+        executable = self.root / "public-executable"
+        executable.write_bytes(b"PUBLIC_PINNED_EXECUTABLE")
+        executable.chmod(0o755)
+        settings = copy.copy(self.settings)
+        object.__setattr__(settings, "rclone_sha256", hashlib.sha256(executable.read_bytes()).hexdigest())
+        checked = []
+        @contextmanager
+        def fixed_file(path, **kwargs):
+            checked.append(path)
+            fd = os.open(executable, os.O_RDONLY)
+            try:
+                yield fd, os.fstat(fd)
+            finally:
+                os.close(fd)
+        with mock.patch.object(broker.preparation, "_platform_gate"), \
+                mock.patch.object(broker.GoogleTestBrokerSettings, "load", return_value=settings), \
+                mock.patch.object(broker.preparation, "_root_json", return_value=(broker._APPROVAL, ())), \
+                mock.patch.object(broker, "_python_environment"), \
+                mock.patch.object(broker.preparation, "_installed_package_gate"), \
+                mock.patch.object(broker.preparation, "_root_file", fixed_file), \
+                mock.patch.object(broker, "_command", return_value=(0, b"systemd 257 (257.13-1~deb13u1)\n")):
+            broker._gates(settings)
+        self.assertIn(Path("/usr/bin/ip"), checked)
+        self.assertNotIn(Path("/usr/sbin/ip"), checked)
+        calls = []
+        fields = {"GENERAL.TYPE": "wifi", "GENERAL.STATE": "100 (connected)", "GENERAL.CON-UUID": UUID,
+                  "GENERAL.METERED": "no", "IP4.DNS": settings.dns_ipv4}
+        def query(arguments, deadline, **kwargs):
+            calls.append(arguments)
+            if arguments[0] == "/usr/bin/ip":
+                return 0, b'[{"dev":"wlan0"}]'
+            if "CONNECTIVITY" in arguments:
+                return 0, b"full"
+            return 0, fields[arguments[arguments.index("-g") + 1]].encode()
+        with mock.patch.object(broker, "_command", side_effect=query), mock.patch.object(broker.socket, "if_nametoindex", return_value=7):
+            broker._network(settings, time.monotonic() + 3)
+        self.assertEqual(calls[-1], ["/usr/bin/ip", "-j", "-4", "route", "get", settings.dns_ipv4])
+
+    def test_protected_executable_open_still_refuses_symlink_without_resolving_alias(self):
+        target = self.root / "actual-ip"
+        target.write_bytes(b"PUBLIC_EXECUTABLE")
+        target.chmod(0o755)
+        alias = self.root / "ip-alias"
+        alias.symlink_to(target)
+        @contextmanager
+        def parent(path):
+            fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                yield fd
+            finally:
+                os.close(fd)
+        with mock.patch.object(broker.preparation, "_root_directory", parent), \
+                mock.patch.object(Path, "resolve", side_effect=AssertionError("Never resolve executable aliases")):
+            with self.assertRaises(OSError) as error:
+                with broker.preparation._root_file(alias, executable=True):
+                    self.fail("A symlink executable must not be accepted")
+        self.assertEqual(error.exception.errno, 40)  # Linux ELOOP, O_NOFOLLOW retained.
 
 
 class GoogleTestNativeFacadeTests(unittest.TestCase):
@@ -852,3 +958,93 @@ class GoogleTestNativeFacadeTests(unittest.TestCase):
                 with broker._runtime(SimpleNamespace(runtime_directory=path)):
                     self.fail("No root runtime accepted")
             self.assertEqual([entry.name for entry in path.iterdir()], ["config.json"])
+
+
+@unittest.skipIf(os.geteuid() == 0, "Real source workflow requires an ordinary UID")
+class GoogleControlApplyIntegrationTests(unittest.TestCase):
+    def setUp(self):
+        # Reuse the existing real auth/session/CSRF and preparation fixture. Only
+        # its historical Test result is synthetic; no provider or root bypass runs.
+        from test_google_control import GoogleControlTests
+        self.fixture = GoogleControlTests(methodName="test_old_matching_completed_preparation_supports_new_private_test_intent")
+        self.fixture.setUp()
+        self.addCleanup(self.fixture.doCleanups)
+        self.clock = 1004.0
+        self.before_record = None
+        self.exports = 0
+        self.records = 0
+        fixture = self.fixture
+        outer = self
+        class Transport:
+            def export(self, request_id, deadline):
+                outer.exports += 1
+                return fixture.export(now=outer.clock, request_id=request_id)[1]
+            def record(self, request_id, receipt, deadline):
+                outer.records += 1
+                if outer.before_record is not None:
+                    outer.before_record()
+                fixture.record(receipt, now=outer.clock, request_id=request_id)
+        self.transport = Transport()
+
+    def enable_request(self):
+        self.fixture.verified_test()
+        self.fixture.request("enable", now=1003)
+
+    def apply(self):
+        root = os.open(self.fixture.state, os.O_RDONLY | os.O_DIRECTORY)
+        self.addCleanup(os.close, root)
+        identity = SimpleNamespace(pw_uid=os.geteuid(), pw_gid=os.getegid())
+        forbidden = mock.Mock(side_effect=AssertionError("No cloud/worker path"))
+        with mock.patch.object(broker.time, "time", return_value=self.clock), \
+                mock.patch.object(broker, "_network", forbidden), mock.patch.object(broker, "_runtime", forbidden), \
+                mock.patch.object(broker, "_listeners", forbidden), mock.patch.object(broker, "_release", forbidden):
+            report = broker._orchestrate(None, identity, identity, root, time.monotonic() + 3,
+                                         forbidden, self.transport)
+        forbidden.assert_not_called()
+        return report
+
+    def test_real_source_enable_becomes_admitted_and_completed_retry_does_not_replace_receipt(self):
+        self.enable_request()
+        self.assertFalse(self.fixture.admission(now=self.clock)[1]["admission_authorized"])
+        self.assertEqual(self.apply(), broker._result("applied", "google_test_broker_control_applied"))
+        self.assertEqual((self.exports, self.records), (2, 1))
+        self.assertTrue(self.fixture.admission(now=self.clock)[1]["admission_authorized"])
+        path = self.fixture.workflow / (self.fixture.current_id() + ".receipt.json")
+        before = path.read_bytes(), path.stat().st_ino
+        with self.assertRaises(BackupError):
+            self.apply()
+        self.assertEqual((path.read_bytes(), path.stat().st_ino), before)
+        self.assertTrue(self.fixture.admission(now=self.clock)[1]["admission_authorized"])
+
+    def test_real_disable_records_without_google_preparation_or_grant_and_remains_denied(self):
+        self.fixture.request("disable", now=1003)
+        for name in ("oauth-clients.json", "oauth-google_drive.json"):
+            (self.fixture.state / name).unlink()
+        self.assertEqual(self.apply()["status"], "applied")
+        receipt = json.loads((self.fixture.workflow / (self.fixture.current_id() + ".receipt.json")).read_text())
+        self.assertEqual((receipt["action"], receipt["outcome"], receipt["enabled"], receipt["result"]),
+                         ("disable", "applied", False, None))
+        self.assertFalse(self.fixture.admission(now=self.clock)[1]["admission_authorized"])
+
+    def test_recorder_rejects_owner_revocation_source_change_expiry_or_superseded_intent(self):
+        for change in ("owner", "source", "expired", "superseded"):
+            with self.subTest(change=change):
+                if change != "owner":
+                    self.fixture.doCleanups()
+                    self.fixture.setUp()
+                self.clock = 1004.0
+                self.enable_request()
+                identifier = self.fixture.current_id()
+                def mutate():
+                    if change == "owner":
+                        self.fixture.write("auth.json", {**self.fixture.auth, "users": {"owner": {"role": "viewer", "hash": "changed"}}})
+                    elif change == "source":
+                        self.fixture.write("oauth-google_drive.json", {**self.fixture.grant, "refresh_token": "changed-source"})
+                    elif change == "expired":
+                        self.clock = 1603.0
+                    else:
+                        self.fixture.request("disable", now=1004)
+                self.before_record = mutate
+                with self.assertRaises(BackupError):
+                    self.apply()
+                self.assertFalse((self.fixture.workflow / (identifier + ".receipt.json")).exists())

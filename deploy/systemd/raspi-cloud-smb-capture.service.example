@@ -1,0 +1,51 @@
+# UNINSTALLED REVIEW EXAMPLE. Not native-qualified; never start/enable by copying blindly.
+[Unit]
+Description=Raspi Cloud Sync Pro local SMB capture scan (no cloud uploads)
+After=raspi-cloud-samba.service
+ConditionPathExists=/etc/raspi-cloud-sync-pro-smb/SMB_CAPTURE_APPROVED
+# Provision these directories and private credentials separately; do not create
+# them as root-owned StateDirectory with a service-only Group override.
+AssertPathIsDirectory=/srv/raspi-cloud-sync-pro/share
+AssertPathIsDirectory=/var/lib/raspi-cloud-sync-pro/smb-staging
+AssertPathIsDirectory=/var/lib/raspi-cloud-sync-pro/smb-capture
+AssertPathExists=/var/lib/raspi-cloud-sync-pro/smb-capture/smb.json
+
+[Service]
+Type=oneshot
+User=raspi-backup
+Group=raspi-sync
+UMask=0077
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev14/venv/bin/python3 -I -B -m raspi_cloud_sync_pro smb-capture --config /etc/raspi-cloud-sync-pro-smb/capture.json
+Restart=no
+TimeoutStartSec=330
+TimeoutStopSec=5
+KillMode=control-group
+SendSIGKILL=yes
+LimitCORE=0
+CapabilityBoundingSet=
+AmbientCapabilities=
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+# Same host loopback is required for SMB; this is not an egress confinement proof.
+PrivateNetwork=no
+# Preserve the runtime's rw-filesystem check. Unix ownership/modes keep capture
+# read-only on the writer-owned share (0750 directories, 0640 files, cap0).
+ReadWritePaths=/srv/raspi-cloud-sync-pro/share /var/lib/raspi-cloud-sync-pro/smb-staging /var/lib/raspi-cloud-sync-pro/smb-capture
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+# Read-only NetworkManager/systemctl probes use Unix sockets; ip uses netlink.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_NETLINK
+SystemCallArchitectures=native
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+# No Install section, dependency that starts Samba, or automatic directory creation.

@@ -55,10 +55,17 @@ def open_regular(root: Path, relative: str):
         os.close(directory_fd)
 
 
-def hash_stream(stream):
+def hash_stream(stream, *, check=None):
     digest = hashlib.sha256()
     size = 0
-    for block in iter(lambda: stream.read(CHUNK_SIZE), b""):
+    while True:
+        if check is not None:
+            check()
+        block = stream.read(CHUNK_SIZE)
+        if check is not None:
+            check()
+        if not block:
+            break
         size += len(block)
         digest.update(block)
     return size, digest.hexdigest()
@@ -94,19 +101,23 @@ class ReadyBatch:
     root: Path
     files: Tuple[StagedFile, ...]
 
-    def check_file(self, item: StagedFile):
+    def check_file(self, item: StagedFile, *, check=None):
         with open_regular(self.root / "files", item.relative) as stream:
-            if hash_stream(stream) != (item.size, item.sha256):
+            if hash_stream(stream, check=check) != (item.size, item.sha256):
                 raise BackupError("staged_file_changed")
 
     @classmethod
-    def load(cls, root: Path, *, verify_contents: bool = True):
+    def load(cls, root: Path, *, verify_contents: bool = True, check=None):
+        if check is not None:
+            check()
         root = Path(root).absolute()
         if root.suffix != ".ready" or root.is_symlink():
             raise BackupError("batch_not_ready")
         try:
             with open_regular(root, "manifest.json") as stream:
                 data = json.load(stream)
+            if check is not None:
+                check()
             if set(data) != {"schema_version", "files"} or type(data["schema_version"]) is not int \
                     or data["schema_version"] != 1 or not isinstance(data["files"], list):
                 raise ValueError()
@@ -126,7 +137,7 @@ class ReadyBatch:
             batch = cls(root, tuple(files))
             if verify_contents:
                 for item in batch.files:
-                    batch.check_file(item)
+                    batch.check_file(item, check=check)
             return batch
         except BackupError:
             raise

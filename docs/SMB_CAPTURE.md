@@ -3,8 +3,8 @@
 `smb_capture.SmbCaptureSettings.load(path)` and `run_smb_capture(settings,
 once=True)` provide a capture-only runtime. The default is disabled. This API
 does not create providers, upload files, configure Samba or networking, enable a
-service, change USB modes, or enable the global hardware gate. There is no CLI or
-production deployment in this change.
+service, change USB modes, or enable the global hardware gate. A one-scan operator
+CLI and uninstalled examples are available; production deployment is separate.
 
 The ordinary `raspi-backup` identity loads and freshly checks a nonsecret,
 root-owned settings file, a separate approval file, and the existing device
@@ -23,8 +23,8 @@ examples, not installed resources:
 {
   "schema_version": 1,
   "enabled": true,
-  "approval_file": "/etc/raspi-cloud-sync-pro/SMB_CAPTURE_APPROVED",
-  "device_policy": "/etc/raspi-cloud-sync-pro/device-policy.json",
+  "approval_file": "/etc/raspi-cloud-sync-pro-smb/SMB_CAPTURE_APPROVED",
+  "device_policy": "/etc/raspi-cloud-sync-pro-smb/device-policy.json",
   "share_name": "CloudSync",
   "share_root": "/srv/raspi-cloud-sync-pro/share",
   "staging_directory": "/var/lib/raspi-cloud-sync-pro/smb-staging",
@@ -99,3 +99,46 @@ confinement, cloud admission, dashboard listing/downloads, Windows Explorer
 behavior, live USB sharing and production activation remain separate work.
 The earlier Pi acceptance covered an isolated encrypted loopback Samba fixture;
 this new runtime has local tests, not live USB or Windows acceptance.
+
+## One-scan operator command and uninstalled examples
+
+`raspi-cloud-sync-pro smb-capture --config /etc/raspi-cloud-sync-pro-smb/capture.json`
+loads the protected nonsecret configuration and calls the runtime with
+`once=True`. It prints only the fixed state/count/false-flag projection described
+above. Missing arguments, invalid configuration and runtime exceptions have
+fixed sanitized diagnostics. Disabled, idle, captured and deferred scans exit
+zero unless files were rejected; blocked, unavailable or rejected-file results
+exit two. Busy writers are an expected deferral. A blocked scan can retain work
+completed before the failure; no rollback or deletion is implied by the report.
+
+The [disabled configuration](../config/smb-capture.example.json),
+[service example](../deploy/systemd/raspi-cloud-smb-capture.service.example) and
+[timer example](../deploy/systemd/raspi-cloud-smb-capture.timer.example) are
+uninstalled review material. They do not start, enable or install anything and
+have no Install section. The service calls the pinned dev14 interpreter once;
+the timer schedules the next scan after the service becomes inactive, so it does
+not overlap a scan with itself. The one-scan CLI does not use the runtime's
+continuous-loop `interval`; periodic spacing belongs to the timer. Its 330-second
+outer service limit must be reviewed alongside any change from the example's
+300-second capture budget. A killed scan retains incomplete data.
+
+The examples put public authority under a separate root0755
+`/etc/raspi-cloud-sync-pro-smb` directory, with root0644 settings, policy and
+approval files. Keep the existing private `/etc/raspi-cloud-sync-pro` directory
+and its private Google settings protected; do not loosen it for capture. The
+sample USB subnet and zero UUID are placeholders, not approved live settings.
+Approval-file presence alone does not satisfy the runtime's fresh JSON, process,
+USB, filesystem and ownership checks.
+
+Provision the share, private staging/state directories and private SMB credential
+file separately before considering the service. The example asserts those paths
+exist, runs as `raspi-backup` with `Group=raspi-sync` for that unit only, clears
+capability bounding/ambient sets, and sets NNP and umask0077. Its mount policy
+keeps share/staging/state writable to preserve the runtime's writable-filesystem
+check. The writer-owned share's 0750/0640 Unix permissions give the capture
+group read access only; only its private staging/state are writable by that UID.
+The unit creates no directories and edits no OS group membership.
+Samba stays a separately reviewed service; starting capture does not start it.
+The examples still need native qualification, trusted SMB client dependencies,
+USB-only server/firewall acceptance and real Windows testing. Their settings are
+not evidence of network confinement or cloud readiness.

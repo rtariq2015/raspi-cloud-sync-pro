@@ -19,25 +19,44 @@ from .history import read_history
 
 _GOOGLE_TEST_ERROR = "Private Google Test unavailable; no uploads were enabled and no private details were printed."
 _GOOGLE_TEST_BROKER_ERROR = "Google Test coordinator unavailable; no uploads were enabled and no private details were printed."
+_SMB_CAPTURE_ERROR = "SMB capture unavailable; no cloud uploads were enabled and no private details were printed."
 _GOOGLE_TEST_BROKER_CODES = frozenset("google_test_broker_" + value for value in (
     "approval_required authority_changed canary_invalid cleanup_unconfirmed command_invalid completion_invalid "
-    "configuration_changed configuration_invalid disabled identity_unsafe installation_unsafe loopback_reached "
+    "configuration_changed configuration_invalid control_applied disabled identity_unsafe installation_unsafe loopback_reached "
     "manager_unapproved no_request no_test pidfd_required receipt_invalid request_invalid single_thread_required "
     "source_refused storage_invalid systemd_unavailable test_verified_not_enabled timeout unavailable "
     "unit_changed unit_conflict unit_invalid wifi_unavailable worker_changed worker_failed worker_invalid"
 ).split())
 
 
+def _smb_capture_projection(report):
+    counts = ("staged_files", "deferred_files", "rejected_files")
+    flags = ("uploads_enabled", "cloud_accounts_verified", "automatic_deletion")
+    if (not isinstance(report, dict) or set(report) != {"capture_state", *counts, *flags}
+            or report["capture_state"] not in ("disabled", "blocked", "unavailable", "idle", "deferred", "captured")
+            or any(type(report[key]) is not int or not 0 <= report[key] <= 32 for key in counts)
+            or sum(report[key] for key in counts) > 32 or any(report[key] is not False for key in flags)):
+        raise BackupError("smb_capture_report_invalid")
+    state = report["capture_state"]
+    if ((state in ("disabled", "blocked", "unavailable") and any(report[key] for key in counts))
+            or (state == "idle" and (report["staged_files"] or report["deferred_files"]))
+            or (state == "deferred" and (report["staged_files"] or not report["deferred_files"]))
+            or (state == "captured" and not report["staged_files"])):
+        raise BackupError("smb_capture_report_invalid")
+    return {key: report[key] for key in ("capture_state", *counts, *flags)}
+
+
 def _google_test_broker_projection(report):
     fields = {"status", "code", "uploads_enabled", "account_verified", "current_worker_state_checked"}
     if (not isinstance(report, dict) or set(report) != fields
-            or report["status"] not in ("disabled", "idle", "tested", "failed")
+            or report["status"] not in ("disabled", "idle", "applied", "tested", "failed")
             or not isinstance(report["code"], str) or report["code"] not in _GOOGLE_TEST_BROKER_CODES
             or any(report[key] is not False for key in
                    ("uploads_enabled", "account_verified", "current_worker_state_checked"))):
         raise BackupError("google_test_broker_report_invalid")
     completed = {"disabled": {"google_test_broker_disabled"},
                  "idle": {"google_test_broker_no_request", "google_test_broker_no_test"},
+                 "applied": {"google_test_broker_control_applied"},
                  "tested": {"google_test_broker_test_verified_not_enabled"}}
     if ((report["status"] in completed and report["code"] not in completed[report["status"]])
             or (report["status"] == "failed" and report["code"] in set().union(*completed.values()))):
@@ -157,6 +176,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     setup_broker.add_argument("--config", type=Path, required=True)
     test_broker = commands.add_parser("google-test-broker", help="one explicit root-coordinated owner Test; disabled configuration starts nothing")
     test_broker.add_argument("--config", type=Path, required=True, help="protected root-owned private coordinator configuration")
+    smb_capture = commands.add_parser("smb-capture", help="one approved local SMB capture scan; never upload or configure the host")
+    smb_capture.add_argument("--config", type=Path, required=True, help="nonsecret root-protected configuration readable by the backup identity")
     google_test = commands.add_parser("google-test", help="private owner Test worker; inherited root release required")
     google_test.add_argument("--prepared-state", type=Path, required=True)
     google_test.add_argument("--operational-state", type=Path, required=True)
@@ -245,7 +266,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     private_command = (sys.argv[1:] if argv is None else argv)[:1]
-    if private_command in (["google-test"], ["google-test-broker"]):
+    if private_command in (["google-test"], ["google-test-broker"], ["smb-capture"]):
         # Private operator arguments can themselves contain private strings.
         # Argparse diagnostics normally echo invalid values and unknown options.
         try:
@@ -254,11 +275,21 @@ def main(argv: Optional[List[str]] = None) -> int:
         except SystemExit as error:
             if error.code == 0:
                 return 0
-            print(_GOOGLE_TEST_BROKER_ERROR if private_command == ["google-test-broker"] else _GOOGLE_TEST_ERROR,
-                  file=sys.stderr)
+            message = {"google-test-broker": _GOOGLE_TEST_BROKER_ERROR, "google-test": _GOOGLE_TEST_ERROR,
+                       "smb-capture": _SMB_CAPTURE_ERROR}[private_command[0]]
+            print(message, file=sys.stderr)
             return 2
     else:
         args = parser.parse_args(argv)
+    if args.command == "smb-capture":
+        try:
+            from .smb_capture import SmbCaptureSettings, run_smb_capture
+            report = _smb_capture_projection(run_smb_capture(SmbCaptureSettings.load(args.config), once=True))
+            print(json.dumps(report, indent=2))
+            return 2 if report["capture_state"] in ("blocked", "unavailable") or report["rejected_files"] else 0
+        except Exception:
+            print(_SMB_CAPTURE_ERROR, file=sys.stderr)
+            return 2
     if args.command == "google-test-broker":
         try:
             from .google_test_broker import GoogleTestBrokerSettings, run_google_test_broker

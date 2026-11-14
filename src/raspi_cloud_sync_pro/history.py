@@ -76,12 +76,14 @@ class History:
         finally:
             os.close(fd)
 
-    def enqueue(self, batch: ReadyBatch, destination: str, now: float) -> int:
+    def enqueue(self, batch: ReadyBatch, destination: str, now: float, *, check=None) -> int:
         # Do not trust an in-memory manifest supplied by a caller.
-        validated = ReadyBatch.load(batch.root)
+        validated = ReadyBatch.load(batch.root, check=check)
         added = 0
         with self.connection:
             for item in validated.files:
+                if check is not None:
+                    check()
                 result = self.connection.execute("""
                     INSERT OR IGNORE INTO jobs
                     (destination,batch_root,relative,size,sha256,state,created_at,updated_at)
@@ -118,14 +120,16 @@ class History:
             error = "retry_exhausted" if row["state"] in ("queued", "retry") else "interrupted"
             self.update(row["id"], state, now, error_code=error, next_attempt=now if state == "retry" else 0)
 
-    def claim(self, destination, now, max_attempts):
+    def claim(self, destination, now, max_attempts, *, batch_root=None):
         # Explicit write transaction makes selection/claim atomic across connections.
+        selected = None if batch_root is None else str(Path(batch_root).absolute())
         with self.connection:
             self.connection.execute("BEGIN IMMEDIATE")
             row = self.connection.execute("""
                 SELECT * FROM jobs WHERE destination=? AND state IN ('queued','retry')
-                AND next_attempt<=? AND attempts<? ORDER BY id LIMIT 1
-            """, (destination, now, max_attempts)).fetchone()
+                AND next_attempt<=? AND attempts<? AND (? IS NULL OR batch_root=?)
+                ORDER BY id LIMIT 1
+            """, (destination, now, max_attempts, selected, selected)).fetchone()
             if row is None:
                 return None
             self.connection.execute(

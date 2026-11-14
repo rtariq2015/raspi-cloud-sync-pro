@@ -34,7 +34,7 @@ class BackupEngine:
         self.max_delay = max_delay
 
     def run_once(self, provider: Provider, *, now=None, connectivity=Connectivity.UNKNOWN,
-                 metered=False, allow_metered=False):
+                 metered=False, allow_metered=False, batch_root=None, check=None):
         """Process one eligible file. No sleeps, implicit network setup, or deletion."""
         fixed_now = now
         clock = lambda: time.time() if fixed_now is None else fixed_now
@@ -43,23 +43,25 @@ class BackupEngine:
             return "paused"
         with self.history.worker():
             try:
+                if check is not None:
+                    check()
                 self.history.recover_interrupted(now, self.max_attempts)
-                job = self.history.claim(provider.destination_id, now, self.max_attempts)
+                job = self.history.claim(provider.destination_id, now, self.max_attempts, batch_root=batch_root)
             except sqlite3.Error as exc:
                 raise BackupError("history_write_failed") from exc
             if job is None:
                 return None
             try:
-                batch = ReadyBatch.load(Path(job["batch_root"]), verify_contents=False)
+                batch = ReadyBatch.load(Path(job["batch_root"]), verify_contents=False, check=check)
                 item = next((item for item in batch.files if item.relative == job["relative"]), None)
                 if item is None or (item.size, item.sha256) != (job["size"], job["sha256"]):
                     raise BackupError("staged_manifest_changed")
-                batch.check_file(item)
+                batch.check_file(item, check=check)
                 provider.upload(batch, item)
                 self.history.update(job["id"], "uploaded", clock())
                 self.history.update(job["id"], "verifying", clock())
                 provider.verify(batch, item)
-                batch.check_file(item)
+                batch.check_file(item, check=check)
                 self.history.update(job["id"], "verified", clock())
                 return "verified"
             except sqlite3.Error as exc:

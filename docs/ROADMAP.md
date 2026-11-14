@@ -94,6 +94,15 @@ snapshots without providers and fairly scans past busy files. Both additions
 remain source-tested and undeployed. Accept the next protected build, its worker
 and an actual Windows/USB share before joining capture to automatic uploads.
 
+Dev14 adds the one-scan capture operator command and uninstalled timer/service
+examples, local application of owner Enable/Disable decisions, and an admitted
+Google batch-upload API. Claims are limited to the selected canonical batch;
+previously verified content is historical reuse, and old pending duplicates
+retain their original roots. The coordinator's strict executable preflight also
+uses Debian's canonical `ip` path after a failed isolated native startup trial.
+Qualify the corrected build, restore preparation, then connect live admission,
+stream transfer, worker confinement and completion before enabling uploads.
+
 Dev10 adds durable owner requests, private source/configuration bindings, a
 gated root coordinator, and historical dashboard receipts. Its native synthetic
 Pi trial passed separate identities, interrupted-receipt recovery and retained

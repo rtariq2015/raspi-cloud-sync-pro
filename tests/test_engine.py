@@ -109,6 +109,29 @@ class EngineTests(unittest.TestCase):
         self.run_job()
         self.assertEqual([j["state"] for j in self.history.jobs()], ["verified", "queued"])
 
+    def test_selected_batch_never_claims_or_reads_another_pending_root(self):
+        (self.source / "recording.txt").write_bytes(b"selected later content")
+        selected = stage_snapshot(self.source, self.base / "staging", staging_owner())
+        self.history.enqueue(selected, self.provider.destination_id, 100)
+        original = self.batch.root / "files/recording.txt"
+        original.write_bytes(b"must never read this unadmitted older batch")
+        self.assertEqual(self.run_job(batch_root=selected.root), "verified")
+        jobs = self.history.jobs()
+        self.assertEqual([(job["state"], job["attempts"]) for job in jobs], [("queued", 0), ("verified", 1)])
+        self.assertEqual(self.provider.uploads, 1)
+        self.assertIsNone(self.run_job(batch_root=selected.root))
+        self.assertEqual(jobs[0]["batch_root"], str(self.batch.root))
+
+    def test_selected_duplicate_does_not_rebind_old_pending_or_verified_content(self):
+        duplicate = stage_snapshot(self.source, self.base / "staging", staging_owner())
+        self.assertEqual(self.history.enqueue(duplicate, self.provider.destination_id, 100), 0)
+        self.assertIsNone(self.run_job(batch_root=duplicate.root))
+        self.assertEqual(self.history.jobs()[0]["state"], "queued")
+        self.assertEqual(self.history.jobs()[0]["batch_root"], str(self.batch.root))
+        self.assertEqual(self.run_job(), "verified")
+        self.assertIsNone(self.run_job(batch_root=duplicate.root))
+        self.assertEqual(self.provider.uploads, 1)
+
     def test_reopen_recovers_crash_during_verification(self):
         with mock.patch.object(self.provider, "verify", side_effect=KeyboardInterrupt):
             with self.assertRaises(KeyboardInterrupt):

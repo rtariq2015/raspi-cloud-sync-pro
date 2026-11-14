@@ -29,6 +29,7 @@ quarantine. New code does not import those service loops.
 | `google_test.py` | Default-denied private Google fixture worker with a root-peer release gate, strict mutable settings, forced token refresh and downloaded-content verification; not deployed |
 | `google_test_broker.py` | Opt-in protected root Test coordinator with fresh source/network/kernel authority, private channels, scoped cleanup and historical receipts; not deployed |
 | `google_test_executor.py` | Ordinary backup-UID bootstrap, credential-free canaries, same-PID Test CLI and live completion barrier; not deployed |
+| `google_upload.py` | Default-denied selected-batch upload API; fresh owner admission, separate root release, generation-scoped jobs and downloaded-content verification; not deployed |
 | `wifi_confinement.py` | Read-only held inspection of current systemd RNI ingress/egress attachments and exact shared allowlist maps; no credential authority |
 | `batch_transfer.py` | Private descriptor-based streaming of selected completed web batches between service identities; hashes, completion framing and retained partials |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
@@ -39,7 +40,8 @@ quarantine. New code does not import those service loops.
 ## Data flow
 
 The new [Google control and transfer components](GOOGLE_CONTROLS.md) have
-source-tested owner dashboard controls and a default-denied private tester.
+source-tested owner dashboard controls, a default-denied private tester and a
+separate per-batch upload API.
 They are not yet deployed or connected to a live recurring cloud executor.
 
 ```mermaid

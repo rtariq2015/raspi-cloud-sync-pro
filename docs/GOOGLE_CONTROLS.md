@@ -192,13 +192,18 @@ allowlist. [Dev13 evidence](acceptance/pi-google-test-source-dev13-2026-11-14.js
 The private operator command is:
 
 ```sh
-/opt/raspi-cloud-sync-pro/releases/0.1.0.dev13/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
+/opt/raspi-cloud-sync-pro/releases/0.1.0.dev14/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
 ```
 
-This command is present in the inactive protected dev13 build. The live dev11
-upload-fix wheel does not contain this command. It runs once and selects only an existing,
-current owner Test intent through the source identity's private export. It does
-not create an owner/session proof, request or Enable decision. A private root
+The example targets dev14 source; it does not install that build. The inactive
+protected dev13 build also contains the command, but its separate idle-service
+trial failed before handling requests: Debian's `/usr/sbin/ip` symlink was
+correctly refused by the no-follow executable check. Dev14 uses the verified
+canonical `/usr/bin/ip` path; corrected native startup remains to be tested.
+[Startup evidence](acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
+The live dev11 upload-fix wheel does not contain this command. It runs once and
+selects an existing current owner intent through the source identity's private
+export. It does not create an owner/session proof, request or Enable decision. A private root
 release can be sent only by the existing coordinator after its required fresh
 worker, confinement, canary and source checks.
 Disabled configuration and an absent current request start no worker. There is
@@ -207,7 +212,7 @@ An owner request alone therefore does not cause this command to run.
 
 Stdout contains only the fixed `status`, `code`, `uploads_enabled: false`,
 `account_verified: false` and `current_worker_state_checked: false` projection.
-Exit status is zero for disabled, idle or a recorded verified Test, and two for
+Exit status is zero for disabled, idle, an applied control or a recorded verified Test, and two for
 failure. Parser/configuration exceptions use one fixed error without echoing
 paths or private values. A successful Test still needs a separate owner Enable
 and future per-batch admission; it does not establish a running backup service.
@@ -261,6 +266,50 @@ Test. A previously exhausted systemd start limit needs a scoped reset of only
 this coordinator unit before another deliberate start. Native qualification of
 this exact coordinator service and actual Google account/refresh acceptance are
 still required; these examples install or activate nothing.
+
+## Applying controls and uploading one admitted batch
+
+Dev14 adds a local application path for existing Enable/Disable decisions.
+The coordinator exports the current decision twice and the source identity's
+recorder independently rechecks owner, source, expiry and successful Test
+bindings before writing an immutable `applied` receipt. This performs no cloud
+request and starts no upload worker. Its public result is
+`status: applied`, `code: google_test_broker_control_applied`, with all public
+upload/account/worker-readiness flags false. Disable already denies new admissions
+when its intent becomes current; receipt recording completes its status.
+
+`google_upload.run_google_batch_upload` is a private library API, not a public
+activation command or running service. With no root release it refuses before
+opening staging or credentials. A consumed kernel-root-peer stream must bind
+the current PID, selected batch ID, canonical manifest digest and complete fresh
+source admission digest. Its purpose differs from the Google Test release.
+The future coordinator must still obtain fresh owner admission and qualify the
+actual worker's Wi-Fi policy and canaries before sending that release.
+
+The API validates the complete ready batch and the admitted preparation,
+operational generation, stable settings and exact tested folder. It uses the
+clean pinned rclone runner for uploads and downloaded SHA-256 verification;
+ordinary uploads do not force token expiry as the separate Test does.
+Configuration and source bindings are checked around every provider command.
+The immutable preparation remains unchanged. No folder is created by this API.
+The same operation deadline is checked during initial and repeated local hashes,
+queue ingestion, engine checks and provider checks. Optional checkpoints leave
+other callers' behavior unchanged. These Python checkpoints and bounded child
+processes are not a hard deadline for uninterruptible kernel I/O. Release and
+admission freshness always use the actual wall clock, sampled after gate EOF.
+
+The existing generation history retains cross-batch deduplication. The engine's
+optional `batch_root` selector limits claims to the admitted canonical batch.
+An older pending duplicate remains attached to its original root; a new batch's
+permission cannot read or rebind it. That work remains pending until its actual
+root is independently admitted. Prior verified content is reported as historical
+reuse, separately from files verified by this attempt. Original, staged and
+partial files are retained on success and failure.
+
+This path has synthetic provider/authority tests. It has no deployed executor,
+recurring scheduler, live source-admission bridge or real account acceptance.
+The dashboard-to-backup transfer must independently finish framing, EOF and both
+child exit checks before a coordinator can schedule the received ready batch.
 
 ## Remaining integration
 

@@ -65,8 +65,8 @@ class RcloneProvider:
         separator = "" if self.remote.endswith(":") else "/"
         return self.remote + separator + key
 
-    def upload(self, batch: ReadyBatch, item: StagedFile):
-        batch.check_file(item)
+    def upload(self, batch: ReadyBatch, item: StagedFile, *, check=None):
+        batch.check_file(item, check=check)
         arguments = ["copyto", str(batch.root / "files" / item.relative), self._target(item.remote_key),
                      "--immutable", "--checksum"]
         if self.kind == "dropbox_rclone":

@@ -276,6 +276,42 @@ def _request(value, request_id):
     return value
 
 
+def _control_decision(value, request_id):
+    """Validate a source-authorized local decision; no worker admission occurs."""
+    now = time.time()
+    if (not isinstance(value, dict) or set(value) != {"schema_version", "provider", "request_id", "action",
+            "requested_at", "expires_at", "preparation", "test", "fixture"}
+            or not control.setup._valid_header(value) or not control._id(request_id)
+            or value["request_id"] != request_id or value["action"] not in ("enable", "disable")
+            or value["fixture"] is not None or not control.setup._timestamp(value["requested_at"])
+            or not control.setup._timestamp(value["expires_at"])
+            or value["expires_at"] != value["requested_at"] + control.REQUEST_LIFETIME
+            or not value["requested_at"] <= now < value["expires_at"]):
+        _fail("google_test_broker_request_invalid")
+    if value["action"] == "disable":
+        if value["preparation"] is not None or value["test"] is not None:
+            _fail("google_test_broker_request_invalid")
+    elif (not control._preparation_valid(value["preparation"]) or not control._test_valid(value["test"])
+            or not value["test"]["tested_at"] <= value["requested_at"]
+            or now >= value["test"]["tested_at"] + control.TEST_FRESHNESS):
+        _fail("google_test_broker_request_invalid")
+    return value
+
+
+def _apply_control(exported, request_id, source_transport, deadline):
+    request = _control_decision(exported, request_id)
+    if source_transport.export(request_id, deadline) != request:
+        _fail("google_test_broker_authority_changed")
+    _control_decision(request, request_id)  # Current expiry/Test freshness after the second export.
+    receipt = {key: request[key] for key in ("schema_version", "provider", "request_id", "action", "preparation", "test")}
+    receipt.update(completed_at=time.time(), outcome="applied", result=None,
+                   enabled=request["action"] == "enable", automatic_deletion=False)
+    # The ordinary source recorder independently rechecks current owner/source,
+    # fresh successful Test for Enable, expiry and immutable no-replace publication.
+    source_transport.record(request_id, receipt, deadline)
+    return _result("applied", "google_test_broker_control_applied")
+
+
 def _receipt(value, request):
     if (not isinstance(value, dict) or set(value) != control._RECEIPT_FIELDS
             or not control.setup._valid_header(value)
@@ -714,7 +750,7 @@ def _network(settings, deadline):
             or (not settings.allow_metered and metered in ("yes", "yes (guessed)"))
             or query(["/usr/bin/nmcli", "-g", "CONNECTIVITY", "general"]) != "full"):
         _fail("google_test_broker_wifi_unavailable")
-    route = json.loads(query(["/usr/sbin/ip", "-j", "-4", "route", "get", settings.dns_ipv4]), object_pairs_hook=_unique_object)
+    route = json.loads(query(["/usr/bin/ip", "-j", "-4", "route", "get", settings.dns_ipv4]), object_pairs_hook=_unique_object)
     if not isinstance(route, list) or len(route) != 1 or route[0].get("dev") != "wlan0":
         _fail("google_test_broker_wifi_unavailable")
     return {"interface_index": socket.if_nametoindex("wlan0"), "values": values, "route": route}
@@ -790,7 +826,7 @@ def _orchestrate(settings, source, backup, source_fd, deadline, manager, source_
         return _result("idle", "google_test_broker_no_request")
     exported = source_transport.export(request_id, deadline)
     if isinstance(exported, dict) and exported.get("action") in ("enable", "disable"):
-        return _result("idle", "google_test_broker_no_test")
+        return _apply_control(exported, request_id, source_transport, deadline)
     request = _request(exported, request_id)
     network = _network(settings, deadline)
     with _runtime(settings) as (path, directory, identifier):
@@ -935,7 +971,7 @@ def _gates(settings):
     _python_environment(settings)
     preparation._installed_package_gate()
     for executable in (settings.interpreter, settings.rclone, Path("/usr/bin/systemd-run"),
-                       Path("/usr/bin/systemctl"), Path("/usr/bin/nmcli"), Path("/usr/sbin/ip")):
+                       Path("/usr/bin/systemctl"), Path("/usr/bin/nmcli"), Path("/usr/bin/ip")):
         with preparation._root_file(executable, executable=True) as (fd, info):
             if stat.S_IMODE(info.st_mode) != 0o755:
                 _fail("google_test_broker_installation_unsafe")

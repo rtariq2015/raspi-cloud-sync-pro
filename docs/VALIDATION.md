@@ -1083,3 +1083,67 @@ USB egress exclusion. Every future credentialed run still needs fresh owner,
 worker, network and held-policy checks. Automatic backups and dashboard request
 flags remain off; the working dashboard remains dev11 with its upload repair.
 [Sanitized native evidence](acceptance/pi-google-test-source-dev13-2026-11-14.json).
+
+## Dev14 capture and selected-batch integration — 14 November 2026
+
+The final combined source suite passes **665 Python tests** in 32.590 seconds,
+including actual rclone against temporary local storage. Ruff F/E9, Python 3.9
+grammar checks for all fourteen changed Python files and whitespace checks pass.
+The existing eleven Rust tests remain passing from the preceding unchanged Rust
+build. Independent review cleared the capture CLI, control application, canonical
+executable fix and upload/common deadline changes. No real cloud account was
+used by the automated suite.
+
+Added a one-scan `smb-capture` operator command with fixed sanitized results,
+disabled configuration and uninstalled service/timer examples. Eleven new CLI
+tests cover default disablement, dispatch, malformed results, private errors and
+argument handling. The core SMB completion protocol is unchanged; no example
+unit was installed or activated. USB/Windows sharing remains unaccepted.
+
+The Google coordinator can apply an existing owner Enable/Disable decision
+without starting a worker or contacting a provider. Source export and recorder
+checks independently reject stale, changed, superseded and already-recorded
+requests. Focused tests use real temporary account/workflow state as well as
+fake process boundaries. The public `applied` result retains false upload,
+account-verification and worker-readiness flags.
+
+The private Google batch API requires a distinct consumed root-peer release,
+bound to the selected ready batch and a fresh complete source admission. Tests
+exercise real queue/engine state transitions with fake providers: downloaded
+SHA-256 verification, refresh-compatible mutable token state, altered stable
+settings, retained failures, path/manifest changes and cross-batch deduplication.
+An optional engine/history selector prevents another pending root from being
+claimed under the selected batch's permission. Previously verified content is
+reported as historical reuse. These tests do not establish live cloud access or
+enforced Wi-Fi egress.
+
+Review found repeated common hash loops without per-chunk deadline checks after
+the initial validation. Optional checkpoints now carry the same operation budget
+through staging validation, queue ingestion, engine and provider rechecks, with
+existing callers unchanged by default. Real temporary-file tests cover aborts
+in later rehash phases without false verified history. Authorization freshness
+uses the actual wall clock after gate EOF, with no new runtime clock override.
+These checkpoints do not establish a hard bound on uninterruptible kernel I/O.
+
+A separate native idle-service trial of the protected dev13 coordinator failed
+before processing an intent, with exit 2 and a fixed unavailable result. Its
+actual process identity, capabilities, NNP/seccomp and mount restrictions were
+observed, but startup acceptance failed. A read-only host-root check reproduced
+errno 40 in the fixed executable no-follow open; source and backup identity
+checks passed. Debian's `/usr/sbin/ip` is a symlink to `/usr/bin/ip`. The latter
+was independently observed as a root-owned mode-0755 regular file with one link
+from iproute2 6.15.0-1. Dev14 gates and invokes that canonical path; the strict
+symlink refusal remains tested. No capability expansion was needed for this
+path correction. Corrected native coordinator startup is still pending.
+
+The captured test service stopped with no remaining processes. Existing live
+services, private state, account/configuration metadata, Wi-Fi/routes/DNS, USB
+address/carrier and healthy power observations were preserved. No worker,
+Google authorization payload, provider call, boot change or network setting was
+involved. All private fixture records remain retained.
+[Sanitized startup evidence](acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
+
+The live dashboard remains the protected dev11 upload repair. Public HTTPS login
+still returned HTTP 200 with the expected form during this follow-up. Source
+changes do not imply a working Windows mapped drive, restored Google requests,
+automatic backups, physical Android acceptance or a release.
