@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**571 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**578 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -103,6 +103,11 @@ acceptance remain integration work.
 Dev11 adds the supervised Test coordinator and worker, including fresh kernel
 network checks and a completion handshake. They remain disabled. The live Pi
 still runs dev10; native source integration and real Google acceptance come next.
+
+A confirmed small-upload bug is fixed in development: the multipart parser's
+32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the
+100 MiB file limit and accepts the reported 122.7 KB file size. Pi deployment is
+being prepared; [the status page](docs/STATUS.md) records its acceptance.
 
 The dashboard currently lists completed **web uploads**. It does not yet browse
 all Pi folders or start cloud backup automatically. The Rust trial measured

@@ -118,8 +118,11 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
                           or origin.password or origin.query or origin.fragment or origin.path not in ("", "/")):
         raise ValueError("Public origin must be an HTTPS origin without credentials or a path")
     app = Flask(__name__)
+    # Werkzeug feeds multipart files in 64 KiB chunks and retains boundary
+    # bytes between chunks. Keep room for that parser buffer; the separate
+    # stage_upload limit still caps each file at 100 MiB.
     app.config.update(SECRET_KEY=auth["secret"], MAX_CONTENT_LENGTH=102 * 1024 * 1024,
-                      MAX_FORM_MEMORY_SIZE=32 * 1024, MAX_FORM_PARTS=8,
+                      MAX_FORM_MEMORY_SIZE=128 * 1024, MAX_FORM_PARTS=8,
                       SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Strict",
                       SESSION_COOKIE_SECURE=bool(public_origin),
                       PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),

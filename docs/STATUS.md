@@ -1,11 +1,18 @@
 # Project progress
 
-**Updated: 13 November 2026. Development build; no release published.**
+**Updated: 14 November 2026. Development build; no release published.**
 
 This page records evidence, not a percentage estimate. Follow the
 [development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)
 for the current source and [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
 for remote automated checks.
+
+**Upload repair:** the owner reported a 122.7 KB file rejected as exceeding
+100 MiB. This was reproduced: a 32 KiB multipart parser buffer cap rejected
+normal file chunks before staging. Development now uses a bounded 128 KiB
+parser cap, retaining the 100 MiB file and 102 MiB request limits. Real HTTP
+regressions pass through exactly 100 MiB. The protected Pi update and native
+verification are being prepared; this repair is not yet accepted on the live site.
 
 **Latest access update:** a Pi reboot removed the transient preview services and
 the old Quick Tunnel returned error 1033. The protected dev10 dashboard has been
@@ -68,7 +75,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **571 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **578 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.

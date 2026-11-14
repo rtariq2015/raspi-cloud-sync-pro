@@ -878,3 +878,31 @@ independent reviews pass. The full suite was rerun after the final source fixes
 and version change. Rust is unchanged. Actual production source-worker startup,
 private DNS mount, per-run BPF/canary/gate/completion and real Google Test remain
 separate native acceptance steps. Automatic backups stay off.
+
+## Small-upload parser repair — 14 November 2026
+
+The owner reported a 122.7 KB file rejected with a misleading 100 MiB message.
+Two independent authenticated local reproductions established the cause:
+`MAX_FORM_MEMORY_SIZE=32 KiB` was smaller than Werkzeug's 64 KiB multipart read
+chunks. Its decoder checks that memory bound before emitting file events, so a
+32,768-byte file and a 122,700-byte file returned HTTP 413 before staging.
+The [pinned decoder](https://raw.githubusercontent.com/pallets/werkzeug/3.1.9/src/werkzeug/sansio/multipart.py)
+and [parser](https://raw.githubusercontent.com/pallets/werkzeug/3.1.9/src/werkzeug/formparser.py)
+confirm the mechanism. The Pi's Flask 3.1.3 and Werkzeug 3.1.9 versions match the
+reproduction environment. No proxy or cloud service was needed to reproduce it.
+
+The narrow repair raises the bounded parser cap to 128 KiB, leaving room for
+the chunk and retained boundary bytes. It preserves the separate 100 MiB file
+limit, 102 MiB Flask/Waitress request limit, eight-part bound, CSRF, owner role
+and retained partials. The browser's generic HTTP 413 message now describes a
+rejected request rather than asserting that every failure exceeds 100 MiB.
+
+**578 Python tests pass**, including seven new authenticated multipart tests
+using real temporary files and streamed large inputs/downloads. They cover
+32/64 KiB, 122,700 bytes, approximately 122.7 KiB and 1 MiB round trips with exact
+bytes/SHA-256, exactly 100 MiB success, 100 MiB plus one byte refusal, oversized
+requests/text fields, the eight/nine-part boundary, CSRF and viewer denial.
+The oversized-file partial remains retained and is never published ready.
+ResourceWarnings-as-errors, independent review, Ruff, Python 3.9 grammar and
+JavaScript syntax checks pass. These are source/local HTTP results; native
+deployment and the actual owner's retry remain separate acceptance steps.
