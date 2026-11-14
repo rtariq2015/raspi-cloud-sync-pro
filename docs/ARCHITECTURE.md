@@ -33,6 +33,7 @@ quarantine. New code does not import those service loops.
 | `google_upload.py` | Default-denied selected-batch upload API; fresh owner admission, separate root release, generation-scoped jobs and downloaded-content verification; live activation pending |
 | `google_upload_executor.py` | Ordinary backup-UID upload bootstrap; authenticated inherited channels, credential-free canaries, request binding and a live receipt-completion barrier; live activation pending |
 | `google_upload_dispatcher.py` | Default-disabled root coordinator for one selected, already-transferred batch; fresh admission, read-only staging, actual confinement and private receipt/completion checks; live activation pending |
+| `google_web_upload_pipeline.py` | Transfers one selected completed web batch between ordinary identities, requires both clean child exits and cleanup, then invokes the separately gated dispatcher; source-only |
 | `wifi_confinement.py` | Read-only held inspection of current systemd RNI ingress/egress attachments and exact shared allowlist maps; no credential authority |
 | `batch_transfer.py` | Private descriptor-based streaming of selected completed web batches between service identities; hashes, completion framing and retained partials |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |

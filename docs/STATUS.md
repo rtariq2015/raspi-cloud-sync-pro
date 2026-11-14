@@ -7,8 +7,11 @@ This page records evidence, not a percentage estimate. Follow the
 for the current source and [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
 for remote automated checks.
 
-**Latest development:** 750 Python tests pass, including real rclone against
-temporary local storage. Dev17 adds a pending-control runner and a
+**Latest development:** 769 Python tests pass, including real rclone against
+temporary local storage. Dev18 connects one selected completed web-file transfer
+to the guarded upload dispatcher in source, requiring both transfer children to
+finish successfully first. It remains undeployed and unscheduled.
+Dev17 adds a pending-control runner and a
 selected-file upload coordinator. A protected dev17 prefix is now installed
 inactive; no new control or upload service is activated. Temporary
 failures before a cloud test starts can retry; completed controls and later
@@ -100,7 +103,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **750 Python tests and 11 Rust tests pass locally.** Python includes real rclone
+- **769 Python tests and 11 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.

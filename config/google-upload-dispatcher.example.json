@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "enabled": false,
-  "interpreter": "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3",
+  "interpreter": "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev18/venv/bin/python3",
   "rclone": "/opt/raspi-cloud-sync-pro/tools/rclone-1.76.0",
   "rclone_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "source_state": "/var/lib/raspi-cloud-sync-pro/dashboard",

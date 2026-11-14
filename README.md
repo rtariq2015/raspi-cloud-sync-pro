@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**750 Python tests and 11 Rust tests pass locally.** Python tests include actual
+**769 Python tests and 11 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -95,10 +95,10 @@ Development also contains the guarded cloud worker, retries, independent
 read-back verification, the private upload bootstrap and a coordinator for one
 selected completed batch. Pending owner controls now have event/recovery
 service examples. The dev17 package is installed inactive on the Pi; its new
-control and upload services remain off.
-The next integration
-connects selected completed files, current owner approval and the confined worker
-before automatic uploads can be enabled. Follow [Project progress](docs/STATUS.md)
+control and upload services remain off. Dev18 source also connects
+completed web-file transfer to the selected-batch dispatcher. Native acceptance,
+recurring scheduling and file-status reporting remain before automatic uploads
+can be enabled. Follow [Project progress](docs/STATUS.md)
 for the current deployment and [the implementation guide](docs/GOOGLE_CONTROLS.md)
 for the developer details.
 

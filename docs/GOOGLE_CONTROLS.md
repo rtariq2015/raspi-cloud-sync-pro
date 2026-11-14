@@ -508,6 +508,54 @@ boundaries. Native dispatcher/cloud acceptance, transfer orchestration,
 per-file dashboard results and recurring scheduling remain necessary before
 enabling automatic backups.
 
+## Dev18 completed web-upload pipeline
+
+`google_web_upload_pipeline.run_google_web_upload_pipeline(settings, selected_batch_id)`
+joins completed-file transfer to the guarded dispatcher. It is source-only and
+is not present in the installed inactive dev17 package. There is no activation
+CLI, browser endpoint or recurring service. It reuses the disabled upload
+dispatcher configuration; its protected interpreter/package must contain this
+dev18 API before deliberate installation. The example remains disabled.
+
+Root accepts a selected batch identifier, never a browser path. It opens the
+configured dashboard root, then the private `web-inbox` directory relative to
+that validated descriptor. A separate ordinary-source describer supplies bounded
+private metadata with EOF and a zero exit. Root validates its batch identity,
+canonical manifest digest, file count and byte count; it reads no file payload
+or Google authorization content.
+
+An ordinary backup importer and ordinary source exporter stream directly through
+an anonymous pipe. The importer independently checks stream/disk hashes, final
+completion framing, EOF and durable no-replace publication. Root closes all its
+pipe partners and requires **both children to exit zero and cleanup to finish**
+before invoking the unchanged dispatcher with the selected canonical digest.
+Importer success alone is insufficient: a source exporter that fails afterward
+must leave the local ready batch retained without dispatching it. A pre-existing
+ready batch is not permission to skip fresh transfer verification.
+
+The pipeline uses a separate lock from the nested dispatcher's lock and retains
+private plan, description, transfer and result records. Temporary failures keep
+source files, ready batches and incomplete copies. Public reports contain only
+fixed states, counts and false readiness flags. Denied cloud admission reports
+the batch staged locally, never verified. The dispatcher independently obtains
+fresh current owner admission, validates actual settings and requires live
+confinement/canaries for each release. The pipeline creates no owner decision.
+
+Transfer has a 300-second work budget, followed only after successful cleanup by
+the dispatcher's fresh 420-second budget; transfer cleanup has its own five
+seconds. These account for 725 seconds before additional preflight and lifecycle
+overhead. A future service must allow that complete lifecycle; the 300-second
+manual Test unit is unsuitable. None of these bounds gives uninterruptible
+kernel I/O a hard wall-clock deadline.
+
+Nineteen local tests use actual private CLI framing, subprocesses and streaming
+between temporary directories, with root/identity and provider boundaries
+simulated. They cover changed anchors, nonzero source exits after successful
+import, trailing frames, EOF timeout, no-replace conflicts, cleanup failures and
+all four valid dispatcher outcomes. Native pipeline acceptance, a fair durable
+selection cursor, periodic scheduling and per-file dashboard status remain
+separate work. Retaining old ready batches must not starve new batches.
+
 ## Remaining integration
 
 The private `google-test` operator command now exposes the Test worker. A trusted
@@ -544,8 +592,8 @@ package, not activated dashboard or recurring-backup services.
    independent downloaded-content verification in a new app-owned folder.
 3. Prove approved Wi-Fi egress independently of a working USB Internet route,
    with actual kernel attachments and positive/negative network controls.
-4. Run a coordinator that obtains fresh admission, verifies actual operational
-   settings and transfers only selected completed batches.
+4. Deploy and accept the selected-batch transfer/dispatcher pipeline with fresh
+   admission and actual operational-settings checks.
 5. Publish private per-file results to the dashboard without sharing credentials
    or the backup database, then test Disable, outages and restart recovery.
 

@@ -1,6 +1,6 @@
 # Phase 2 validation record
 
-Current source: **0.1.0.dev17**, with **750 Python tests passing** locally.
+Current source: **0.1.0.dev18**, with **769 Python tests passing** locally.
 The dated records below distinguish earlier builds and real-device evidence.
 
 Date: 2026-11-12. Linux x86-64 development environment, Python 3.12.3.
@@ -1389,3 +1389,39 @@ package was changed, and no cloud operation occurred. The live control flag and
 automatic uploads stay off. Actual runner/service and Google Test/Enable
 qualification remain next.
 [Installation evidence](acceptance/pi-inactive-install-dev17-2026-11-14.json).
+
+
+## Completed web-upload pipeline — development 0.1.0.dev18
+
+All **769 Python tests pass** in 38.339 seconds, including actual local-rclone
+integration. Nineteen new tests exercise the selected web-batch pipeline through
+real private CLI frames, subprocesses, anonymous-pipe streams and temporary
+files. Root/identity boundaries and the final dispatcher/provider are simulated;
+these tests make no provider requests and do not qualify actual Linux UID
+isolation or live cloud access. Independent peer review, Ruff and Python 3.9
+syntax checks pass for the private draft; integration uses normal package imports.
+
+The new source API validates the configured dashboard anchor, opens web-inbox
+relative to it without following symlinks, and privately describes exactly one
+selected batch. A bounded frame, EOF and zero describer exit establish metadata.
+Ordinary source/backup children then stream and independently verify the selected
+manifest and data. The parent closes every pipe partner and requires both zero
+exits plus confirmed cleanup before the unchanged guarded dispatcher may run.
+A successful import followed by exporter failure retains its ready data without
+dispatch. Changed anchors, malformed/trailing frames, EOF timeout, no-replace
+conflicts, cleanup failure and deadline crossing at final durable transfer
+recording all refuse dispatch. All four valid dispatcher outcomes are checked.
+
+A separate pipeline lock avoids recursively acquiring the dispatcher's lock.
+Private plan/description/transfer/result files and all original/partial/ready
+data are retained. Root reads metadata only; the children carry payload bytes.
+The pipeline supplies no owner intent or native-proof/clock bypass. It has no
+activation command, selector, timer or per-file browser reporting. Transfer and
+dispatch have separate 300- and 420-second work budgets, with five seconds for
+transfer cleanup; a future enclosing service must also account for preflight and
+lifecycle overhead rather than reuse the shorter Test unit.
+
+This API is not installed in the inactive dev17 prefix. That prefix and the live
+dashboard/preparation services remain unchanged by this source work. Native
+pipeline/Google acceptance, fair durable selection, recurring scheduling and
+per-file dashboard reporting remain required. Automatic uploads remain off.

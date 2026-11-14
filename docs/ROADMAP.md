@@ -146,6 +146,11 @@ The Pi's six-capability root inspection context now passes a credential-free
 native trial. That is a permission prerequisite, not full coordinator or cloud
 acceptance. [Control integration](GOOGLE_CONTROLS.md).
 
+Dev18 connects one selected completed web batch to the guarded upload dispatcher
+in source. Separate ordinary identities stream and verify data; Root requires
+the final protocol, both clean exits and cleanup before dispatch. It remains
+undeployed and unscheduled, with per-file dashboard reporting still required.
+
 ## Phase 4 — OS Wi-Fi management
 
 Implement the [Wi-Fi design](NETWORKING.md) against the selected OS NetworkManager
