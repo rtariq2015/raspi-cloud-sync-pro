@@ -57,6 +57,12 @@ and [remote access guide](REMOTE_ACCESS.md).
   snapshots block writes/deletes, interrupted reads retain incomplete data,
   and old versions remain intact. The temporary server stopped after the test;
   Windows/USB transfers remain unaccepted.
+- A credential-free native Wi-Fi restriction trial passes on the Pi: actual
+  kernel ingress/egress allowlists, denied loopback TCP/UDP with successful
+  surrounding controls, and direct Wi-Fi DNS/HTTPS. The four temporary services
+  stopped and working access was preserved. This is partial platform proof;
+  USB-path exclusion and each credentialed executor still require acceptance.
+  [Native evidence](acceptance/pi-wifi-rni-partial-2026-11-13.json).
 
 ![Actual dashboard on the Pi](images/dashboard-desktop.png)
 

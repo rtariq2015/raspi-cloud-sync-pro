@@ -757,3 +757,38 @@ The new tester has no installed CLI/coordinator and refuses without a private
 root-authorized per-run release. A coordinator must prove actual confinement
 before releasing credentials; a root frame or systemd property alone is not
 network proof. Automatic cloud backup remains disabled.
+
+## Partial native Wi-Fi restriction qualification
+
+A credential-free trial passed on the physical Pi with kernel
+`6.18.60+rpt-rpi-v8`, systemd `257.13-1~deb13u1` and the protected official
+rclone 1.76.0 binary. Twenty private probe tests and independent reviews passed
+before execution. A flushed root-private plan preceded all four fresh transient
+units. Each ran as an existing restricted QA identity with zero capabilities,
+no-new-privileges, seccomp, IPv4-only socket creation and no inherited network
+descriptors. Actual IPv6, Unix, netlink, packet and io_uring attempts were denied.
+
+While the strict process was held, root queried its actual cgroup ingress and
+egress BPF attachments. Both referenced the same exact single-wlan0 map and the
+same read-only `is_allow_list=true` byte. The proof was unchanged before and after
+the network probes. Loopback TCP and UDP succeeded in surrounding positive
+controls and failed in the strict process. Direct UDP/TCP DNS to the configured
+Wi-Fi resolver and a bounded 64-byte HTTPS read from the official rclone source
+succeeded in that process. Its private resolver and clean environment could not
+use an inherited proxy. The policy interpretation follows the
+[pinned systemd implementation](https://raw.githubusercontent.com/systemd/systemd/v257.13/src/core/bpf/restrict_ifaces/restrict-ifaces.bpf.c).
+
+All owned QA units stopped. Wi-Fi identity, addresses, routes and DNS, USB carrier
+and observed addresses, account/private-configuration metadata, live dashboard
+and connector processes, protected binaries and healthy power flags were
+preserved. No existing service was stopped, network setting changed, credential
+read, provider called or USB probe sent. No memory-limit enforcement is claimed.
+Private records and the fixture remain retained.
+
+This accepts only the exact credential-free IPv4 platform fixture. No eligible
+USB peer was available in the preceding read-only inspection; none was guessed
+or discovered with probes. Full USB denial still requires successful USB positive
+controls surrounding its negative test. The result explicitly keeps full USB
+acceptance, strict egress acceptance and credential release false. Each future
+credentialed executor needs its own held runtime proof and release gate.
+[Sanitized native evidence](acceptance/pi-wifi-rni-partial-2026-11-13.json).
