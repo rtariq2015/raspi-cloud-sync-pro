@@ -149,10 +149,12 @@ historical QA configuration and job. Neither verifies a new destination.
 The protected dev10 dashboard and request watcher previously ran on the Pi. Its
 real owner HTTPS form prepared a private configuration across these identities,
 with uploads disabled and a cloud test still required. The watcher was transient
-and disappeared on reboot. The restored persistent dashboard currently refuses
-preparation and control requests. The changed HTTPS callback and local client
-origin have been reconciled; broker restoration and fresh owner preparation are
-still required. Existing authorization and historical configurations are retained.
+and disappeared on reboot. The replacement preparation watcher is now persistent
+and uses the protected dev14 broker at the current fixed origin. The live dev11
+dashboard permits Prepare requests; fresh owner sign-in/preparation remains.
+Control requests and automatic uploads remain disabled. Existing authorization
+and historical configurations are retained.
+[Restoration](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
 [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
 The owner-intent and broker boundary follows. Its
 native synthetic HTTP-handler/root-broker and recovery trial now passes on the

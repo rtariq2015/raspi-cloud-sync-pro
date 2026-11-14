@@ -27,9 +27,11 @@ The dashboard and connector now run as persistent, enabled system services;
 unit syntax, runtime health and disk/manager enablement checks pass. A physical
 reboot has not been performed or accepted.
 The changed Google callback and Pi client origin are now reconciled, preserving
-credentials and retaining private backups/rollback. Setup requests remain
-disabled pending broker restoration and fresh owner preparation. Previous
-preparation remains historical. [Origin migration](acceptance/pi-google-origin-migration-2026-11-13.json),
+credentials and retaining private backups/rollback. Preparation is now restored
+with persistent units, a protected dev14 broker and the live dev11 Prepare flag.
+Fresh owner sign-in and preparation remain necessary; previous preparation stays
+historical. Test/Enable controls and uploads remain off.
+[Preparation restoration](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json),
 [recovery evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json)
 and [remote access guide](REMOTE_ACCESS.md).
 
@@ -80,7 +82,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **665 Python tests and 11 Rust tests pass locally.** Python includes real rclone
+- **680 Python tests and 11 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -110,8 +112,9 @@ and [remote access guide](REMOTE_ACCESS.md).
   request prepared one private backup configuration successfully. Neither
   preparation nor its status enables automatic backups.
   [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
-  The watcher disappeared with the reboot; current setup requests remain disabled
-  pending broker restoration and fresh owner preparation, as recorded above.
+  The original watcher disappeared on reboot. Its replacement is now persistent,
+  with fresh disk/manager enablement and preservation checks; a new actual owner
+  preparation and reboot acceptance remain, as recorded above.
 - The dev10 synthetic Pi trial now passes owner HTTP-handler requests, the actual
   root broker, separate ordinary service identities, historical status and
   recovery from a prepared destination whose receipt was not recorded. Existing
@@ -141,7 +144,8 @@ and [remote access guide](REMOTE_ACCESS.md).
   the app-owned folder, forces operational-token refresh and verifies downloaded
   fixture content. It refuses credentials until a root-authorized per-run gate;
   fake cloud transport tests do not establish live refresh or Wi-Fi confinement.
-  These changes are not deployed and both request flags remain off on the Pi.
+  Test/Enable controls are not activated on the Pi. Preparation requests are now
+  available through the restored broker; automatic uploads remain off.
 - Dev11 now adds a default-disabled root Test coordinator, ordinary-identity
   bootstrap and held kernel-policy inspector in source. They check fresh owner,
   Wi-Fi, worker and canary evidence, keep the completed worker alive for final
@@ -186,7 +190,8 @@ and [remote access guide](REMOTE_ACCESS.md).
   stopped and working services/network/private metadata were preserved. This
   used no cloud credentials and does not accept a valid Google Test, root
   coordinator service, completion handshake or physical USB denial test.
-  The live dashboard stays dev11; both request flags remain off.
+  At that trial the live dashboard stayed dev11 with both request flags off.
+  Preparation was subsequently restored as recorded above; controls remain off.
   [Dev13 native evidence](acceptance/pi-google-test-source-dev13-2026-11-14.json).
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
@@ -195,9 +200,11 @@ and [remote access guide](REMOTE_ACCESS.md).
 - Five-minute Pi retention trial: ten more files, twenty more verified local
   copies, 20/20 Wi-Fi gateway probes and no reported power throttling.
 
-The protected dev11 dashboard upgrade has completed. Google request flags and
-automatic uploads remain off. No account passwords, USB/Wi-Fi settings or boot
-enablement changed. USB currently presents Ethernet; a working mapped Samba
+The protected dev11 dashboard upgrade has completed. Its Prepare flag and a
+persistent preparation watcher are now enabled, preserving passwords, private
+files, connector and networking. Control requests and automatic uploads remain
+off. Only the preparation path's new boot link was added; existing boot links
+were preserved. USB currently presents Ethernet; a working mapped Samba
 drive and classic mass-storage mode have not been accepted on the host.
 
 **Dev14 source integration:** a sanitized one-scan SMB capture command now has
@@ -222,6 +229,16 @@ regular `/usr/bin/ip` binary without weakening that check. Kernel sandbox
 observations from the failed trial are recorded separately from startup
 acceptance. The owned test service stopped and existing access was preserved.
 [Trial and finding](acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
+
+Dev15 connects the private batch-upload API to a strict operator CLI. Fifteen
+new tests cover channel ownership/aliases, malformed frames, default refusal,
+private receipts, result bindings and sanitized output. It is source-only;
+the upload bootstrap and per-batch dispatcher are still being implemented.
+
+The current USB auto-switcher is active and enabled, and its profile does not
+meet the capture runtime's manual local-network contract. The protected dev14
+prefix also lacks the optional SMB client. These read-only findings leave
+capture gated; no USB or network setting was changed to force a test through.
 
 ## Being worked on
 

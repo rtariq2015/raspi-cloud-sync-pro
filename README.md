@@ -68,13 +68,13 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated HTTPS preview; fixed-address login page and enabled persistent services | Actual reboot, off-LAN phone and Android web-app installation |
 | First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
-| Historical owner-requested Google preparation; new HTTPS callback reconciled | Fresh preparation and live Test/Enable acceptance |
+| Owner-requested Google preparation; persistent watcher restored at the current HTTPS origin | Fresh preparation and live Test/Enable acceptance |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**665 Python tests and 11 Rust tests pass locally.** Python tests include actual
+**680 Python tests and 11 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -86,9 +86,11 @@ service prepared the private Google configuration
 successfully; uploads remain disabled and require the separate Test/Enable
 workflow. [Live acceptance evidence](docs/acceptance/pi-google-setup-live-dev10-2026-11-13.json).
 After the preview-hostname change, the Google callback and Pi client origin have
-been reconciled with backups. Setup requests remain disabled pending broker
-restoration and fresh owner preparation; previous evidence and credentials are
-retained. [Migration evidence](docs/acceptance/pi-google-origin-migration-2026-11-13.json).
+been reconciled with backups. Preparation is now restored through a persistent
+watcher and the protected dev14 broker. The live dev11 dashboard's Prepare button
+is enabled; fresh sign-in and a new owner request remain necessary. Existing
+credentials and files are preserved; Test/Enable and automatic uploads stay off.
+[Restoration evidence](docs/acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
 
 The next backup-engine foundation creates separate private operational config
 generations so future token refresh cannot overwrite immutable preparation proof.
@@ -127,6 +129,11 @@ The corrected build returned the expected idle response on the Pi. Independent
 checks confirmed no test processes remained after systemd cleared the terminal
 invocation ID; the full service trial remains unaccepted.
 [Dev14 observations](docs/acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).
+
+Dev15 adds the private upload command that connects the admitted batch API to
+separate bounded input, release and receipt channels. It remains source-only;
+the confined bootstrap, one-batch dispatcher and real account acceptance come
+next. Its presence does not activate an automatic backup service.
 
 A confirmed small-upload bug is fixed in development: the multipart parser's
 32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the

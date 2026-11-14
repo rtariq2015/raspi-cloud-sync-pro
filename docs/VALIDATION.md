@@ -1170,3 +1170,50 @@ The full coordinator service, cross-identity source children, BPF capability
 sufficiency, valid release, real Google Test/refresh and recurring worker remain
 unaccepted. Live services, private configuration and networking were preserved.
 [Dev14 installation and idle observations](acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).
+
+## Persistent Google Prepare restoration and dev15 upload CLI — 14 November 2026
+
+The final dev15 source suite passes **680 Python tests** in 32.571 seconds,
+including actual rclone against temporary local storage. Fifteen new private
+upload CLI tests cover receipt-first validation, missing gates, stdio/descriptor
+aliases, framed EOF, private result delivery, result bindings, closed/reused
+descriptors and fixed parser/exception diagnostics. The worker is stubbed in
+these transport tests; the batch API's separate tests cover its authority,
+generation, queue and verification behavior. No cloud provider is contacted.
+The source command starts no executor or service and is not yet installed on
+the Pi. Its valid pending/failed outcomes carry a private receipt despite exit
+two; future completion handling must preserve that distinction.
+
+The live preparation repair uses the already protected dev14 package, with the
+live dev11 dashboard retained. Independent review and 25 local helper/rollback
+tests passed before execution. Read-only preflight confirmed the old broker
+origin, missing preparation units, disabled dashboard flags and existing private
+file modes. Durable root-private configuration/unit backups and a guarded saved
+rollback preceded changes. The helper updated only the broker's origin and
+interpreter/settings, installed persistent preparation service/path files and
+one owned path boot link, then enabled the dashboard's Prepare flag. The control
+flag remains off. Only the dashboard restarted; its password is unchanged.
+
+Source-UID offline checks validated the saved grant and current client origin
+without a provider request. Static unit parsing, loaded settings, active/waiting
+watcher, exact wanted-link ownership and fresh disk/manager enablement checks
+passed. The source, existing preparations, accounts, connector invocation,
+existing dashboard boot link and working network observations were preserved.
+An independent read-only follow-up verified the saved rollback/configuration and
+unit bytes, current dashboard identity/arguments, fixed origin, active enabled
+watcher, inactive broker, unchanged connector and healthy USB/Wi-Fi/power.
+
+The actual Chrome page loaded the new sign-in form. An API request with the old
+session returned the expected 401 after restart; no saved autofill was available. A
+fresh owner sign-in and preparation request remain unobserved. There was no
+reboot, password reset, old-auth restoration, cloud request, token refresh,
+Test/Enable activation or automatic upload. The repair does not prove a new
+kernel-worker sandbox. One-shot inactivity also does not prove that no brief
+attempt occurred; the result correctly reports only final inactivity.
+[Sanitized restoration evidence](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
+
+Separate read-only capture prerequisites found the official USB auto-switcher
+active/enabled and a profile outside the capture runtime's manual local-only
+contract. Loopback TCP445 was free; the protected dev14 environment has no
+optional SMB client installed. These findings leave capture gated. No USB,
+NetworkManager, firewall or host networking change was made to bypass them.

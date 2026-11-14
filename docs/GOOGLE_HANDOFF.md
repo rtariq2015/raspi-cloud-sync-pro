@@ -7,19 +7,22 @@ migrated with a private backup and guarded rollback. Existing client credentials
 authorization, accounts and preparations were preserved. This migration made no
 cloud request or service restart and did not verify the saved authorization.
 
-Setup requests remain disabled until the preparation broker is reconciled and a
-fresh owner request is made. Previous proof and configuration remain retained;
+The preparation broker has now been reconciled and installed with a persistent
+watcher, and the live dev11 dashboard permits Prepare requests. A fresh sign-in
+and owner request remain necessary. Previous proof and configuration are retained;
 the old preparation is historical and does not match the new source origin.
 The source-tested [Test/Enable controls and tester](GOOGLE_CONTROLS.md) are a
 separate integration, not live upload controls. Automatic backups remain off.
+[Restoration evidence](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
 
 The dev9 source can transfer an existing Google browser authorization between
 separate ordinary service identities and prepare a disabled private rclone
 configuration. It requires Python 3.9 or later on Linux. Dev10
 adds an owner-requested preparation workflow and a protected local broker,
-described below. The protected dev10 dashboard now runs on the Pi. An actual owner
-HTTPS form request passed through the systemd watcher and broker into a private
-backup-owned preparation. It remains untested, with automatic uploads disabled.
+described below. During the dev10 deployment, an actual owner HTTPS form request
+passed through the systemd watcher and broker into a private backup-owned
+preparation. That historical preparation was untested, with automatic uploads
+disabled; current deployment status is recorded above.
 [Live evidence](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
 Synthetic fixtures and systemd fault/recovery trials retain separate evidence.
 

@@ -17,6 +17,7 @@ from .errors import BackupError
 from .history import read_history
 
 
+_GOOGLE_UPLOAD_ERROR = "Private Google upload unavailable; no private details were printed."
 _GOOGLE_TEST_ERROR = "Private Google Test unavailable; no uploads were enabled and no private details were printed."
 _GOOGLE_TEST_BROKER_ERROR = "Google Test coordinator unavailable; no uploads were enabled and no private details were printed."
 _SMB_CAPTURE_ERROR = "SMB capture unavailable; no cloud uploads were enabled and no private details were printed."
@@ -134,6 +135,73 @@ def _run_private_google_test(args):
                 "account_verified": False, "automatic_deletion": False}
 
 
+def _run_private_google_upload(args):
+    """Consume private channels; only the upload API authenticates root release."""
+    from . import google_destination as destination
+    from . import google_upload
+
+    with ExitStack() as stack:
+        channels, seen, invalid = {}, set(), False
+        for name, fd, writing in (("receipt", args.receipt_fd, True),
+                                  ("admission", args.admission_fd, False),
+                                  ("gate", args.root_gate_fd, False)):
+            if type(fd) is not int or fd in seen:
+                invalid = True
+                continue
+            seen.add(fd)
+            try:
+                channels[name] = stack.enter_context(destination._channel(fd, writing=writing))
+            except destination.GoogleDestinationError:
+                invalid = True
+        identities = [destination._descriptor_identity(fd) for fd in channels.values()]
+        if invalid or len(channels) != 3 or len(set(identities)) != 3:
+            raise BackupError("google_upload_channel_invalid")
+        if (not math.isfinite(args.timeout) or not 0 < args.timeout <= 300
+                or not google_upload.control._id(args.batch_id)
+                or not google_upload.control._hash(args.manifest_sha256)
+                or not google_upload.control._hash(args.rclone_sha256)
+                or any(not path.is_absolute() or ".." in path.parts or "\x00" in str(path)
+                       for path in (args.prepared_state, args.operational_state, args.staging, args.rclone))):
+            raise BackupError("google_upload_arguments_invalid")
+        admission = destination._read_frame(channels["admission"], destination._deadline(5))
+        if not isinstance(admission, dict) or len(destination._canonical(admission)) > 16384:
+            raise BackupError("google_upload_admission_invalid")
+        gate_identity = destination._descriptor_identity(channels["gate"])
+        private_gate = fcntl.fcntl(channels["gate"], fcntl.F_DUPFD_CLOEXEC, 3)
+        try:
+            outcome = google_upload.run_google_batch_upload(
+                args.prepared_state, args.operational_state, args.staging, args.batch_id,
+                args.manifest_sha256, admission, root_gate_fd=private_gate,
+                executable=args.rclone, executable_sha256=args.rclone_sha256, timeout=args.timeout)
+        finally:
+            try:
+                if destination._descriptor_identity(private_gate) == gate_identity:
+                    os.close(private_gate)
+            except OSError:
+                pass
+        if type(outcome) is not google_upload.GoogleUploadOutcome or not isinstance(outcome.receipt, dict):
+            raise BackupError("google_upload_result_invalid")
+        receipt = outcome.receipt
+        counts = ("files_verified_now", "files_previously_verified", "files_pending", "files_failed")
+        state = receipt.get("batch_state")
+        if (not google_upload.control.setup._valid_header(receipt) or state not in ("verified", "historical", "pending", "failed")
+                or receipt.get("batch_id") != args.batch_id or receipt.get("manifest_sha256") != args.manifest_sha256
+                or any(receipt.get(key) != admission.get(key) for key in ("control_request_id", "preparation", "test"))
+                or receipt.get("automatic_deletion") is not False
+                or any(type(receipt.get(key)) is not int or not 0 <= receipt[key] <= google_upload.batches.MAX_FILES for key in counts)
+                or not 1 <= sum(receipt[key] for key in counts) <= google_upload.batches.MAX_FILES
+                or (state == "verified" and (not receipt["files_verified_now"] or receipt["files_pending"] or receipt["files_failed"]))
+                or (state == "historical" and (receipt["files_verified_now"] or not receipt["files_previously_verified"]
+                                               or receipt["files_pending"] or receipt["files_failed"]))
+                or (state == "pending" and (not receipt["files_pending"] or receipt["files_failed"]))
+                or (state == "failed" and not receipt["files_failed"])):
+            raise BackupError("google_upload_result_invalid")
+        destination._write_frame(channels["receipt"], destination._canonical(receipt), destination._deadline(5))
+        return {"schema_version": 1, "provider": "google_drive", "batch_state": state,
+                **{key: receipt[key] for key in counts}, "current_worker_state_checked": False,
+                "account_verified": False, "automatic_deletion": False}
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Raspi Cloud Sync Pro development tools")
     parser.add_argument("--version", action="version", version=__version__)
@@ -187,6 +255,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     google_test.add_argument("--rclone", type=Path, required=True, help="reviewed protected absolute executable")
     google_test.add_argument("--rclone-sha256", required=True, help="reviewed protected executable SHA256")
     google_test.add_argument("--timeout", type=float, default=120.0, help="bounded Test deadline, at most 300 seconds")
+    google_upload = commands.add_parser("google-upload", help="private selected-batch upload; fresh inherited root release required")
+    google_upload.add_argument("--prepared-state", type=Path, required=True)
+    google_upload.add_argument("--operational-state", type=Path, required=True)
+    google_upload.add_argument("--staging", type=Path, required=True)
+    google_upload.add_argument("--batch-id", required=True)
+    google_upload.add_argument("--manifest-sha256", required=True)
+    google_upload.add_argument("--admission-fd", type=int, required=True)
+    google_upload.add_argument("--root-gate-fd", type=int, help="inherited root-authenticated Unix stream; omission refuses upload")
+    google_upload.add_argument("--receipt-fd", type=int, required=True)
+    google_upload.add_argument("--rclone", type=Path, required=True)
+    google_upload.add_argument("--rclone-sha256", required=True)
+    google_upload.add_argument("--timeout", type=float, default=300.0, help="bounded batch deadline, at most 300 seconds")
     for command, help_text in (
         ("google-control-status", "read conservative source control status; never inspect a running worker"),
         ("google-control-export", "privately export an existing owner control intent; never create one"),
@@ -266,7 +346,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     private_command = (sys.argv[1:] if argv is None else argv)[:1]
-    if private_command in (["google-test"], ["google-test-broker"], ["smb-capture"]):
+    if private_command in (["google-test"], ["google-test-broker"], ["google-upload"], ["smb-capture"]):
         # Private operator arguments can themselves contain private strings.
         # Argparse diagnostics normally echo invalid values and unknown options.
         try:
@@ -276,7 +356,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             if error.code == 0:
                 return 0
             message = {"google-test-broker": _GOOGLE_TEST_BROKER_ERROR, "google-test": _GOOGLE_TEST_ERROR,
-                       "smb-capture": _SMB_CAPTURE_ERROR}[private_command[0]]
+                       "google-upload": _GOOGLE_UPLOAD_ERROR, "smb-capture": _SMB_CAPTURE_ERROR}[private_command[0]]
             print(message, file=sys.stderr)
             return 2
     else:
@@ -298,6 +378,14 @@ def main(argv: Optional[List[str]] = None) -> int:
             return 2 if report["status"] == "failed" else 0
         except Exception:
             print(_GOOGLE_TEST_BROKER_ERROR, file=sys.stderr)
+            return 2
+    if args.command == "google-upload":
+        try:
+            report = _run_private_google_upload(args)
+            print(json.dumps(report, indent=2))
+            return 0 if report["batch_state"] in ("verified", "historical") else 2
+        except Exception:
+            print(_GOOGLE_UPLOAD_ERROR, file=sys.stderr)
             return 2
     if args.command == "google-test":
         try:

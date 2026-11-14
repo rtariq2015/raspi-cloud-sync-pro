@@ -6,6 +6,21 @@ independent read-back verification. Recurring Google backups and Koofr/Dropbox
 real-account acceptance remain pending. Earlier Pi pipeline trials used local
 rclone aliases; those results remain separate from the real-account proof.
 
+## Current Google Drive steps on the preview
+
+Sign in as **owner**, open **Backups**, and check the Google Drive card. If
+authorization is already saved, enter the intended app-folder label and choose
+**Prepare**. Otherwise use **Connect** and Google's private sign-in/consent page
+first. Never enter a Google password into the device's dashboard login form.
+
+The preparation watcher is now persistent and the live dashboard permits this
+request. A fresh owner action after restoration is still awaiting acceptance.
+`Configuration prepared · Test required` means a disabled local configuration
+was prepared; it does not mean a cloud folder exists or files were backed up.
+The live Test/Enable controls and automatic worker remain off while their
+integration is completed. Existing files stay retained.
+[Restoration and limits](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
+
 ## Prepare privately
 
 Use a dedicated test backup folder/account first. The worker's rclone config must
@@ -34,7 +49,8 @@ require administrator approval. See [rclone Drive](https://rclone.org/drive/) an
 
 The dev7 source adds Google Drive and Dropbox **Connect** controls to the
 dashboard. They require private registered-app configuration first. The running
-protected preview is now dev8. Never enter cloud
+protected dashboard is now dev11, with its separate dev14 preparation broker.
+Never enter cloud
 credentials into the dashboard login/password form. No account authorization is
 completed just by selecting a provider name.
 
@@ -42,13 +58,14 @@ completed just by selecting a provider name.
 
 The intended workflow is **Connect → choose a folder → verify a test file →
 explicitly enable backups**. The current browser OAuth foundation implements the
-first step. It reports `authorization_saved_untested` after saving tokens, with
+connection and local preparation steps. It reports `authorization_saved_untested` after saving tokens, with
 `folder_selected`, `test_verified` and `uploads_enabled` all false. The browser
-does not yet prepare a destination or enable uploads.
+can now request a disabled local configuration; it cannot enable uploads on the
+current device.
 
 The dev9 source adds an operator-only, private Google authorization handoff and
-disabled rclone configuration preparation. It is separate from the running dev8
-dashboard and the historical one-file acceptance below. Two processes running as
+disabled rclone configuration preparation. That original operator-only boundary
+is separate from the historical one-file acceptance below. Two processes running as
 the separate dashboard and backup identities exchange credentials through a
 dedicated inherited descriptor; no credential travels in command arguments or
 stdout. The result is `prepared_untested`, with the account, proposed app folder
@@ -56,8 +73,10 @@ and uploads still unverified/disabled. No cloud request or token refresh occurs.
 See [the exact commands and handoff contract](GOOGLE_HANDOFF.md) before using it.
 The synthetic two-identity CLI trial passed on the Pi; it did not import real
 credentials or connect the live dashboard to a production backup identity.
-The browser folder/test/enable wizard and recurring production worker remain
-unfinished. [Pi evidence](acceptance/pi-google-handoff-dev9-2026-11-13.json).
+Owner-requested preparation subsequently passed on dev10 and has now been
+restored with a persistent dev14 broker. The fresh owner flow, live Test/Enable
+and recurring production worker remain unfinished.
+[Historical handoff evidence](acceptance/pi-google-handoff-dev9-2026-11-13.json).
 
 | Destination | Account connection | Current acceptance |
 | --- | --- | --- |

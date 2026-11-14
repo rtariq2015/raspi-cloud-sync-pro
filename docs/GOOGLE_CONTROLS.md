@@ -1,11 +1,12 @@
 # Google controls and completed-file transfer
 
 These are development components, tested with synthetic private state and
-temporary files. The current dev11 Pi dashboard keeps both Google preparation
-and control-request flags off. The accepted dev11 wheel contains the guarded
-worker components. Dev13 is installed in an inactive prefix and its source
-bootstrap/invalid-gate trial passes; the coordinator command and service example
-below are not connected to the live dashboard. Automatic backups remain disabled.
+temporary files. The current dev11 Pi dashboard permits Google Prepare requests
+through the restored persistent dev14 broker. A fresh owner request remains
+unobserved. The control-request flag and automatic backups remain off. The
+accepted dev11 wheel contains guarded worker components; the protected dev13
+bootstrap/invalid-gate trial passed separately. The coordinator command and
+service example below are not connected to the live dashboard.
 The control and transfer APIs make no cloud requests;
 the separately gated tester can upload a small fixture when deliberately run by
 an accepted coordinator.
@@ -69,7 +70,7 @@ internal transfer bounds are not evidence of large-file Pi acceptance.
 The new `dashboard --google-control-requests` option exposes owner Test, Enable
 and Disable controls only after a separate coordinator is connected. It defaults
 to false and is independent of `--google-setup-requests`. The deployed Pi command
-currently supplies neither option. A flag enables request submission; it does
+supplies only `--google-setup-requests`. A flag enables request submission; it does
 not establish a running or accepted backup service.
 
 `POST /api/destinations/google_drive/control` accepts only an exact bounded JSON
@@ -316,6 +317,34 @@ recurring scheduler, live source-admission bridge or real account acceptance.
 The dashboard-to-backup transfer must independently finish framing, EOF and both
 child exit checks before a coordinator can schedule the received ready batch.
 
+## Private selected-batch upload command
+
+Dev15 adds `google-upload` as an operator-only transport for the batch API. It is
+not present in the protected dev14 prefix used by the live preparation service.
+It requires protected preparation/operational/staging paths, a selected batch ID
+and canonical manifest SHA-256, a pinned rclone executable/digest, and three
+separate inherited descriptors: `--admission-fd`, `--root-gate-fd` and
+`--receipt-fd`. Omitting the root gate refuses before admission or state reads.
+No browser endpoint supplies these arguments.
+
+Receipt-channel validation comes first. Stdio, repeated descriptors and aliases
+are refused; accepted channels are consumed on all outcomes. Admission metadata
+is bounded, framed and EOF-checked. The API alone authenticates the root release
+and its current PID/batch/manifest/admission binding. Paths and arguments never
+appear in parser errors or public failure diagnostics. The operation deadline is
+at most 300 seconds, with the API's existing checkpoint/kernel-I/O distinction.
+
+Only the inherited private receipt channel receives the detailed result. Stdout
+contains fixed state/count/false-flag fields. Verified or historical reuse exits
+zero; a valid pending/failed result sends its private receipt and exits two.
+Exceptions also exit two but produce no receipt. A future bootstrap/coordinator
+must distinguish these cases and require validated receipt delivery plus live
+completion proof for both exit outcomes. Exit zero alone is not acceptance.
+
+Fifteen new transport tests use a stub worker and no provider/network release.
+The confined upload bootstrap, root per-batch dispatcher, live source admission,
+real account tests and automatic scheduling remain separate integration work.
+
 ## Remaining integration
 
 The private `google-test` operator command now exposes the Test worker. A trusted
@@ -345,8 +374,9 @@ disabled summary. These are coordinator interfaces, not browser endpoints or
 general file-copy commands. They are source-tested interfaces in the dev11
 package, not activated dashboard or recurring-backup services.
 
-1. Deploy the source-tested owner controls with the separately reviewed
-   coordinator and restore preparation for the current HTTPS origin.
+1. Observe a fresh owner Prepare request through the restored broker for the
+   current HTTPS origin, then deploy the source-tested owner controls with the
+   separately reviewed coordinator.
 2. Accept the Google tester on the Pi, including forced token refresh and
    independent downloaded-content verification in a new app-owned folder.
 3. Prove approved Wi-Fi egress independently of a working USB Internet route,
