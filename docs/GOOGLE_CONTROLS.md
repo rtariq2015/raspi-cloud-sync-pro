@@ -3,8 +3,9 @@
 These are development components, tested with synthetic private state and
 temporary files. The current dev11 Pi dashboard keeps both Google preparation
 and control-request flags off. The accepted dev11 wheel contains the guarded
-worker components, but the new coordinator command and service example below
-are later source changes and are not deployed. Automatic backups remain disabled.
+worker components. Dev13 is installed in an inactive prefix and its source
+bootstrap/invalid-gate trial passes; the coordinator command and service example
+below are not connected to the live dashboard. Automatic backups remain disabled.
 The control and transfer APIs make no cloud requests;
 the separately gated tester can upload a small fixture when deliberately run by
 an accepted coordinator.
@@ -178,11 +179,13 @@ owner/source export. It cannot replace an existing receipt or claim upload,
 read-back or refresh success. Interrupted private generations remain retained.
 
 These source components pass local protocol/filesystem and fault-injection tests
-with fake PID1/network/provider boundaries. The native primitive proves the
-underlying OpenFile handoff, rather than these source modules or their DNS mount.
-Actual source-worker, per-run confinement and Google account acceptance remain
-required before deploying or enabling this integration. Empirical USB packet
-tests remain separate from a fresh exact wlan0-only kernel allowlist.
+with fake PID1/network/provider boundaries. The later dev13 native trial accepts
+the actual source bootstrap, private DNS mount, held kernel policy, canaries and
+invalid-gate refusal. It used no credentials. Full coordinator-service, valid
+Test/completion and Google account acceptance remain required before enabling
+this integration. Each credentialed run still needs fresh confinement checks.
+Empirical USB packet tests remain separate from an exact wlan0-only kernel
+allowlist. [Dev13 evidence](acceptance/pi-google-test-source-dev13-2026-11-14.json).
 
 ## One-shot coordinator command and disabled examples
 
@@ -192,7 +195,7 @@ The private operator command is:
 /opt/raspi-cloud-sync-pro/releases/0.1.0.dev13/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
 ```
 
-This command is planned for the reviewed dev12 source build. The live dev11
+This command is present in the inactive protected dev13 build. The live dev11
 upload-fix wheel does not contain this command. It runs once and selects only an existing,
 current owner Test intent through the source identity's private export. It does
 not create an owner/session proof, request or Enable decision. A private root

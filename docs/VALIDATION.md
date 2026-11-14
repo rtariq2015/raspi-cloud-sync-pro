@@ -1045,3 +1045,41 @@ The corrected source needs another protected build and native trial. Canary,
 valid-gate, completion and actual Google acceptance remain pending; automatic
 uploads and live USB sharing are still disabled.
 [Sanitized dev12 evidence](acceptance/pi-google-test-source-dev12-preflight-2026-11-14.json).
+
+## Dev13 native source-worker negative gate — 14 November 2026
+
+The protected dev13 wheel (`998ef3e9…`, source `59d5c14`) was installed into a
+new inactive prefix. Package bytes, existing dependency versions, copied
+interpreter and imports/console execution as both ordinary identities passed.
+The existing live dashboard and connector were preserved.
+
+The isolated credential-free trial now passes with the actual installed
+`google_test_broker`, `google_test_executor` and `wifi_confinement` modules.
+Actual PID/pidfd, ordinary backup identity, argv, namespaces, capability-free
+sandbox and four private root-peer descriptors were verified. The real private
+resolver bind was read-only and matched its expected inode/content. Held kernel
+program/map references were checked while the worker remained alive; direct
+Wi-Fi UDP/TCP DNS and 64 bytes of official HTTPS content passed. Loopback TCP/UDP
+was denied, with successful surrounding root controls and no received nonce.
+
+After canary ACK/EOF, the helper sent only its hardcoded wrong-purpose gate and
+a minimal fake request. The private CLI returned status 2 and its exact fixed
+refusal, with no receipt bytes. Fresh empty QA preparation/operational leaves
+kept identical metadata/content and produced no open/access/write events after
+READY. Inotify does not observe metadata-only syscalls; mount-setup accesses
+before READY are excluded from that event claim. No real prepared state,
+credential release or provider test occurred.
+
+The source cleanup stopped only its captured unit and confirmed no remaining
+processes. Wi-Fi/routes/DNS, USB address/carrier, account/configuration metadata,
+live service invocations and healthy power status were preserved. All private
+fixture data and predecessor prefixes remain retained. There was no reboot,
+format, packet capture, USB packet test or production dashboard restart.
+
+This accepts the source bootstrap/canary/invalid-gate path, not the complete
+coordinator API or its proposed administrative service, a valid credentialed
+Google Test, token refresh/completion handshake, recurring uploads or physical
+USB egress exclusion. Every future credentialed run still needs fresh owner,
+worker, network and held-policy checks. Automatic backups and dashboard request
+flags remain off; the working dashboard remains dev11 with its upload repair.
+[Sanitized native evidence](acceptance/pi-google-test-source-dev13-2026-11-14.json).

@@ -109,10 +109,11 @@ Dev12 development adds a private one-shot coordinator command and an offline
 [SMB capture queue](docs/SMB_CAPTURE.md), without requiring a cloud account to
 capture completed files. The first native worker trial found a systemd-property
 startup bug; its source repair and conservative cleanup have regression tests.
-Dev12 is installed in an inactive protected prefix; its native worker trial
-exposed repeated systemd properties that the parser must exclude. Dev13 source
-now selects the 21 single-valued fields it needs. Neither component enables
-uploads or USB sharing. [Worker preflight evidence](docs/acceptance/pi-google-test-source-dev12-preflight-2026-11-14.json).
+Dev13 is installed in an inactive protected prefix. Its isolated source-worker
+check now passes on the Pi: private channels, the Wi-Fi-only kernel policy,
+DNS/HTTPS probes and invalid-gate refusal. It used no cloud credentials and
+enabled neither uploads nor USB sharing. The live dashboard remains dev11.
+[Native worker evidence](docs/acceptance/pi-google-test-source-dev13-2026-11-14.json).
 
 A confirmed small-upload bug is fixed in development: the multipart parser's
 32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the

@@ -176,8 +176,18 @@ and [remote access guide](REMOTE_ACCESS.md).
   startup refusal; its separate cause is not established. The owned failed unit
   was independently stopped after verifying its exact identity and empty cgroup.
   Dev13 source queries only the 21 consumed single-valued fields, retaining
-  strict parsing and empty-value checks. Native worker acceptance remains open.
+  strict parsing and empty-value checks. Its follow-up is recorded below.
   [Dev12 preflight](acceptance/pi-google-test-source-dev12-preflight-2026-11-14.json).
+- The protected dev13 source-worker negative-gate trial now passes on the Pi.
+  The actual ordinary-identity bootstrap, four inherited root channels, private
+  read-only DNS mount, held kernel policy, Wi-Fi DNS/HTTPS and denied loopback
+  controls passed. An intentionally invalid gate returned the fixed refusal and
+  no receipt; empty QA state remained untouched after READY. The owned unit
+  stopped and working services/network/private metadata were preserved. This
+  used no cloud credentials and does not accept a valid Google Test, root
+  coordinator service, completion handshake or physical USB denial test.
+  The live dashboard stays dev11; both request flags remain off.
+  [Dev13 native evidence](acceptance/pi-google-test-source-dev13-2026-11-14.json).
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private
