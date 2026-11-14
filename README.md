@@ -20,7 +20,7 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 > including a 64 MiB file, were copied onto CLOUDSTICK from the Zorin laptop.
 > Normal Eject triggered safe capture, USB reattachment, Google upload and
 > downloaded-content verification automatically. Local copies remain. Windows
-> acceptance, duplicate local capture prevention and physical outage/reboot tests
+> acceptance and physical outage/reboot tests
 > are still outstanding. [Exact results](docs/CORE_RECOVERY.md) ·
 > [Plain-language updates and questions](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 
@@ -97,7 +97,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**827 core Python tests and 28 hardware-free USB operator tests pass locally.**
+**829 core Python tests and 28 hardware-free USB operator tests pass locally.**
 The existing Rust suite has 11 tests; Rust source is unchanged. Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the

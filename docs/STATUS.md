@@ -9,7 +9,7 @@ upload and downloaded-content verification. All local copies remain. Four jobs
 are now verified, including the earlier 10,490,314-byte file; that earlier file
 was not uploaded again. Earlier Windows attribution came from conversation
 context, not an independently recorded host OS. Windows-specific testing,
-duplicate local capture prevention, persistent USB startup and physical
+persisted USB startup and physical
 offline/reboot acceptance remain unfinished. No-eject operation is unproven.
 Further dashboard/Samba/provider expansion is deferred.
 See [the core recovery record](CORE_RECOVERY.md).
@@ -23,8 +23,13 @@ a physical Wi-Fi outage. Five files are now verified without repeat uploads.
 **Latest hardware finding:** dev20's repeated-capture check stopped safely
 because Linux exFAT can change a file's inode number between separate opens.
 The copied contents were correct. Dev21 corrects that comparison while keeping
-the data and ownership checks; its native retest is still pending. The failure
-journal and copied data are retained. The project is not yet complete.
+the data and ownership checks. Its native retest now passes: unchanged eject
+creates no new batch or upload, and a changed file plus a new file creates only a
+two-file batch. Both new versions and the earlier version remain recoverable.
+Seven Google versions are verified. The failed journal and copied data are
+retained. Persistent USB startup, physical outage/reboot and Windows acceptance
+remain; the project is not yet complete.
+[Dev21 evidence](acceptance/pi-mass-storage-delta-dev21-2026-11-14.json).
 
 **Updates on your phone:** use the [plain-language progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 It records what works, current work, remaining tests and whether owner help is

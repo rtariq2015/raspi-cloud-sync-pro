@@ -30,6 +30,7 @@ capture, Google upload and verification evidence remains valid.
 | Physical Wi-Fi outage recovery | NOT TESTED | Working Wi-Fi/SSH was preserved; automated offline/retry tests do not establish physical outage acceptance |
 | Physical reboot recovery | NOT TESTED | No Pi reboot performed |
 | Worker restart and upload deduplication | PASS | Worker PID changed; verified job, attempt count and event counts stayed unchanged over two more ticks |
+| Local capture deduplication and version retention | PASS on Linux/dev21 | Unchanged eject added no batch/job/event; changing one file and adding one created a two-file batch, with old and new Google versions verified and retained |
 | Safe USB reattachment | PASS on Linux | Gadget configured again and automatically remounted by Zorin; no Pi image loop or capture mount remained |
 | Existing Wi-Fi/SSH | PASS | Separate authenticated SSH connections remain on built-in wlan0 |
 | USB Ethernet recovery | PASS | Normally unloaded/reloaded g_ether, restored ICS state, observed configured Ethernet gadget; Windows IP/SSH was not separately tested |
@@ -61,7 +62,7 @@ The actual backup worker is running and boot-enabled after its native backup and
 process-restart checks. Its prior unit and rollback instructions are retained;
 physical reboot acceptance still remains.
 
-Next: duplicate capture prevention, queued-upload restart/outage tests, persistent
+Next: persistent
 USB startup, Windows-specific acceptance, then controlled reboot
 acceptance. A no-eject mass-storage workflow remains unproven. Dashboards and
 other providers stay deferred until the core workflow is accepted.
@@ -97,5 +98,11 @@ Dev21 removes only that cross-pass comparison; per-open identity, content hashes
 path sets, device and timestamps remain checked. Its two regression tests pass.
 The failed journal and valid copied data were retained and reviewed; no source
 data was deleted or filesystem repair forced. Native dev21 acceptance remains
-required before marking duplicate suppression as passed.
+required before marking duplicate suppression as passed. That retest has now
+**passed on dev21**: unchanged eject made no new batch; a changed file and a new
+file made only a two-file batch (173 bytes). Both new versions and the older
+version are retained locally and verified in Google. Seven versions are now
+verified after one attempt each. No image loop or capture mount remained after
+reattachment; Wi-Fi SSH and healthy power status remained available.
+[Native dev21 record](acceptance/pi-mass-storage-delta-dev21-2026-11-14.json).
 Plain-language updates and owner questions: [GitHub progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).

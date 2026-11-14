@@ -1,6 +1,6 @@
 # Phase 2 validation record
 
-Current source: **0.1.0.dev20**, with **827 core Python tests and 28 USB operator
+Current source: **0.1.0.dev21**, with **829 core Python tests and 28 USB operator
 tests passing** locally, including actual rclone against a temporary local alias.
 The [core USB trial](CORE_RECOVERY.md) now passes automatic eject capture,
 reattachment and Google upload/downloaded-hash verification on the real Zorin
@@ -24,7 +24,14 @@ finite engine callers retain their three-attempt default; permanent failures and
 verified jobs remain terminal. Tests cross nine failures and fresh worker/history
 instances before a verified recovery, with no repeat of another verified target.
 Native dev19 acceptance and the separate network-isolated dev17 worker trial
-remain labelled with their actual artifacts; neither proves dev20 deployment.
+remain labelled with their actual artifacts. Dev20's first native capture
+stopped on an inode-only cross-pass mismatch; an exclusive-RO reproduction
+confirmed valid copied data and three changed exFAT inode numbers. Dev21 retains
+per-open identity and all content/other metadata checks while dropping only
+cross-pass inode equality. Its isolated source snapshot passes 829 tests, and
+native initial/unchanged/delta captures now pass. Seven real Google versions
+are verified; old versions and the failed journal were retained. See the
+[native record](acceptance/pi-mass-storage-delta-dev21-2026-11-14.json).
 
 Date: 2026-11-12. Linux x86-64 development environment, Python 3.12.3.
 Package `0.1.0.dev2`; target branch `development`. Hardware gate remains false.
