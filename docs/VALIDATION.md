@@ -808,3 +808,73 @@ review cleared the exact changed files. This command supplies coordinator
 plumbing; it cannot create owner/session proof or root release, accept kernel
 confinement, enable a worker or bypass the Test worker's default refusal. It is
 not installed in the protected dev10 Pi runtime.
+
+## Native four-channel worker handoff and lifecycle
+
+A credential-free native primitive now passes with systemd 257.13 on the Pi.
+Four separate `OpenFile=` properties connect root-private Unix listeners before
+the ordinary QA worker starts. The child received four named descriptors above
+stdio, authenticated its root peer, verified its actual UID/GID, zero
+capabilities, no-new-privileges and seccomp, and could not create a new Unix
+socket. The parent matched its PID against PID1 and opened a pidfd. All four
+nonce round trips and EOF checks passed under an actual wlan0-only BPF policy.
+The source of the launch ordering is
+[systemd's pinned executor](https://raw.githubusercontent.com/systemd/systemd/v257.13/src/core/exec-invoke.c);
+the [OpenFile contract](https://www.freedesktop.org/software/systemd/man/257/systemd.service.html#OpenFile=)
+is not an instruction to modify the laptop.
+
+After the child exited successfully, PID1 still reported active/exited because
+`RemainAfterExit=yes`, but its ControlGroup field was empty and the independently
+retained active cgroup path no longer existed. Current BPF enforcement therefore
+could not be inspected after exit. The first follow-up diagnostic did not collect
+that raw observation; its successor retained the validated active path and
+observed the missing directory directly. These fixtures and their records remain
+retained. Ten private successor tests and independent review pass.
+
+All temporary units stopped, with network/account/private-configuration metadata
+and the existing dashboard/connector processes preserved. No credentials were
+read, provider called, existing service stopped or boot setting changed. This
+primitive used an ordinary QA identity, not the production backup identity, and
+did not test the production source modules or their private DNS bind mount.
+The new source completion protocol must verify the finished Test while the
+worker is still alive, then permit only closure and exit. A saved QA report or
+an active/exited unit property cannot authorize a future run.
+[Sanitized handoff evidence](acceptance/pi-openfile-handoff-2026-11-13.json).
+
+## Dev11 supervised Google Test source
+
+**571 Python tests pass locally**, including actual rclone against temporary local
+storage. The new coordinator, bootstrap and read-only policy inspector add 94
+tests: 40 coordinator, 24 bootstrap and 30 kernel-inspector tests. Source version
+is now `0.1.0.dev11` for a new protected installation; the running Pi dashboard
+remains dev10. No old release is overwritten by this version change.
+
+The inspector tests cover root/native-64-bit/aarch64 gates, exact current
+interface and cgroup identity, ingress/egress program/map ABI, shared allowlist
+data, policy detachment/replacement, changing maps and descriptor cleanup. The
+bootstrap tests cover private activation channels/root peers, framing, sandbox
+and resolver checks, bounded DNS/HTTPS canaries, same-PID CLI entry and a bounded
+live completion ACK. Kernel/PID1/provider boundaries in these tests are fake;
+private streams, filesystem operations and deadline/error handling are local.
+
+Independent coordinator review found issues that the first mock suite missed:
+joining multiple OpenFile specifications, command launch after deadline expiry,
+cleanup using the exhausted work deadline, incomplete pre-start manager-path
+override inspection, and checking the coordinator import tree rather than the
+configured worker interpreter's environment. These were corrected before any
+native coordinator activation, with focused regressions. The worker must use
+the same isolated protected interpreter and trusted site-packages. Cleanup has
+its own budget and verifies no remaining process in the captured unit/cgroup.
+
+The coordinator tests also cover fresh source/network checks, failed or changed
+canaries/maps, root-gate bindings, completion ACK ordering, private receipt
+validation, scoped stop failures and conservative failure feedback. A failed
+historical receipt requires confirmed cleanup and another identical, unexpired
+owner/source export; revocation, expiration or unconfirmed cleanup cannot write
+one. No existing receipt is replaced and no success or Enable is inferred.
+
+All six new files pass Ruff F/E9 and Python 3.9 grammar checks; diff checks and
+independent reviews pass. The full suite was rerun after the final source fixes
+and version change. Rust is unchanged. Actual production source-worker startup,
+private DNS mount, per-run BPF/canary/gate/completion and real Google Test remain
+separate native acceptance steps. Automatic backups stay off.

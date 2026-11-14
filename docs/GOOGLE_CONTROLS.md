@@ -91,8 +91,8 @@ credentials or state. A consumed inherited Unix-stream descriptor must identify
 a root peer through kernel credentials and release the exact request and worker
 PID with a short-lived private frame. A root release proves coordinator
 authority; it does **not** prove network confinement. The coordinator must accept
-actual per-run Wi-Fi confinement before releasing it. Its private operator CLI is
-described below; no coordinator is installed yet.
+actual per-run Wi-Fi confinement before releasing it. Its private operator CLI
+and source coordinator are described below; neither is installed on the Pi yet.
 
 The ordinary backup identity validates the protected rclone executable's exact
 digest and creates a new operational generation from the bound preparation.
@@ -122,6 +122,64 @@ The current tests use fake cloud transport with real private files, generations,
 history and local child processes. They do not establish live Google refresh,
 per-run Wi-Fi confinement or recurring backup acceptance. The documented
 External/Testing refresh-token lifetime still applies.
+
+## Dev11 supervised worker, not yet deployed
+
+`google_test_broker.py` now supplies `GoogleTestBrokerSettings.load` and
+`run_google_test_broker`. Its protected configuration defaults to disabled;
+`{"schema_version": 1, "enabled": false}` starts nothing. Enabling it requires
+reviewed root-owned configuration/approval files, a protected copied interpreter
+and package/import tree, a pinned rclone executable, separate ordinary service
+identities and private state directories. It accepts only the tested Pi and
+systemd platform. There is no installer, startup watcher or public bypass option.
+
+The enabled coordinator privately re-exports an existing owner's current Test
+intent as the dashboard identity. Root receives metadata, not the authorization
+tokens. It checks the approved Wi-Fi connection UUID, metered policy and direct
+numeric DNS route, then creates one fresh transient worker with four separate
+`OpenFile=` connections to root-private Unix listeners. Those channels carry
+canary control, the request, the root gate and the private receipt separately.
+Actual manager load paths and applicable overrides are checked before startup;
+an unreviewed pre-start command must not run before later sandbox checks.
+
+`google_test_executor.py` runs as the ordinary backup identity. It checks the
+four descriptors/root peers, its actual kernel identity and sandbox, the exact
+private resolver mount and protected executable. Before touching preparation or
+operational credentials, it sends READY and waits for root's GO. The root
+coordinator independently binds the live PID/pidfd, invocation, cgroup, argv,
+mounts and capabilities. `wifi_confinement.py` holds actual kernel references
+and rechecks current cgroup identity, attachments, both shared map IDs, the
+single current wlan0 index and read-only allowlist byte. A retained old FD or
+saved QA receipt is insufficient.
+
+The same worker runs bounded Wi-Fi DNS/HTTPS positive probes and loopback
+negative probes, surrounded by root's nonce-only positive controls. It closes
+its canary channel before the Test CLI. Root freshly checks the policy, Wi-Fi
+and owner/source export before sending the exact PID/request-bound gate. The
+worker cannot enable recurring uploads or select another destination.
+
+After the Test, a CLOEXEC receipt duplicate keeps the bootstrap alive for a final
+completion barrier. It half-closes its write side so root can validate the
+receipt and EOF. Root requires the original process alone in its cgroup, only
+its Unix completion stream remaining, unchanged current policy and source, then
+sends a bounded ACK permitting only closure and exit. This is necessary because
+the [native handoff trial](acceptance/pi-openfile-handoff-2026-11-13.json) observed
+that PID1 removes the empty cgroup after exit despite `RemainAfterExit=yes`.
+The coordinator requires clean exit and source-recorder acceptance before success.
+
+Timeouts are checked before launching commands. Cleanup gets its own bounded
+budget, stops only the freshly captured unit/invocation and requires no remaining
+worker or cgroup processes. A failure can publish a conservative failed-Test
+receipt only after confirmed cleanup and another fresh, identical, unexpired
+owner/source export. It cannot replace an existing receipt or claim upload,
+read-back or refresh success. Interrupted private generations remain retained.
+
+These source components pass local protocol/filesystem and fault-injection tests
+with fake PID1/network/provider boundaries. The native primitive proves the
+underlying OpenFile handoff, rather than these source modules or their DNS mount.
+Actual source-worker, per-run confinement and Google account acceptance remain
+required before deploying or enabling this integration. Empirical USB packet
+tests remain separate from a fresh exact wlan0-only kernel allowlist.
 
 ## Remaining integration
 

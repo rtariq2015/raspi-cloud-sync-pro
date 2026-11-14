@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**477 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**571 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -99,6 +99,10 @@ tested owner buttons, Test/Enable/Disable intent records, a default-denied Googl
 tester, and private streaming between dashboard and backup identities. These
 changes are source-tested; deployment, Wi-Fi confinement and live cloud/worker
 acceptance remain integration work.
+
+Dev11 adds the supervised Test coordinator and worker, including fresh kernel
+network checks and a completion handshake. They remain disabled. The live Pi
+still runs dev10; native source integration and real Google acceptance come next.
 
 The dashboard currently lists completed **web uploads**. It does not yet browse
 all Pi folders or start cloud backup automatically. The Rust trial measured

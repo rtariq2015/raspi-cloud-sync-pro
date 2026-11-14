@@ -68,7 +68,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **477 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **571 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -130,6 +130,14 @@ and [remote access guide](REMOTE_ACCESS.md).
   fixture content. It refuses credentials until a root-authorized per-run gate;
   fake cloud transport tests do not establish live refresh or Wi-Fi confinement.
   These changes are not deployed and both request flags remain off on the Pi.
+- Dev11 now adds a default-disabled root Test coordinator, ordinary-identity
+  bootstrap and held kernel-policy inspector in source. They check fresh owner,
+  Wi-Fi, worker and canary evidence, keep the completed worker alive for final
+  verification and report failures conservatively. Local fault tests pass;
+  source-worker/DNS-mount and real Google acceptance remain pending. The native
+  four-channel handoff and post-exit cgroup lifecycle were tested separately.
+  [Native evidence](acceptance/pi-openfile-handoff-2026-11-13.json),
+  [source contracts](GOOGLE_CONTROLS.md).
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private

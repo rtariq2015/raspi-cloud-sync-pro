@@ -27,6 +27,9 @@ quarantine. New code does not import those service loops.
 | `google_operational.py` | Disabled operational config generations with independent source bindings and separate mutable token storage; no network or worker integration |
 | `google_control.py` | Durable owner Test/Enable/Disable decisions and fresh per-batch admission records; local coordination only, with no cloud or service operations |
 | `google_test.py` | Default-denied private Google fixture worker with a root-peer release gate, strict mutable settings, forced token refresh and downloaded-content verification; not deployed |
+| `google_test_broker.py` | Opt-in protected root Test coordinator with fresh source/network/kernel authority, private channels, scoped cleanup and historical receipts; not deployed |
+| `google_test_executor.py` | Ordinary backup-UID bootstrap, credential-free canaries, same-PID Test CLI and live completion barrier; not deployed |
+| `wifi_confinement.py` | Read-only held inspection of current systemd RNI ingress/egress attachments and exact shared allowlist maps; no credential authority |
 | `batch_transfer.py` | Private descriptor-based streaming of selected completed web batches between service identities; hashes, completion framing and retained partials |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
 | `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |

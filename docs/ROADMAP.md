@@ -78,7 +78,9 @@ The new [control and transfer libraries](GOOGLE_CONTROLS.md) implement durable
 owner Test/Enable/Disable intents and completed web-batch streaming between
 identities. Operator commands, owner dashboard controls and a default-denied
 Google Test worker now pass local tests. Their Pi deployment and trusted
-coordinator integration remain next. After a reboot removed the transient preview, a
+coordinator acceptance remain next. Dev11 adds the source coordinator, ordinary
+worker bootstrap, fresh kernel-policy inspection and a live completion barrier;
+all remain disabled until native integration passes. After a reboot removed the transient preview, a
 fixed free HTTPS address restored the login page. Persistent services now pass
 native health and enablement checks; actual reboot acceptance remains. OAuth
 callback and Pi client origin have now been migrated with backups; restore the
