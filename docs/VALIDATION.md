@@ -623,3 +623,33 @@ Inspection reports mutable seed equality only, always disabled and untested;
 it never authorizes refreshed bytes or current cloud access. Independent review
 and Python 3.9 syntax checks pass. This module has no live CLI/dashboard/worker
 integration and ran no provider request.
+
+
+## Private Google controls and completed web-batch transfer — source foundation
+
+**402 Python tests pass locally**, including the real rclone test against
+temporary local storage. No cloud credentials or real network settings are used
+by the new tests. Rust is unchanged; its previous 10-test acceptance remains.
+
+Twenty-four Google control tests cover durable Test/Enable/Disable decisions,
+owner/session guard coverage through publication, current credential/source
+bindings, request and Test freshness, receipt validation, token-independent
+operational settings and fresh per-batch admission. They distinguish a historical
+coordinator receipt from actual account access or a currently running worker.
+Disable denies subsequent admission even when the cloud is unavailable.
+
+Twenty-seven transfer tests stream selected completed web batches through
+anonymous inherited descriptors into separately anchored staging. They cover
+Unicode/nested/empty content, bounded payload chunks, independent disk hashes,
+completion-frame/EOF requirements, source changes, path/descriptor rejection,
+partial disconnects, publication races and retained failures. Independent review
+reproduced two false-success cases: replacement of the configured target root
+during publication and expiry while the final fsync completed. Both now fail
+without deleting retained data; targeted regressions and bounded recursive-flush
+tests pass. These tests use ordinary local identities and temporary files, not
+a physical cross-identity Pi deployment.
+
+Changed Python files pass Ruff F/E9 and Python 3.9 grammar checks. These components
+make no cloud or service calls and are not wired into the live dashboard or
+executor. They do not establish actual Google refresh, automatic backup, Wi-Fi
+egress enforcement or USB/Samba acceptance. See [the contracts](GOOGLE_CONTROLS.md).

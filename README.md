@@ -51,8 +51,9 @@ being completed; automatic uploads remain disabled.
 
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
-current tunnel is temporary. Stable hosting and physical Android installation
-remain to be accepted.
+preview now has a fixed free tunnel address; its login page passes public HTTP
+and browser checks. Startup after reboot, off-LAN phone use and physical Android
+installation remain to be accepted. See [remote access](docs/REMOTE_ACCESS.md).
 
 <p align="center">
   <img src="docs/images/dashboard-mobile.png" alt="Actual Pi dashboard at phone width" width="320">
@@ -64,15 +65,15 @@ remain to be accepted.
 | --- | --- |
 | Home Wi-Fi and authenticated SSH | Stable USB addressing, reboot and long-duration checks |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
-| Authenticated public HTTPS preview | Stable hostname, off-LAN phone and Android web-app installation |
+| Authenticated HTTPS preview; fixed-address login page restored after reboot | Persistent startup, off-LAN phone and Android web-app installation |
 | First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
-| Owner-requested Google preparation and recovery in a separate-identity Pi test | Deploy the live setup service, then test and enable the destination |
+| Historical owner-requested Google preparation on the Pi | Reconcile the changed OAuth origin, then complete live Test/Enable |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**351 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**402 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -83,10 +84,17 @@ recovery checks. The protected dev10 dashboard now runs on the Pi. Its actual
 owner HTTPS form and systemd service prepared the private Google configuration
 successfully; uploads remain disabled and require the separate Test/Enable
 workflow. [Live acceptance evidence](docs/acceptance/pi-google-setup-live-dev10-2026-11-13.json).
+After the preview-hostname change, setup requests are disabled until the OAuth
+origin is reconciled; the previous preparation evidence is retained.
 
 The next backup-engine foundation creates separate private operational config
 generations so future token refresh cannot overwrite immutable preparation proof.
 It is tested locally and remains unconnected to the live dashboard or worker.
+
+New [Google controls and completed-file transfers](docs/GOOGLE_CONTROLS.md) add
+tested Test/Enable/Disable intent records and private streaming between the
+dashboard and backup identities. These are library foundations; live cloud
+execution and the dashboard buttons remain integration work.
 
 The dashboard currently lists completed **web uploads**. It does not yet browse
 all Pi folders or start cloud backup automatically. The Rust trial measured
@@ -111,6 +119,8 @@ together. See [the USB architecture](docs/PHASE2.md).
 - **Following progress on your phone?** Open [Project progress](docs/STATUS.md).
 - **Trying the dashboard?** Follow [Dashboard setup](docs/DASHBOARD.md); it runs
   on loopback with privately created accounts and no default password.
+- **Opening it away from home?** Read [Remote access](docs/REMOTE_ACCESS.md) for
+  fixed free addresses, tunnel outages and startup requirements.
 - **Installing on another Pi?** Use [Replication](docs/REPLICATION.md). A complete
   appliance image is [planned](docs/APPLIANCE_IMAGE.md), not available to flash yet.
 - **Preparing a hardware trial?** Read [Pi test guide](docs/PI_TEST_GUIDE.md) and

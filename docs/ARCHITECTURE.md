@@ -25,12 +25,17 @@ quarantine. New code does not import those service loops.
 | `google_setup.py` | Durable owner preparation intent, source/credential bindings, consumed private export and strict historical receipt projection |
 | `google_broker.py` | Opt-in protected-root coordinator with ordinary source/backup children, private source/config hash checks and bounded preparation only |
 | `google_operational.py` | Disabled operational config generations with independent source bindings and separate mutable token storage; no network or worker integration |
+| `google_control.py` | Durable owner Test/Enable/Disable decisions and fresh per-batch admission records; local coordination only, with no cloud or service operations |
+| `batch_transfer.py` | Private descriptor-based streaming of selected completed web batches between service identities; hashes, completion framing and retained partials |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
 | `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |
 | `wifi_plan.py` | Non-secret inactive NetworkManager profile plans; no OS mutation |
 | `web_ingest.py` | Pi-owned HTTP ingress, streaming hashes, size/space limits, retained incomplete uploads and atomic ready publication |
 
 ## Data flow
+
+The new [Google control and transfer components](GOOGLE_CONTROLS.md) are library
+foundations. They are not yet wired into the live dashboard or cloud executor.
 
 ```mermaid
 flowchart LR

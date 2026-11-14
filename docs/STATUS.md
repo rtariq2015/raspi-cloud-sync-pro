@@ -7,6 +7,15 @@ This page records evidence, not a percentage estimate. Follow the
 for the current source and [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
 for remote automated checks.
 
+**Latest access update:** a Pi reboot removed the transient preview services and
+the old Quick Tunnel returned error 1033. The protected dev10 dashboard has been
+restored behind a fixed free ngrok address. Local/public login HTTP checks and
+the actual Chrome login form pass; stored credentials and uploads were preserved.
+Persistent startup is being prepared and has not passed reboot acceptance.
+Google setup requests are disabled until the changed OAuth origin is reconciled;
+previous preparation remains historical. [Recovery evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json)
+and [remote access guide](REMOTE_ACCESS.md).
+
 ## Working on the Pi
 
 - Home Wi-Fi and authenticated SSH access. USB Ethernet carrier is present;
@@ -48,7 +57,7 @@ for remote automated checks.
 
 ## Implemented and tested locally
 
-- **351 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **402 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.

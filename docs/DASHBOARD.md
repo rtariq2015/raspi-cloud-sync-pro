@@ -57,6 +57,9 @@ as attachments with content sniffing disabled. PDF/image viewing is future work.
 
 ## Phone installation and public access
 
+See [remote access](REMOTE_ACCESS.md) for fixed free addresses, tunnel outages,
+startup after reboot and the separate OAuth-origin migration requirement.
+
 The responsive layout, app manifest, icon and service worker provide the PWA
 foundation. Use Android Chrome's install/add-to-home-screen action on the reviewed
 HTTPS URL when available. Actual installation on a physical phone has not yet

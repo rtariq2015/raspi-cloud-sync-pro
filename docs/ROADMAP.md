@@ -74,6 +74,13 @@ preparation request to the production backup identity; current worker reporting
 and explicit Test/Enable controls still need completion.
 See [the handoff contract](GOOGLE_HANDOFF.md).
 
+The new [control and transfer libraries](GOOGLE_CONTROLS.md) implement durable
+owner Test/Enable/Disable intents and completed web-batch streaming between
+identities. Their local tests pass; dashboard/operator integration and the real
+cloud executor remain next. After a reboot removed the transient preview, a
+fixed free HTTPS address restored the login page. Persistent startup and OAuth
+callback migration must pass before restoring live setup requests.
+
 Dev10 adds durable owner requests, private source/configuration bindings, a
 gated root coordinator, and historical dashboard receipts. Its native synthetic
 Pi trial passed separate identities, interrupted-receipt recovery and retained
