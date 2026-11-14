@@ -1,7 +1,9 @@
 # USB storage startup and recovery
 
-Dev22 source is cold-start capable; its native reboot acceptance is pending.
-The currently accepted dev21 installation captures only an existing USB profile.
+Dev22 passed native profile reconstruction and a real clean Pi restart. Both
+core services and USB storage returned automatically. A queued 99-byte file
+uploaded and passed downloaded verification after boot.
+[Native evidence](acceptance/pi-mass-storage-reboot-dev22-2026-11-14.json).
 Public hardware flags remain disabled. This is an approved disposable-image test
 path, not a general installer or a flashable appliance image.
 
@@ -30,7 +32,8 @@ service state, verify the Pi and image identity, and inspect all legacy loaders:
 4. Install the reviewed package/approval and unit. The unit requires configfs,
    module loading and the image filesystem. Test adoption first, then enable
    only the validated capture service.
-5. Before reboot, confirm all test versions are captured/verified, stop the idle
+5. Before reboot, confirm all test versions are safely captured and either
+   verified or deliberately retained in the durable offline queue. Stop the idle
    observer, and perform normal host eject with the cable connected for power.
    Confirm an empty LUN, no Pi image mount or loop, then reboot only the Pi.
 6. Confirm a new boot ID, fresh Wi-Fi SSH, both services, genuine USB enumeration,
@@ -46,5 +49,5 @@ without review, or expose the live root filesystem.
 Native preparation inspected `initramfs8` for the running 6.18.60+rpt-rpi-v8
 kernel: no modules-load file or g_ether binary was embedded. The only observed
 legacy boot entry was `/etc/modules-load.d/usb-gadget.conf`; the firmware and
-kernel command line did not need modification. This inspection alone does not
-prove reboot success.
+kernel command line did not need modification. The subsequent real reboot also
+passed; no initramfs rebuild was needed.

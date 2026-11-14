@@ -1,40 +1,38 @@
 # Project progress
 
-**Updated: 14 November 2026. Development build; no release published.**
+**Updated: 14 November 2026. Dev22 development trial; no main merge or release.**
 
-**Automatic USB-to-Google backup passed on the available Zorin laptop.** Three
-synthetic files, including a 64 MiB file, were copied through the real USB gadget.
-Normal Eject automatically triggered safe capture, USB reattachment, Google
-upload and downloaded-content verification. All local copies remain. Four jobs
-are now verified, including the earlier 10,490,314-byte file; that earlier file
-was not uploaded again. Earlier Windows attribution came from conversation
-context, not an independently recorded host OS. Windows-specific testing,
-persistent USB startup and physical
-offline/reboot acceptance remain unfinished. No-eject operation is unproven.
-Further dashboard/Samba/provider expansion is deferred.
-See [the core recovery record](CORE_RECOVERY.md).
+**The basic workflow is working on the Pi with the Zorin laptop:** normal USB
+storage, safe Eject, automatic Google upload, downloaded-content verification,
+retained old versions, actual Wi-Fi outage recovery and a real Pi restart.
+**12 file versions are verified.** Unchanged files create no new capture or upload.
+A file queued before the restart uploaded automatically after boot.
 
-**Offline queue check passed:** a further real USB file remained queued with
-zero upload attempts through two fresh backup workers without network access.
-After restoring the normal worker, it uploaded and passed Google verification.
-The Pi's radio and SSH stayed up; this was worker network isolation rather than
-a physical Wi-Fi outage. Five files are now verified without repeat uploads.
+**Remaining physical step:** a Windows copy/eject test. The disposable
+**Windows-Test-Files** folder is already on the drive; no terminal or private test
+files are needed. [Short Windows steps](WINDOWS_ACCEPTANCE.md).
+Do not move the power cable until a clean Pi shutdown has been arranged.
 
-**Latest hardware finding:** dev20's repeated-capture check stopped safely
-because Linux exFAT can change a file's inode number between separate opens.
-The copied contents were correct. Dev21 corrects that comparison while keeping
-the data and ownership checks. Its native retest now passes: unchanged eject
-creates no new batch or upload, and a changed file plus a new file creates only a
-two-file batch. Both new versions and the earlier version remain recoverable.
-Seven Google versions are verified. The failed journal and copied data are
-retained. Persistent USB startup, physical outage/reboot and Windows acceptance
-remain; the project is not yet complete.
-[Dev21 evidence](acceptance/pi-mass-storage-delta-dev21-2026-11-14.json).
+**Before permanent office use:** review the current Google External/Testing
+sign-in limit. Its Drive refresh grant lasts seven days; production authorization
+needs the owner's approval. Nothing has been published automatically.
 
-**Updates on your phone:** use the [plain-language progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
-It records what works, current work, remaining tests and whether owner help is
-needed. Subscribe there and choose GitHub/email notifications in your account;
-delivery has not been confirmed. No SMS service or MeerkatIO account is required.
+**Phone updates:** [follow this progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
+A manually triggered GitHub workflow posts owner mentions as the GitHub Actions
+bot. A real unread mention was confirmed in the owner's GitHub inbox. Email and
+phone push depend on account settings; no SMS service or MeerkatIO is used.
+Replies can be read during active work, but do not automatically resume an
+inactive coding session.
+
+**841 main Python tests and 28 USB operator tests pass.** Runtime source remains
+hardware-disabled publicly; this Pi uses a separately approved, protected test
+build. Wi-Fi/SSH returned unchanged after reconnect and reboot. Original files,
+failed-test evidence and rollback backups remain. No SD reflash or real-disk
+formatting occurred. See [the evidence and limits](CORE_RECOVERY.md).
+
+The entries below are historical supporting-work records for earlier builds.
+They are not claims that the current USB worker is disabled. Further dashboard,
+provider, enterprise-network and image-building work remains paused.
 
 This page records evidence, not a percentage estimate. Follow the
 [development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)

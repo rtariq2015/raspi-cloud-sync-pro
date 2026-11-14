@@ -16,13 +16,11 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 
 </div>
 
-> **Automatic USB-to-Google test passed — 14 November 2026.** Three files,
-> including a 64 MiB file, were copied onto CLOUDSTICK from the Zorin laptop.
-> Normal Eject triggered safe capture, USB reattachment, Google upload and
-> downloaded-content verification automatically. Local copies remain. Windows
-> acceptance and physical outage/reboot tests
-> are still outstanding. [Exact results](docs/CORE_RECOVERY.md) ·
-> [Plain-language updates and questions](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
+> **Core Linux-host tests passed — 14 November 2026.** USB copy, safe Eject,
+> automatic Google backup, changed-version retention, actual Wi-Fi outage and a
+> real Pi restart now pass. Twelve versions are verified. Windows acceptance and
+> permanent Google authorization remain. [Exact results](docs/CORE_RECOVERY.md) ·
+> [Phone updates and questions](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 
 ## The core product comes first
 
@@ -75,8 +73,9 @@ real USB files passed upload and downloaded-content verification.
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
 preview now has a fixed free tunnel address; its login page passes public HTTP
-and browser checks. Persistent services are installed and enabled; a real reboot,
-off-LAN phone use and physical Android installation remain to be accepted.
+and browser checks. Dashboard/tunnel services are installed and enabled; their
+reboot recovery, off-LAN phone use and physical Android installation remain to
+be accepted separately from the core USB backup tests.
 See [remote access](docs/REMOTE_ACCESS.md).
 
 <p align="center">
@@ -87,12 +86,12 @@ See [remote access](docs/REMOTE_ACCESS.md).
 
 | Working and tested | Next acceptance step |
 | --- | --- |
-| Home Wi-Fi and authenticated SSH | Reboot and long-duration checks |
+| Home Wi-Fi and SSH after actual reconnect/reboot; 12-minute connection check | Longer workplace stability and suspend testing |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
-| Authenticated HTTPS preview; fixed-address login page and enabled persistent services | Actual reboot, off-LAN phone and Android web-app installation |
-| Automatic Linux USB eject → capture → reattach → verified Google backup | Windows, persistent USB startup, outage/reboot and duplicate-capture acceptance |
+| Authenticated HTTPS preview; fixed-address login page and enabled services | Dashboard/tunnel reboot recovery, off-LAN phone and Android web-app installation |
+| Linux USB copy/eject, version retention, actual Wi-Fi outage and reboot recovery | Physical Windows acceptance and permanent Google authorization |
 | Fresh owner-requested Google preparation through the persistent watcher | Live Test/Enable and recurring backup acceptance |
-| Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
+| Boot-enabled USB Google worker; separate optional web worker and Rust scheduler | Guided web enablement and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |

@@ -6,9 +6,20 @@ The [core USB trial](CORE_RECOVERY.md) now passes automatic eject capture,
 reattachment and Google upload/downloaded-hash verification on the real Zorin
 USB host, with small, nested, Unicode and 64 MiB synthetic files. The earlier
 operator-confirmed file also passed. Its Windows attribution was contextual;
-Windows-specific acceptance is not independently verified. Physical outage/reboot
-and persistent USB startup acceptance remain incomplete.
+Windows-specific acceptance is not independently verified. Dev22 physical
+outage, reboot and persistent USB startup results are recorded below.
 The dated records below distinguish earlier builds and real-device evidence.
+
+Dev22 native acceptance now passes complete profile reconstruction, warm
+adoption, a real Pi restart with a queued file, and actual wlan0 disconnection
+with an offline captured/queued file. Both core services are boot-enabled after
+those checks; firmware/cmdline/initramfs, accounts, Wi-Fi and SSH policy stayed
+preserved. Twelve Google versions are downloaded-hash verified. The final path
+check used wlan0-bound DNS, gateway ICMP and validated TLS; the probe site
+returned HTTP 403 (transport only). More than twelve minutes of NM logs after
+reconnect contain no unexpected disconnect. Windows physical acceptance remains
+open, and Google External/Testing authorization is not indefinite deployment.
+See [the current core table](CORE_RECOVERY.md).
 
 Dev20 adds content-based local capture suppression: only after exclusive
 read-only access, hash the bounded complete inventory and copy changed/new
