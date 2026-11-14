@@ -14,8 +14,11 @@ the actual Chrome login form pass; stored credentials and uploads were preserved
 The dashboard and connector now run as persistent, enabled system services;
 unit syntax, runtime health and disk/manager enablement checks pass. A physical
 reboot has not been performed or accepted.
-Google setup requests are disabled until the changed OAuth origin is reconciled;
-previous preparation remains historical. [Recovery evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json)
+The changed Google callback and Pi client origin are now reconciled, preserving
+credentials and retaining private backups/rollback. Setup requests remain
+disabled pending broker restoration and fresh owner preparation. Previous
+preparation remains historical. [Origin migration](acceptance/pi-google-origin-migration-2026-11-13.json),
+[recovery evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json)
 and [remote access guide](REMOTE_ACCESS.md).
 
 ## Working on the Pi
@@ -59,7 +62,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **417 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **457 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -85,10 +88,12 @@ and [remote access guide](REMOTE_ACCESS.md).
   and historical preparation status in the dashboard. Source and configuration
   bindings, owner revocation, expiration, private channels, retained interrupted
   work, and bounded browser status retries have automated tests. The protected
-  dev10 dashboard and request watcher now run on the Pi. A real owner HTTPS
+  dev10 dashboard and request watcher ran on the Pi. A real owner HTTPS
   request prepared one private backup configuration successfully. Neither
   preparation nor its status enables automatic backups.
   [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
+  The watcher disappeared with the reboot; current setup requests remain disabled
+  pending broker restoration and fresh owner preparation, as recorded above.
 - The dev10 synthetic Pi trial now passes owner HTTP-handler requests, the actual
   root broker, separate ordinary service identities, historical status and
   recovery from a prepared destination whose receipt was not recorded. Existing
@@ -113,6 +118,13 @@ and [remote access guide](REMOTE_ACCESS.md).
   verified jobs. It is disabled, untested against a provider and not connected
   to the live worker. Test/Enable and automatic file backup remain unfinished.
 
+- New owner-only Test/Enable/Disable dashboard controls and the private Google
+  Test worker pass local tests. The worker creates a separate generation, checks
+  the app-owned folder, forces operational-token refresh and verifies downloaded
+  fixture content. It refuses credentials until a root-authorized per-run gate;
+  fake cloud transport tests do not establish live refresh or Wi-Fi confinement.
+  These changes are not deployed and both request flags remain off on the Pi.
+
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private
   hash backups. Only disposable test accounts changed.
@@ -124,9 +136,8 @@ has completed. No account passwords, USB/Wi-Fi settings or boot enablement chang
 
 ## Being worked on
 
-1. Replace the tested temporary HTTPS preview with a stable hostname/access policy,
-   then accept an off-LAN phone connection. A free service-provided hostname is
-   preferred; the owner does not currently have a domain.
+1. Accept persistent startup through a controlled reboot and an off-LAN phone
+   connection using the installed fixed free HTTPS address.
 2. Extend the accepted Pi loopback Samba contract to actual Windows/USB host
    transfers after stable USB addressing is established.
 3. Complete the guided Google Drive folder/test/enable workflow and persistent

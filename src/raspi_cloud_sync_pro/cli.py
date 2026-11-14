@@ -101,6 +101,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     dashboard.add_argument("--public-origin", help="reviewed HTTPS origin behind the reverse proxy")
     dashboard.add_argument("--google-setup-requests", action="store_true",
                            help="allow owner preparation requests only after the separate setup service is installed")
+    dashboard.add_argument("--google-control-requests", action="store_true",
+                           help="allow owner Test/Enable/Disable intents only after a reviewed executor is ready")
     for command in ("worker-plan", "backup-staged"):
         worker = commands.add_parser(command, help="inspect or run an opt-in completed-batch backup worker")
         worker.add_argument("--config", type=Path, required=True)
@@ -258,7 +260,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print("Dashboard password reset. This account's existing sessions are revoked on their next request.")
             else:
                 serve_dashboard(args.state, history=args.history, worker_state=args.worker_state, port=args.port,
-                                public_origin=args.public_origin, google_setup_requests=args.google_setup_requests)
+                                public_origin=args.public_origin, google_setup_requests=args.google_setup_requests,
+                                enable_google_control_requests=args.google_control_requests)
             return 0
         except ImportError:
             print("Install the optional dashboard dependencies in a virtual environment.", file=sys.stderr)

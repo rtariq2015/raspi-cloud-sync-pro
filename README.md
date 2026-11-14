@@ -68,13 +68,13 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated HTTPS preview; fixed-address login page and enabled persistent services | Actual reboot, off-LAN phone and Android web-app installation |
 | First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
-| Historical owner-requested Google preparation on the Pi | Reconcile the changed OAuth origin, then complete live Test/Enable |
+| Historical owner-requested Google preparation; new HTTPS callback reconciled | Fresh preparation and live Test/Enable acceptance |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**417 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**457 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -85,17 +85,20 @@ recovery checks. The protected dev10 dashboard now runs on the Pi. Its actual
 owner HTTPS form and systemd service prepared the private Google configuration
 successfully; uploads remain disabled and require the separate Test/Enable
 workflow. [Live acceptance evidence](docs/acceptance/pi-google-setup-live-dev10-2026-11-13.json).
-After the preview-hostname change, setup requests are disabled until the OAuth
-origin is reconciled; the previous preparation evidence is retained.
+After the preview-hostname change, the Google callback and Pi client origin have
+been reconciled with backups. Setup requests remain disabled pending broker
+restoration and fresh owner preparation; previous evidence and credentials are
+retained. [Migration evidence](docs/acceptance/pi-google-origin-migration-2026-11-13.json).
 
 The next backup-engine foundation creates separate private operational config
 generations so future token refresh cannot overwrite immutable preparation proof.
 It is tested locally and remains unconnected to the live dashboard or worker.
 
 New [Google controls and completed-file transfers](docs/GOOGLE_CONTROLS.md) add
-tested Test/Enable/Disable intent records and private streaming between the
-dashboard and backup identities. These are library foundations; live cloud
-execution and the dashboard buttons remain integration work.
+tested owner buttons, Test/Enable/Disable intent records, a default-denied Google
+tester, and private streaming between dashboard and backup identities. These
+changes are source-tested; deployment, Wi-Fi confinement and live cloud/worker
+acceptance remain integration work.
 
 The dashboard currently lists completed **web uploads**. It does not yet browse
 all Pi folders or start cloud backup automatically. The Rust trial measured

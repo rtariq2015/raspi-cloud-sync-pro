@@ -1,8 +1,11 @@
 # Google controls and completed-file transfer
 
-These are development library components, tested with synthetic private state
-and temporary files. They are not connected to the live dashboard, cloud tester
-or background worker yet. No action in these components uploads a file.
+These are development components, tested with synthetic private state and
+temporary files. Owner controls and a guarded Google tester now exist in source;
+they are not deployed or enabled in the current dev10 Pi dashboard. Automatic
+backups remain disabled. The control and transfer APIs make no cloud requests;
+the separately gated tester can upload a small fixture when deliberately run by
+an accepted coordinator.
 
 ## Owner decisions
 
@@ -58,6 +61,68 @@ partial files and earlier versions are retained. Timeout and manifest-size bound
 limit protocol work. The dashboard's current 100 MiB upload limit is unchanged;
 internal transfer bounds are not evidence of large-file Pi acceptance.
 
+## Dashboard controls, disabled by default
+
+The new `dashboard --google-control-requests` option exposes owner Test, Enable
+and Disable controls only after a separate coordinator is connected. It defaults
+to false and is independent of `--google-setup-requests`. The deployed Pi command
+currently supplies neither option. A flag enables request submission; it does
+not establish a running or accepted backup service.
+
+`POST /api/destinations/google_drive/control` accepts only an exact bounded JSON
+object containing `action`: `test`, `enable` or `disable`. The handler checks
+CSRF and the current owner session and holds its authorization guard through
+durable publication. It accepts no browser-provided identifiers, file paths,
+hashes, cloud folder IDs or credentials. Anonymous users and viewers cannot
+submit decisions. There are no service or network calls in this handler.
+
+The browser distinguishes a queued Test, a passed Test with backups still off,
+saved Enable permission with unconfirmed service status, and paused new backups.
+Disable denies future admissions; an already admitted transfer may finish until
+the coordinator stops it. A new Test also pauses new admissions, including after
+a previous Enable. Bounded status retries stop at the original request deadline
+and never promote unavailable or expired status to success.
+
+## Private Google Test worker
+
+`google_test.py` supplies `run_google_test` and a separate strict validator for
+actual mutable rclone configuration. It refuses by default before reading
+credentials or state. A consumed inherited Unix-stream descriptor must identify
+a root peer through kernel credentials and release the exact request and worker
+PID with a short-lived private frame. A root release proves coordinator
+authority; it does **not** prove network confinement. The coordinator must accept
+actual per-run Wi-Fi confinement before releasing it. This worker has no CLI or
+installed coordinator yet.
+
+The ordinary backup identity validates the protected rclone executable's exact
+digest and creates a new operational generation from the bound preparation.
+It leaves the original preparation unchanged. It locates or creates one uniquely
+named app-owned Drive folder, checks its exact identity and parent, and pins its
+ID in the operational copy. It uploads a deterministic tiny fixture through the
+existing job/history engine. Before independent downloaded-content SHA-256
+verification, it expires only the operational access token, requiring rclone to
+refresh and persist a fresh token successfully. This tests refresh without
+modifying the dashboard grant or immutable preparation.
+
+The immutable seed validator remains separate from mutable token validation.
+The latter permits supported token formatting and expiry changes, but requires
+the exact direct Drive backend, limited scope, OAuth client and selected folder.
+Extra remotes, endpoints, credential sources and other settings are rejected.
+Token refresh cannot silently change destination identity or reuse another
+generation's verified jobs.
+
+Rclone runs with an empty inherited environment except fixed basic locale/path
+and resolver settings, one transfer/checker/retry, bounded output and one hard
+deadline. It inherits no proxy, alternate CA or rclone override. Failures stop
+the owned process group and retain private partial artifacts. Raw provider
+output and private receipts never reach the browser. A successful receipt still
+records uploads disabled; it does not create Enable permission.
+
+The current tests use fake cloud transport with real private files, generations,
+history and local child processes. They do not establish live Google refresh,
+per-run Wi-Fi confinement or recurring backup acceptance. The documented
+External/Testing refresh-token lifetime still applies.
+
 ## Remaining integration
 
 Private operator CLI commands now expose `google-control-status`,
@@ -70,10 +135,12 @@ disabled summary. These are coordinator interfaces, not browser endpoints or
 general file-copy commands. They are source-tested and have not been deployed
 to the current dev10 Pi runtime.
 
-1. Wire owner forms and the restricted coordinator into these APIs and commands.
-2. Implement and accept the real Google tester, including forced token refresh
-   and independent downloaded-content verification in a new app-owned folder.
-3. Enforce approved Wi-Fi egress independently of a working USB Internet route.
+1. Deploy the source-tested owner controls with the separately reviewed
+   coordinator and restore preparation for the current HTTPS origin.
+2. Accept the Google tester on the Pi, including forced token refresh and
+   independent downloaded-content verification in a new app-owned folder.
+3. Prove approved Wi-Fi egress independently of a working USB Internet route,
+   with actual kernel attachments and positive/negative network controls.
 4. Run a coordinator that obtains fresh admission, verifies actual operational
    settings and transfers only selected completed batches.
 5. Publish private per-file results to the dashboard without sharing credentials

@@ -97,14 +97,17 @@ def worker_snapshot(directory, *, now=None):
 
 
 def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status,
-               oauth_transport=None, google_setup_requests=False):
+               oauth_transport=None, google_setup_requests=False, enable_google_control_requests=False):
     from flask import Flask, abort, g, jsonify, redirect, render_template, request, send_file, session, url_for
     from werkzeug.security import check_password_hash, generate_password_hash
     from .oauth import OAuthError, OAuthManager, OwnerProof
     from .google_setup import GoogleSetupError, google_setup_status, request_google_setup
+    from .google_control import GoogleControlError, google_control_status, request_google_control
 
     if type(google_setup_requests) is not bool:
         raise ValueError("Google setup request availability must be an explicit boolean")
+    if type(enable_google_control_requests) is not bool:
+        raise ValueError("Google control request availability must be an explicit boolean")
 
     state = Path(state).absolute()
     if state.is_symlink() or state.stat().st_uid != os.getuid() or state.stat().st_mode & 0o077:
@@ -245,7 +248,8 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
 
     @app.get("/")
     def index():
-        return render_template("dashboard.html", user=current_user(), csrf=csrf(), version=__version__)
+        return render_template("dashboard.html", user=current_user(), csrf=csrf(), version=__version__,
+                               google_control_requests_available=enable_google_control_requests)
 
     @app.route("/account", methods=["GET", "POST"])
     def account():
@@ -318,6 +322,8 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
             if provider["provider"] == "google_drive":
                 provider["preparation"] = google_setup_status(state, public_origin)
                 provider["preparation_requests_available"] = google_setup_requests
+                provider["control"] = google_control_status(state, public_origin)
+                provider["control_requests_available"] = enable_google_control_requests
         return jsonify(providers=providers, uploads_enabled=False)
 
     @app.post("/api/destinations/google_drive/prepare")
@@ -333,6 +339,30 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
         except (GoogleSetupError, OAuthError) as error:
             return jsonify(error=error.code, uploads_enabled=False), 409
         return jsonify(preparation=report, uploads_enabled=False), 202
+
+    @app.post("/api/destinations/google_drive/control")
+    def google_control_request():
+        # Global POST protection validates CSRF before this handler. Reuse the
+        # live owner/session guard so cached request authentication cannot commit
+        # a decision after password, role or session revocation.
+        proof = owner_proof()
+        if not enable_google_control_requests:
+            return jsonify(error="google_control_service_unavailable", current_worker_state_checked=False), 409
+        try:
+            raw = request.stream.read(1025) if request.is_json else b""
+            data = json.loads(raw, object_pairs_hook=_unique_object) if len(raw) <= 1024 else None
+        except (ValueError, TypeError, UnicodeError, RecursionError):
+            data = None
+        if (not isinstance(data, dict) or set(data) != {"action"}
+                or not isinstance(data["action"], str) or data["action"] not in ("test", "enable", "disable")):
+            return jsonify(error="google_control_request_invalid", current_worker_state_checked=False), 400
+        try:
+            report = request_google_control(state, public_origin, data["action"], proof, oauth_commit_guard)
+        except (GoogleControlError, OAuthError) as error:
+            return jsonify(error=error.code, current_worker_state_checked=False), 409
+        except (BackupError, OSError, ValueError, TypeError):
+            return jsonify(error="google_control_unavailable", current_worker_state_checked=False), 503
+        return jsonify(control=report), 202
 
     @app.post("/api/destinations/<provider>/connect")
     def oauth_start(provider):
@@ -504,13 +534,14 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
 
 
 def serve_dashboard(state, *, history=None, worker_state=None, port=8080, public_origin=None,
-                    google_setup_requests=False):
+                    google_setup_requests=False, enable_google_control_requests=False):
     from waitress import serve
     if type(port) is not int or not 1024 <= port <= 65535:
         raise ValueError("Use an unprivileged dashboard port")
     # Always loopback. A reviewed HTTPS reverse proxy supplies external access.
     app = create_app(state, history=history, worker_state=worker_state, public_origin=public_origin,
-                     google_setup_requests=google_setup_requests)
+                     google_setup_requests=google_setup_requests,
+                     enable_google_control_requests=enable_google_control_requests)
     serve(app, host="127.0.0.1", port=port, threads=2, connection_limit=32,
           channel_timeout=30, max_request_body_size=102 * 1024 * 1024,
           clear_untrusted_proxy_headers=True)

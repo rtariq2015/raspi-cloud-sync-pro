@@ -1,8 +1,17 @@
 # Private Google destination preparation
 
-Current acceptance: protected dev10 live preparation passes. Automatic backup
-Test/Enable remains unfinished. The locally tested operational-generation API
-described at the end is a separate foundation, not a live upload control.
+Historical acceptance: protected dev10 live preparation passed. The public
+hostname has since changed. The new callback is now saved in the existing Google
+client, with the original callback retained, and the Pi's client origin has been
+migrated with a private backup and guarded rollback. Existing client credentials,
+authorization, accounts and preparations were preserved. This migration made no
+cloud request or service restart and did not verify the saved authorization.
+
+Setup requests remain disabled until the preparation broker is reconciled and a
+fresh owner request is made. Previous proof and configuration remain retained;
+the old preparation is historical and does not match the new source origin.
+The source-tested [Test/Enable controls and tester](GOOGLE_CONTROLS.md) are a
+separate integration, not live upload controls. Automatic backups remain off.
 
 The dev9 source can transfer an existing Google browser authorization between
 separate ordinary service identities and prepare a disabled private rclone

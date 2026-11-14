@@ -714,7 +714,46 @@ are separate from the 417 repository tests. No reboot, OS/USB/network change or
 cloud activation was performed.
 
 Persistent startup is configured; actual reboot, prolonged outage and physical
-off-LAN phone tests remain. Google setup requests stay disabled while the new
-OAuth callback origin is reconciled. The public address, tokens, account details
+off-LAN phone tests remain. At this acceptance point, Google setup requests stayed
+disabled pending OAuth callback reconciliation. The later migration is recorded
+below. The public address, tokens, account details
 and private backup paths are omitted from the
 [acceptance record](acceptance/pi-fixed-https-recovery-2026-11-13.json).
+
+## Google callback migration and guarded Test controls
+
+The existing dedicated Google OAuth client now retains both its original
+callback and the new fixed HTTPS callback. Save persistence was verified by
+reloading and reopening the exact client. Client credentials, scopes, Testing
+status and billing were unchanged. A separately reviewed Pi helper changed only
+the local client public origin, with a flushed private backup and standalone
+guarded rollback prepared first. Seventeen private helper tests passed. The
+actual write and ordinary-dashboard-identity readiness check passed; saved
+authorization remains untested and the previous preparation is historical.
+No service was restarted, account password changed or cloud request made by the
+Pi migration. Broker restoration and fresh owner preparation remain necessary.
+[Sanitized migration evidence](acceptance/pi-google-origin-migration-2026-11-13.json).
+
+**457 Python tests pass locally**, including actual rclone against temporary local
+storage. Forty new tests cover the source-only owner control integration and
+private Google Test worker. Fifteen HTTP tests exercise the default-off flag,
+owner/viewer/CSRF boundaries, exact bounded JSON, live password/role/logout
+revocation through publication, stale source and failed/fresh Test prerequisites.
+Five Node tests run the actual dashboard JavaScript, including transient status
+failures, fixed deadlines, terminal outcomes and conservative labels.
+
+Twenty private worker tests cover default refusal before state access, exact
+root-peer release framing, protected executable validation, unchanged immutable
+preparation, separate generations, folder conflicts, strict mutable settings,
+forced expiry/refresh, downloaded fixture hashes, retained failures and child
+timeouts/output bounds. Cloud transport is fake; filesystem/history and bounded
+child execution are real local operations. These tests do not establish real
+Google refresh or production Wi-Fi egress confinement. Independent review, Ruff
+F/E9, Python 3.9 grammar, actual JavaScript syntax and diff checks pass. Rust is
+unchanged and retains its previous ten-test acceptance.
+
+The live Pi still runs protected dev10 with both Google request flags off.
+The new tester has no installed CLI/coordinator and refuses without a private
+root-authorized per-run release. A coordinator must prove actual confinement
+before releasing credentials; a root frame or systemd property alone is not
+network proof. Automatic cloud backup remains disabled.

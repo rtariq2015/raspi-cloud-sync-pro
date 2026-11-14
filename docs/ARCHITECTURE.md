@@ -26,6 +26,7 @@ quarantine. New code does not import those service loops.
 | `google_broker.py` | Opt-in protected-root coordinator with ordinary source/backup children, private source/config hash checks and bounded preparation only |
 | `google_operational.py` | Disabled operational config generations with independent source bindings and separate mutable token storage; no network or worker integration |
 | `google_control.py` | Durable owner Test/Enable/Disable decisions and fresh per-batch admission records; local coordination only, with no cloud or service operations |
+| `google_test.py` | Default-denied private Google fixture worker with a root-peer release gate, strict mutable settings, forced token refresh and downloaded-content verification; not deployed |
 | `batch_transfer.py` | Private descriptor-based streaming of selected completed web batches between service identities; hashes, completion framing and retained partials |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
 | `staged_worker.py`, `rust/` | Opt-in ready-batch reconciliation/scheduling and per-destination jobs; no live image access |
@@ -34,8 +35,9 @@ quarantine. New code does not import those service loops.
 
 ## Data flow
 
-The new [Google control and transfer components](GOOGLE_CONTROLS.md) are library
-foundations. They are not yet wired into the live dashboard or cloud executor.
+The new [Google control and transfer components](GOOGLE_CONTROLS.md) have
+source-tested owner dashboard controls and a default-denied private tester.
+They are not yet deployed or connected to a live recurring cloud executor.
 
 ```mermaid
 flowchart LR
@@ -139,9 +141,13 @@ configuration. Its operator exporter/importer passed a synthetic two-identity CL
 trial on the Pi; this did not connect real dashboard credentials to production
 backup state. The earlier one-file Google proof on dev8 describes a separate
 historical QA configuration and job. Neither verifies a new destination.
-The protected dev10 dashboard and request watcher now run on the Pi. Its real
-owner HTTPS form has prepared a private configuration across these identities,
-with uploads still disabled and a cloud test still required.
+The protected dev10 dashboard and request watcher previously ran on the Pi. Its
+real owner HTTPS form prepared a private configuration across these identities,
+with uploads disabled and a cloud test still required. The watcher was transient
+and disappeared on reboot. The restored persistent dashboard currently refuses
+preparation and control requests. The changed HTTPS callback and local client
+origin have been reconciled; broker restoration and fresh owner preparation are
+still required. Existing authorization and historical configurations are retained.
 [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
 The owner-intent and broker boundary follows. Its
 native synthetic HTTP-handler/root-broker and recovery trial now passes on the

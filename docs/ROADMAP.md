@@ -76,11 +76,13 @@ See [the handoff contract](GOOGLE_HANDOFF.md).
 
 The new [control and transfer libraries](GOOGLE_CONTROLS.md) implement durable
 owner Test/Enable/Disable intents and completed web-batch streaming between
-identities. Their local tests pass; dashboard/operator integration and the real
-cloud executor remain next. After a reboot removed the transient preview, a
+identities. Operator commands, owner dashboard controls and a default-denied
+Google Test worker now pass local tests. Their Pi deployment and trusted
+coordinator integration remain next. After a reboot removed the transient preview, a
 fixed free HTTPS address restored the login page. Persistent services now pass
 native health and enablement checks; actual reboot acceptance remains. OAuth
-callback migration must pass before restoring live setup requests.
+callback and Pi client origin have now been migrated with backups; restore the
+broker and require fresh owner preparation before restoring live setup requests.
 
 Dev10 adds durable owner requests, private source/configuration bindings, a
 gated root coordinator, and historical dashboard receipts. Its native synthetic
@@ -96,8 +98,8 @@ The next source foundation creates private operational generations from
 independently approved preparation bindings. It preserves immutable seed proof,
 separates future token-refresh writes and scopes job identity to the generation.
 Its filesystem/history tests pass; it is not wired into the live worker. Next
-implement Test/Enable, the completed-file/status bridges and enforced Wi-Fi
-egress before automatic Google backup acceptance.
+accept the Test worker and Enable coordinator, the completed-file/status bridges
+and enforced Wi-Fi egress before automatic Google backup acceptance.
 
 Use test accounts for path encoding, empty/large/changed files, interrupted uploads,
 auth expiry, rate/quota failures and downloaded-content checks. Measure real

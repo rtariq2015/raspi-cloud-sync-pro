@@ -2,6 +2,8 @@
 let files = [];
 let googlePreparationTimer = null;
 let googlePreparationRetryUntil = 0;
+let googleControlTimer = null;
+let googleControlRetryUntil = 0;
 const $ = id => document.getElementById(id);
 const text = (tag, value, className) => { const el = document.createElement(tag); el.textContent = value; if(className) el.className = className; return el; };
 const bytes = n => n < 1024 ? `${n} B` : n < 1048576 ? `${(n/1024).toFixed(1)} KB` : n < 1073741824 ? `${(n/1048576).toFixed(1)} MB` : `${(n/1073741824).toFixed(1)} GB`;
@@ -19,6 +21,45 @@ function workerReport(report) {
     const policy=report.network_policy_allows_upload?'Last observed network policy allowed work':'Last observed network policy paused work';
     $('worker-detail').textContent=queue+' · '+report.destination_count+' destinations · Reported '+age+' ago. '+policy+'. '+(report.reconciliation_pending?'More completed batches await reconciliation. ':'')+'This is a last report, not a live heartbeat or proof of cloud-account setup.';
   } else $('worker-detail').textContent='Reports do not start a worker or authorize cloud accounts. A parked scheduler may have no recent report. File verification is shown separately in history.';
+}
+function scheduleGoogleControlRefresh() {
+  if(googleControlTimer!==null) {clearTimeout(googleControlTimer);googleControlTimer=null;}
+  if(performance.now()>=googleControlRetryUntil) return;
+  googleControlTimer=setTimeout(async()=>{
+    googleControlTimer=null;
+    try {destinationSetup(await api('/api/destinations'));}
+    catch(error){message(error.message,true);scheduleGoogleControlRefresh();}
+  },3000);
+}
+function googleControlReport(provider) {
+  if(googleControlTimer!==null) {clearTimeout(googleControlTimer);googleControlTimer=null;}
+  const report=provider.control||{},state=report.control_state||'unavailable',available=provider.control_requests_available===true;
+  const labels={not_requested:'No Test requested',test_requested:'Test queued',test_verified:'Test passed — not enabled',test_expired:'Test expired — run Test again',test_failed:'Test failed',enable_requested:'Enable queued',enable_recorded:'Permission saved — service status unconfirmed',enable_failed:'Permission was not saved',disable_requested:'New backups paused',disable_recorded:'New backups paused',disable_failed:'New backups paused — check service',expired:'Request expired',stale_binding:'Setup or sign-in changed',invalid:'Backup status could not be checked',unavailable:'Backup status unavailable'};
+  let detail=state==='test_requested'?'Your Test request is queued. Wait for the result before choosing Enable.':
+    state==='test_verified'?'The Test reported a matching downloaded copy. New backups still need a separate Enable request.':
+    state==='enable_requested'?'Your Enable request is queued. Wait for the result; this does not confirm a running backup service.':
+    state==='enable_recorded'?'Permission for new backups is saved. Starting another Test pauses this permission until you choose Enable again.':
+    ['disable_requested','disable_recorded','disable_failed'].includes(state)?'New backups are paused. A transfer already in progress may finish.':
+    state==='test_expired'?'The previous Test is too old to enable backups. Run Test again.':
+    state==='test_failed'?'The Test did not pass. Check setup, then try Test again.':
+    state==='expired'?'No result was saved before this request expired. Refresh and try again.':
+    state==='stale_binding'?'Your sign-in or Google setup changed. Check preparation and run Test again.':
+    ['invalid','unavailable'].includes(state)?'Backup status could not be checked. Refresh to try again.':
+    'Prepare Google Drive, then run Test before enabling new backups.';
+  if(!available) detail='Automatic backup setup is still being completed on this device.';
+  detail+=' This panel has not checked whether the backup service is running or which Google account is connected.';
+  if(report.historical&&Number.isFinite(report.age_seconds)) detail+=' Last result: '+Math.floor(report.age_seconds)+' seconds ago.';
+  if($('google-control-status')) $('google-control-status').textContent=labels[state]||labels.unavailable;
+  if($('google-control-detail')) $('google-control-detail').textContent=detail;
+  const pending=['test_requested','enable_requested','disable_requested'].includes(state);
+  const test=$('google-test-button'),enable=$('google-enable-button'),disable=$('google-disable-button');
+  if(test) test.disabled=!available||pending||['test_verified','invalid','unavailable'].includes(state)||provider.preparation?.preparation_state!=='prepared_untested';
+  if(enable) enable.disabled=!available||state!=='test_verified';
+  if(disable) disable.disabled=!available||['disable_requested','disable_recorded'].includes(state);
+  if(pending&&available) {
+    if(!googleControlRetryUntil) googleControlRetryUntil=performance.now()+Math.max(0,600-(Number.isFinite(report.age_seconds)?Math.max(0,report.age_seconds):0))*1000;
+  } else if(state!=='unavailable'||!available) googleControlRetryUntil=0;
+  if(available&&performance.now()<googleControlRetryUntil) scheduleGoogleControlRefresh();
 }
 function scheduleGooglePreparationRefresh() {
   if(googlePreparationTimer!==null) {clearTimeout(googlePreparationTimer);googlePreparationTimer=null;}
@@ -38,6 +79,7 @@ function destinationSetup(data) {
     const button=document.querySelector('.oauth-connect[data-provider="'+provider.provider+'"]');
     if(button) {button.disabled=provider.authorization==='authorization_saved_untested'; button.dataset.ready=provider.client_ready?'yes':'no';}
     if(provider.provider==='google_drive') {
+      if(provider.control) googleControlReport(provider);
       const report=provider.preparation||{},state=report.preparation_state||'unavailable';
       const labels={not_requested:'Configuration not prepared',requested:'Preparation requested',expired:'Preparation request expired',prepared_untested:'Configuration prepared · Test required',stale_source:'Authorization changed · Prepare again',stale_receipt:'Previous preparation needs review',invalid:'Preparation status could not be validated',unavailable:'Preparation status unavailable'};
       $('google-preparation-status').textContent=labels[state]||labels.unavailable;
@@ -76,6 +118,25 @@ document.getElementById('google-prepare-form')?.addEventListener('submit',async 
     message(data.preparation?.preparation_state==='prepared_untested'?'Configuration was already prepared. A cloud test is still required; automatic backups remain off.':'Preparation requested. Automatic backups remain off.');
   }catch(error){message(error.message,true);}
   finally{try{destinationSetup(await api('/api/destinations'));}catch(error){message(error.message,true);scheduleGooglePreparationRefresh();}}
+});
+document.getElementById('google-control-form')?.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const action=event.submitter?.value;
+  if(!['test','enable','disable'].includes(action)||event.submitter.disabled) return;
+  for(const id of ['google-test-button','google-enable-button','google-disable-button']) if($(id)) $(id).disabled=true;
+  try {
+    const response=await fetch('/api/destinations/google_drive/control',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({action})});
+    if(response.status===401) {location.href='/login';return;}
+    const data=await response.json();
+    if(!response.ok) {
+      const errors={google_control_service_unavailable:'Automatic backup setup is still being completed on this device.',google_control_preparation_required:'Prepare Google Drive before running Test.',google_control_test_required:'Run Test successfully before choosing Enable.',google_control_source_changed:'Your Google setup changed. Prepare it again, then run Test.',google_control_owner_changed:'Your sign-in changed. Refresh and sign in again.'};
+      throw new Error(response.status===403?'Your sign-in expired or this account cannot change backup permission.':errors[data.error]||'The control request could not be recorded. Refresh to check its status.');
+    }
+    if(['test_requested','enable_requested','disable_requested'].includes(data.control?.control_state)) googleControlRetryUntil=performance.now()+600000;
+    const state=data.control?.control_state;
+    message(state==='test_verified'?'A Test result is already saved. This Test does not enable backups.':state==='enable_recorded'?'Permission is already saved. Backup service status is unconfirmed.':action==='test'?'Test queued. Wait for a pass before choosing Enable.':action==='enable'?'Enable queued. Wait for the result; this does not confirm a running backup service.':'New backups paused. A transfer already in progress may finish.');
+  }catch(error){message(error.message,true);}
+  finally{try{destinationSetup(await api('/api/destinations'));}catch(error){message(error.message,true);scheduleGoogleControlRefresh();}}
 });
 document.querySelectorAll('.oauth-connect').forEach(button=>button.addEventListener('click',async()=>{
   if(button.dataset.ready!=='yes') {message('This provider needs a registered application and exact HTTPS callback configuration installed privately on the Pi before sign-in can begin.',true);return;}
