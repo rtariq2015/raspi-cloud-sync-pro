@@ -2,12 +2,27 @@
 
 **Updated: 14 November 2026. Development build; no release published.**
 
+**First real USB file backed up and verified.** The user copied a 10,490,314-byte
+file onto CLOUDSTICK in Windows and safely ejected it. A separate, explicitly
+operator-confirmed handoff captured it through a checked read-only filesystem.
+The background Google worker uploaded it and downloaded contents for SHA-256
+verification; one job is verified after one attempt. Both local copies remain.
+The original timed observer expired and is not counted as automatic capture.
+Permanent capture, actual offline/reboot acceptance and no-eject operation remain
+unfinished. Further dashboard/Samba/provider expansion is deferred.
+See [the core recovery record](CORE_RECOVERY.md).
+
 This page records evidence, not a percentage estimate. Follow the
 [development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)
 for the current source and [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
 for remote automated checks.
 
-**Latest development:** 769 Python tests pass, including real rclone against
+The following supporting-work entries describe the earlier web coordinator,
+whose Test/Enable flow remains disabled. They do not disable the separate,
+operator-authorized USB Google worker, now running and boot-enabled after its
+first verified file and process-restart test. A physical reboot remains untested.
+
+**Earlier supporting work:** 769 Python tests passed, including real rclone against
 temporary local storage. Dev18 connects one selected completed web-file transfer
 to the guarded upload dispatcher in source, requiring both transfer children to
 finish successfully first. It remains undeployed and unscheduled.

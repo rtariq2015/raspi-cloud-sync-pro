@@ -18,14 +18,25 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DeviceModeTests(unittest.TestCase):
-    def test_ethernet_is_default_and_mode_plan_has_no_activation_side_effect(self):
+    def test_mass_storage_is_default_and_mode_plan_keeps_hardware_disabled(self):
         policy = DevicePolicy.load(ROOT / "config/device.example.json")
-        self.assertEqual(policy.mode, DeviceMode.ETHERNET_SAMBA)
+        self.assertEqual(DevicePolicy().mode, DeviceMode.MASS_STORAGE)
+        self.assertEqual(policy.mode, DeviceMode.MASS_STORAGE)
         self.assertEqual(policy.approved_uplinks, ("wifi",))
         output = io.StringIO()
         with redirect_stdout(output): self.assertEqual(main(["mode-plan", str(ROOT / "config/device.example.json")]), 0)
-        self.assertIn(REVIEWED_COMMIT, output.getvalue())
+        plan = json.loads(output.getvalue())
+        self.assertEqual(plan["selected_mode"], "mass_storage")
+        self.assertFalse(plan["hardware_operations_enabled"])
+        self.assertIsNone(plan["ethernet_provider"])
         self.assertFalse(policy.plan()["live_switch_supported"])
+
+    def test_ethernet_remains_an_explicit_alternative_without_activation(self):
+        path = ROOT / "config/device.ethernet-samba.example.json"
+        self.assertEqual(DevicePolicy.load(path).mode, DeviceMode.ETHERNET_SAMBA)
+        output = io.StringIO()
+        with redirect_stdout(output): self.assertEqual(main(["mode-plan", str(path)]), 0)
+        self.assertIn(REVIEWED_COMMIT, output.getvalue())
 
     def test_switch_rejects_active_or_unknown_transfers_and_requires_offline_reboot(self):
         evidence = SwitchEvidence(True, 0, 0, False, True, True, True)

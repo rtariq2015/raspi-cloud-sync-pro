@@ -9,6 +9,7 @@ import os
 import re
 import stat
 import subprocess
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -332,7 +333,39 @@ class LinuxGadgetBackend:
         self._result(["umount", str(self.mountpoint)])
 
     def detach_loop(self, loop):
+        self._pin_image()
         self.verify_loop_read_only(loop)
         if self._mounts((loop,)):
             raise BackupError("loop_still_mounted")
         self._result(["losetup", "--detach", self._device(loop)])
+        # Linux can acknowledge a lazy detach while a closing opener still
+        # retains the association. Observe only this image; never force detach
+        # or treat the acknowledgement as proof that local references vanished.
+        deadline = time.monotonic() + 5
+        while True:
+            self._pin_image()
+            remaining_loops = self._loops()
+            if remaining_loops:
+                if (len(remaining_loops) != 1 or remaining_loops[0].get("name") != loop
+                        or remaining_loops[0].get("ro") not in (True, 1)):
+                    raise BackupError("loop_detach_unverified")
+            try:
+                mounts = self._mounts((loop,) if remaining_loops else ())
+            except BackupError:
+                # The lazy association can vanish between losetup and lsblk.
+                # Only a fresh empty image inventory permits the absent path;
+                # other query failures or replacement associations still stop.
+                if not remaining_loops or self._loops():
+                    raise
+                remaining_loops = []
+                mounts = self._mounts(())
+            if mounts:
+                raise BackupError("loop_still_mounted")
+            if not remaining_loops:
+                if time.monotonic() > deadline:
+                    raise BackupError("loop_detach_unverified")
+                return
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise BackupError("loop_detach_unverified")
+            time.sleep(min(0.05, remaining))

@@ -1,6 +1,10 @@
 # Phase 2 validation record
 
-Current source: **0.1.0.dev18**, with **769 Python tests passing** locally.
+Current source: **0.1.0.dev19**, with **810 core Python tests and 28 USB operator
+tests passing** locally, including actual rclone against a temporary local alias.
+The [first actual Windows USB file](CORE_RECOVERY.md) now passed safe manual
+handoff, local capture and automatic Google upload/downloaded-hash verification.
+Physical outage/reboot and continuous capture acceptance remain incomplete.
 The dated records below distinguish earlier builds and real-device evidence.
 
 Date: 2026-11-12. Linux x86-64 development environment, Python 3.12.3.

@@ -4,9 +4,9 @@
 
 # Raspi Cloud Sync Pro
 
-**Turn a Raspberry Pi Zero 2 W into a file hub you can reach from your browser.**
+**A smart USB flash drive for Raspberry Pi Zero 2 W — under development.**
 
-Local storage · Verified cloud backups · Desktop and phone dashboard
+Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 
 [![Development checks](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions/workflows/tests.yml/badge.svg?branch=development)](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions/workflows/tests.yml)
 [![GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-447fc1)](LICENSE)
@@ -16,13 +16,33 @@ Local storage · Verified cloud backups · Desktop and phone dashboard
 
 </div>
 
-> **Development preview — 14 November 2026.** The dashboard runs on a real Pi,
-> with a fixed HTTPS preview address and persistent services.
-> The first controlled Google Drive QA backup passed upload and independent
-> read-back verification. Automatic cloud setup, Windows/USB share acceptance and
-> a ready-to-flash image remain unfinished. No production release has been published.
+> **First real USB-to-Google file verified — 14 November 2026.** Windows copied
+> a 10,490,314-byte file onto the Pi's writable CLOUDSTICK drive. After the user
+> safely ejected, an operator-confirmed handoff captured it read-only; the
+> background worker uploaded it to Google Drive and verified downloaded contents.
+> Permanent automatic capture, offline/reboot acceptance and a no-eject workflow
+> remain unfinished. [Exact results and limits](docs/CORE_RECOVERY.md).
 
-## Meet your dashboard
+## The core product comes first
+
+1. Plug into Windows and appear as a genuine USB storage drive; Windows assigns its letter.
+2. Copy files normally, without installing a Windows application.
+3. Capture only under verified safe filesystem ownership; retain files when offline.
+4. Upload over the Pi's built-in Wi-Fi into the selected Google Drive folder.
+5. Verify uploaded contents, retry failures and avoid repeating verified versions.
+
+The first writable-drive/capture/upload test now passes. Its capture handoff was
+operator-confirmed; the unattended capture service still needs acceptance.
+A quiet period cannot prove host caches are flushed or
+files are complete. Classic mass storage currently requires a clean host eject
+before Pi-side staging. Eliminating that requirement is a research target, not
+an implemented guarantee. The OS and existing files are being preserved.
+
+The Zero 2 W's single USB OTG controller serves the Windows connection in gadget
+mode; a conventional USB Wi-Fi adapter cannot use that same controller as a host
+at the same time. Use built-in Wi-Fi for this design.
+
+## Optional dashboard preview
 
 See your files, open a text preview, download a copy, and follow backup history
 from one interface. Owners can upload; viewers can browse and download.
@@ -35,8 +55,9 @@ address is replaced with a generic label. No cloud backup is claimed in this vie
 ## Built for the way you work
 
 **Plug in.** The intended everyday mode uses one USB data cable for power and
-Ethernet. Your computer accesses files through an authenticated Samba network
-drive while the Pi retains filesystem ownership. Actual share acceptance is pending.
+genuine mass storage. USB Ethernet/Samba remains an optional alternative; it does
+not satisfy the requested flash-drive interface. The first disposable-image
+mass-storage trial has now accepted a real Windows file copy.
 
 **Keep a local copy.** Completed files stay on the Pi when an approved Internet
 connection is unavailable. The backup engine queues jobs and retries; it never
@@ -46,8 +67,9 @@ automatically deletes originals or staged files.
 separate jobs per destination. “Verified” means remote contents were downloaded
 and checked against SHA-256. Real Google browser authorization and one controlled
 QA-file backup have passed on the Pi. Koofr and Dropbox real-account tests remain.
-The guided folder/test/enable workflow and persistent background worker are still
-being completed; automatic uploads remain disabled.
+The web folder/test/enable workflow is unfinished. Separately, the approved USB
+trial now runs a persistent Google worker for completed local batches; its first
+real Windows file passed upload and downloaded-content verification.
 
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
@@ -64,22 +86,23 @@ See [remote access](docs/REMOTE_ACCESS.md).
 
 | Working and tested | Next acceptance step |
 | --- | --- |
-| Home Wi-Fi and authenticated SSH | Stable USB addressing, reboot and long-duration checks |
+| Home Wi-Fi and authenticated SSH | Reboot and long-duration checks |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated HTTPS preview; fixed-address login page and enabled persistent services | Actual reboot, off-LAN phone and Android web-app installation |
-| First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
+| First real Windows USB file captured and automatically backed up to Google Drive | Permanent eject capture, physical outage/reboot and repeated-transfer acceptance |
 | Fresh owner-requested Google preparation through the persistent watcher | Live Test/Enable and recurring backup acceptance |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**769 Python tests and 11 Rust tests pass locally.** Python tests include actual
+**810 core Python tests and 28 hardware-free USB operator tests pass locally.**
+The existing Rust suite has 11 tests; Rust source is unchanged. Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
 
-The current preview supports Google sign-in and owner-requested preparation
+The optional web preview supports Google sign-in and owner-requested preparation
 through a persistent setup service. The fresh request after restoring the fixed
 website address now reaches **Configuration prepared · Test required**. This
 creates a disabled local configuration; a cloud test and explicit enablement
@@ -97,8 +120,9 @@ selected completed batch. Pending owner controls now have event/recovery
 service examples. The dev17 package is installed inactive on the Pi; its new
 control and upload services remain off. Dev18 source also connects
 completed web-file transfer to the selected-batch dispatcher. Native acceptance,
-recurring scheduling and file-status reporting remain before automatic uploads
-can be enabled. Follow [Project progress](docs/STATUS.md)
+recurring scheduling and file-status reporting remain for that web-driven path.
+The new USB trial instead uses the existing operator-enabled staged worker.
+Follow [Project progress](docs/STATUS.md)
 for the current deployment and [the implementation guide](docs/GOOGLE_CONTROLS.md)
 for the developer details.
 
@@ -108,24 +132,25 @@ copies; the file limit remains 100 MiB.
 [Upload repair evidence](docs/acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
 
 The dashboard currently lists completed **web uploads**. Broader file browsing,
-the Samba-to-dashboard bridge and automatic cloud backups remain in development.
+the Samba-to-dashboard bridge and dashboard status for the USB worker remain in development.
 
-## Two USB modes, one clear ownership rule
+## USB storage first; network sharing remains optional
 
-**What appears on the computer today?** The connected Pi presents a USB Ethernet
-adapter. A flash-drive entry in Explorer is not expected in this mode. Mapping
-the planned Samba share as a drive still needs Windows/USB acceptance.
+**What appears on the computer today?** The approved Pi trial presents a genuine
+writable USB mass-storage disk labelled CLOUDSTICK. The user confirmed a Windows
+copy and safe eject. The new [core acceptance record](docs/CORE_RECOVERY.md)
+separates that test from earlier dashboard and Samba work.
 
-**USB Ethernet + Samba — preferred for continuous backups.** Linux owns the
-filesystem. Network file operations allow controlled staging without sharing a
-writable block filesystem with the computer. Planned Windows access includes a
-mapped drive such as `Z:`.
-
-**USB mass storage — compatibility option.** The computer sees a traditional
+**USB mass storage — primary product mode.** The computer sees a traditional
 flash drive. New-file staging waits for a coordinated flush/eject and verified
 exclusive Pi access. A quiet period cannot prove a file is complete, and a
 read-only mount cannot make concurrent host writes safe. Modes are not enabled
 together. See [the USB architecture](docs/PHASE2.md).
+
+**USB Ethernet + Samba — optional alternative.** Linux owns the filesystem.
+Network file operations permit live staging without sharing a writable block
+filesystem. It uses a mapped network drive rather than a normal USB flash drive.
+Use `config/device.ethernet-samba.example.json` to plan that mode explicitly.
 
 ## Start here
 

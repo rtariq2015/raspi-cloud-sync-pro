@@ -124,6 +124,97 @@ class GadgetControllerTests(unittest.TestCase):
                 self.assertEqual(self.controller.poll(self.root / "staging"), "waiting_for_host_eject")
             self.assertEqual(self.backend.events, [])
 
+    def test_explicit_new_journal_host_adoption_waits_for_fresh_poll(self):
+        self.backend.attach_gadget()
+        self.backend.events.clear()
+        with self.controller.session():
+            self.controller.start(adopt_host=True)
+            self.assertTrue(self.controller.started)
+            self.assertFalse(self.controller.armed)
+            self.assertEqual(self.controller.ownership.state, Ownership.HOST)
+            self.assertEqual(self.backend.events, [])
+            self.assertFalse((self.root / "staging").exists())
+            saved = json.loads((self.root / "state/controller.json").read_text())
+            self.assertEqual(saved["phase"], "host")
+            self.assertEqual(saved["image"], str(self.backend.image))
+            self.assertEqual(saved["image_identity"], list(self.backend.image_identity))
+            self.assertIsNone(saved["loop"])
+            self.assertEqual(self.controller.poll(self.root / "staging"), "waiting_for_host_eject")
+            self.assertTrue(self.controller.armed)
+            self.assertEqual(self.backend.events, [])
+            self.backend.eject()
+            batch = self.controller.poll(self.root / "staging")
+            self.assertEqual((batch.root / "files/original.txt").read_bytes(), b"retain original")
+            self.assertTrue(self.backend.bound)
+        self.assertEqual((self.backend.mountpoint / "original.txt").read_bytes(), b"retain original")
+
+    def test_adoption_does_not_authorize_empty_lun_before_loaded_poll(self):
+        self.backend.attach_gadget()
+        self.backend.events.clear()
+        with self.controller.session():
+            self.controller.start(adopt_host=True)
+            self.backend.eject()
+            with self.assertRaisesRegex(BackupError, "host_release_unproven"):
+                self.controller.poll(self.root / "staging")
+            self.assertEqual(self.backend.events, [])
+            self.assertFalse((self.root / "staging").exists())
+            self.assertFalse(self.controller.armed)
+            self.assertEqual(self.controller.journal.data["phase"], "recovery_required")
+
+    def test_default_start_does_not_adopt_loaded_host(self):
+        self.backend.attach_gadget()
+        self.backend.events.clear()
+        with self.controller.session(), self.assertRaisesRegex(BackupError, "image_not_exclusive"):
+            self.controller.start()
+        self.assertEqual(self.backend.events, [])
+
+    def test_adoption_flag_refuses_coercion_before_backend_observation(self):
+        for value in (1, 0, "false", "true", [], {}, None):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                backend = SimulatedGadget(root)
+                controller = GadgetController(backend, root / "state")
+                with controller.session(), mock.patch.object(backend, "observe") as observe:
+                    with self.assertRaisesRegex(BackupError, "invalid_host_adoption_request"):
+                        controller.start(adopt_host=value)
+                    observe.assert_not_called()
+                self.assertEqual(backend.events, [])
+
+    def test_adoption_requires_verified_configured_exclusive_loaded_host(self):
+        faults = {"unbound": ("bound", False), "unconfigured": ("configured", False),
+                  "empty": ("backing", ""), "wrong_image": ("backing", "/unexpected/image"),
+                  "loop": ("loop", "/dev/loop42"), "mounted": ("mounted", True),
+                  "power": ("power_ok", False), "profile": ("profile_ok", False)}
+        for fault, (attribute, value) in faults.items():
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                backend = SimulatedGadget(root)
+                backend.attach_gadget()
+                backend.events.clear()
+                setattr(backend, attribute, value)
+                controller = GadgetController(backend, root / "state")
+                with controller.session(), self.assertRaises(BackupError):
+                    controller.start(adopt_host=True)
+                self.assertEqual(backend.events, [])
+                self.assertFalse(controller.armed)
+                self.assertFalse((root / "staging").exists())
+
+    def test_adoption_cannot_override_ambiguous_existing_journal(self):
+        for phase in ("recovery_required", "attach_intent", "eject_observed"):
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                backend = SimulatedGadget(root)
+                backend.attach_gadget()
+                backend.events.clear()
+                controller = GadgetController(backend, root / "state")
+                with controller.session():
+                    controller._save(phase)
+                restarted = GadgetController(backend, root / "state")
+                with restarted.session(), self.assertRaisesRegex(BackupError, "controller_recovery_required"):
+                    restarted.start(adopt_host=True)
+                self.assertEqual(backend.events, [])
+                self.assertFalse(restarted.armed)
+
     def test_startup_with_empty_lun_cannot_claim_ejection(self):
         with self.controller.session():
             self.arm(self.controller)

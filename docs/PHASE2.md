@@ -9,8 +9,8 @@ for a separately approved disposable-data Pi trial, not a hardware release.
 
 | Mode | Windows experience | Filesystem owner | Safe automatic capture |
 | --- | --- | --- | --- |
-| `ethernet_samba` — preferred | USB Ethernet adapter plus mapped network drive | Pi/Linux; Windows sends SMB file operations | Hold an SMB read handle denying write/delete opens, stage that version, then release it |
-| `mass_storage` — compatibility option | Removable block disk / flash-drive interface | Windows while exported | Only after a supported clean host eject, closed LUN and detached gadget |
+| `mass_storage` — primary product | Removable block disk / flash-drive interface | Windows while exported | Only after a supported clean host eject, closed LUN and detached gadget |
+| `ethernet_samba` — optional alternative | USB Ethernet adapter plus mapped network drive | Pi/Linux; Windows sends SMB file operations | Hold an SMB read handle denying write/delete opens, stage that version, then release it |
 
 Mass storage cannot satisfy “keep Windows writable ownership and automatically
 read newly copied files without a release protocol.” Quiet periods, timestamps,
@@ -20,10 +20,10 @@ Mass-storage mode therefore waits for a supported eject; it never times out into
 a read. Windows removal may disable the entire USB device rather than just eject
 its LUN, so automatic reappearance is hardware/driver dependent.
 
-Ethernet/Samba meets the desired continuous-access architecture, subject to real
-server/driver acceptance. It is a network drive, not a physical removable disk:
-software/cameras requiring a block device must use the compatibility mode and
-accept its handoff requirement. Composite Ethernet plus writable mass storage is
+Ethernet/Samba supports continuous access, subject to real server/driver acceptance.
+It is a network drive and does not satisfy the requested genuine USB flash-drive
+interface. Mass storage is now the first delivery priority, using built-in Wi-Fi;
+automatic no-eject capture remains unproven. Composite Ethernet plus writable mass storage is
 not implemented; never expose the Samba filesystem as a writable USB LUN.
 
 ## Implemented files

@@ -20,6 +20,9 @@ class CliTests(unittest.TestCase):
         self.assertEqual(status["cloud_sync"], "adapters_available_service_disabled")
         self.assertEqual(status["backup_engine"], "staged_files_only")
         self.assertFalse(status["automatic_deletion"])
+        self.assertEqual(status["preferred_usb_mode"], "mass_storage")
+        self.assertEqual(status["mass_storage_capture"], "requires_verified_host_eject")
+        self.assertEqual(status["automatic_usb_to_cloud"], "not_accepted")
 
     def test_config_check_explains_limits(self):
         output = io.StringIO()

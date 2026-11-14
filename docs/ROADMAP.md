@@ -1,5 +1,18 @@
 # Development roadmap
 
+## Immediate delivery order — USB flash drive and Google Drive
+
+1. Accept a genuine writable USB mass-storage drive on Windows using a separate
+   disposable image, the existing OS and built-in Wi-Fi management.
+2. Accept clean host eject, exclusive read-only staging and retained originals.
+3. Connect those staged files to Google Drive, then accept offline queuing,
+   retries, content verification and duplicate suppression on real hardware.
+4. Investigate no-eject capture without treating quiet time or a read-only mount
+   as a consistency guarantee. It is not yet a supported capability.
+
+Dashboard expansion, additional providers, phone features and Ethernet/Samba
+deployment are deferred until this core works. Existing components stay preserved.
+
 ## Foundation — complete
 
 Preserve Koseng's history, original README and GPL-3.0; document upstream behavior;
@@ -27,7 +40,7 @@ read-only loops/mounts, non-repairing exFAT checks, an intent journal, cross-pro
 locking and conservative resource recovery. Host release detection is session-bound;
 actual kernel/Windows behavior remains to be validated.
 
-USB Ethernet is the preferred mode, using the official Raspberry Pi external
+USB Ethernet remains an optional alternative, using the official Raspberry Pi external
 RNDIS/CDC-ECM provider with a stable USB-local network policy and authenticated
 SMB3 sharing. SMB deny-write/delete snapshots feed the existing durable queue and
 verification/retry engine. Wi-Fi is unnecessary for local file capture. Device

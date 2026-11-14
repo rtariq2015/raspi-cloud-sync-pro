@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "mode": "ethernet_samba",
+  "approved_uplinks": ["wifi"],
+  "allow_metered": false
+}

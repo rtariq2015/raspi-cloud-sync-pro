@@ -1,0 +1,26 @@
+[Unit]
+Description=Raspi Cloud Sync Pro approved disposable mass-storage capture
+After=local-fs.target systemd-modules-load.service
+ConditionPathExists=/etc/raspi-cloud-sync-pro/MASS_STORAGE_APPLIANCE_APPROVED
+
+[Service]
+Type=simple
+# This is a protected, separately approved test build, not the public package.
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B /opt/raspi-cloud-sync-pro/qa/mass-storage-appliance-dev19/launcher.py
+WorkingDirectory=/
+Environment=PATH=/usr/sbin:/usr/bin:/sbin:/bin HOME=/nonexistent LANG=C LC_ALL=C
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+PrivateMounts=no
+# Loop/mount observation requires PID1's host mount namespace. PrivateTmp,
+# PrivateDevices, ProtectSystem and filesystem namespace restrictions are not
+# compatible with this prototype. The Root controller has no network/provider API.
+LimitCORE=0
+Restart=no
+TimeoutStopSec=30
+
+# No Install section: this slice adopts an existing loaded profile. It does not
+# reconstruct configfs after a Pi reboot and must not be boot-enabled as-is.

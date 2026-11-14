@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
 
-from raspi_cloud_sync_pro.device_modes import DevicePolicy
+from raspi_cloud_sync_pro.device_modes import DeviceMode, DevicePolicy
 from raspi_cloud_sync_pro.engine import BackupEngine
 from raspi_cloud_sync_pro.errors import BackupError
 from raspi_cloud_sync_pro.history import History
@@ -112,7 +112,7 @@ class SambaIngestTests(unittest.TestCase):
 
     def test_wifi_outage_does_not_prevent_local_capture_or_spend_cloud_attempts(self):
         coordinator = NetworkBackupCoordinator(self.ingestor, BackupEngine(self.history),
-                                               [self.provider], DevicePolicy())
+                                               [self.provider], DevicePolicy(mode=DeviceMode.ETHERNET_SAMBA))
         result = coordinator.tick(self.share, 100)
         self.assertEqual(result["staged"], 1)
         self.assertEqual(result["cloud"], ["paused"])
@@ -124,7 +124,7 @@ class SambaIngestTests(unittest.TestCase):
 
     def test_cloud_failure_retries_and_hotspots_require_metered_approval(self):
         coordinator = NetworkBackupCoordinator(self.ingestor, BackupEngine(self.history),
-                                               [self.provider], DevicePolicy())
+                                               [self.provider], DevicePolicy(mode=DeviceMode.ETHERNET_SAMBA))
         result = coordinator.tick(self.share, 100, observed_uplink="wifi", connectivity=Connectivity.ONLINE,
                                   metered=True)
         self.assertEqual(result["cloud"], ["paused"])

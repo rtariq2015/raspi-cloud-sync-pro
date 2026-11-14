@@ -3,7 +3,10 @@
 **Do not apply device setup to the development computer.** This guide prepares a
 future trial; Phase 2 does not authorize flashing, formatting, changing boot/network
 settings or starting hardware services. Live operations remain code-gated off.
-Use the preferred Ethernet/Samba mode first; mass storage is a separate trial.
+Genuine mass storage is the current first priority; Ethernet/Samba is optional.
+For the existing Pi, prepare a separate disposable image and preserve its OS and
+built-in Wi-Fi. The historical fresh-device/Samba sequence below is not the
+current installation plan. The mass-storage ownership rules in section 8 apply.
 
 An existing Pi now has a verified USB/Wi-Fi management baseline; see
 [PI_CONNECTIVITY.md](PI_CONNECTIVITY.md). Preserve that working access. Do not
@@ -19,8 +22,9 @@ selected mode, Windows host and test scope. Back up anything valuable elsewhere.
 Record OS image, kernel, architecture, Python, provider package, Samba, smbprotocol
 and rclone versions. The official provider reviewed here targets `pios/trixie`;
 do not assume the same package is available or behaves identically on Bookworm.
-Use a fresh approved Raspberry Pi OS Lite installation prepared separately.
-No project script creates, partitions, formats or repairs storage.
+Preserve the existing Raspberry Pi OS installation for the current trial; fresh
+installation is optional for another device. The ordinary project runtime does
+not create, partition, format or repair storage.
 
 Use one data-capable micro-USB cable in the Zero 2 W's USB/OTG port nearest HDMI.
 Check the intended host's power capability with suitable measurement equipment,

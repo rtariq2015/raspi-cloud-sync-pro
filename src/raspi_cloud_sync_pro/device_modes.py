@@ -15,7 +15,7 @@ class DeviceMode(str, Enum):
 
 @dataclass(frozen=True)
 class DevicePolicy:
-    mode: DeviceMode = DeviceMode.ETHERNET_SAMBA
+    mode: DeviceMode = DeviceMode.MASS_STORAGE
     approved_uplinks: tuple = ("wifi",)
     allow_metered: bool = False
 

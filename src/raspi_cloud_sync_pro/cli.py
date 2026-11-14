@@ -594,7 +594,9 @@ def main(argv: Optional[List[str]] = None) -> int:
             "backup_engine": "staged_files_only",
             "wifi_management": "validation_only",
             "automatic_deletion": False,
-            "preferred_usb_mode": "ethernet_samba",
+            "preferred_usb_mode": "mass_storage",
+            "mass_storage_capture": "requires_verified_host_eject",
+            "automatic_usb_to_cloud": "not_accepted",
             "live_mode_switch": "disabled",
             "dashboard": "optional_authenticated_preview",
         }, indent=2))

@@ -143,9 +143,15 @@ class GadgetController:
                 raise BackupError("gadget_io_failed") from error
             raise
 
-    def start(self):
-        """New controller sessions never reuse an old eject observation."""
+    def start(self, *, adopt_host=False):
+        """Start unarmed; explicitly adopt loaded host media only with a new journal.
+
+        Adoption records current host ownership without inspecting the filesystem.
+        A later configured, loaded poll must still precede any accepted eject.
+        """
         with self._operation():
+            if type(adopt_host) is not bool:
+                raise BackupError("invalid_host_adoption_request")
             observation = self._observe()
             previous = self.journal.data
             if previous and (previous.get("image") != str(self.backend.image)
@@ -158,6 +164,14 @@ class GadgetController:
                     raise BackupError("controller_recovery_required")
                 self._power(observation)
                 self.ownership.confirm_host_access(locally_unmounted=True, loop_detached=True)
+            elif adopt_host:
+                if not observation.bound or not observation.configured \
+                        or observation.backing != str(self.backend.image) \
+                        or observation.loops or observation.mounts:
+                    raise BackupError("host_adoption_unverified")
+                self._power(observation)
+                self.ownership.confirm_host_access(locally_unmounted=True, loop_detached=True)
+                self._save("host")
             else:
                 self._detached(observation)
                 self._attach()

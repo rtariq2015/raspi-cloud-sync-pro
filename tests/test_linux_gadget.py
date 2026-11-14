@@ -1,9 +1,8 @@
 import io
 import json
 import subprocess
-import tempfile
 import unittest
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
@@ -121,6 +120,88 @@ class LinuxBackendTests(unittest.TestCase):
         self.io.mountinfo = "20 1 259:1 / /somewhere ro - exfat /dev/loop42p1 ro"
         with self.assertRaisesRegex(BackupError, "still_mounted"):
             self.backend.detach_loop("/dev/loop42")
+
+    def test_lazy_loop_detach_observes_own_association_until_it_vanishes(self):
+        own = {"name": "/dev/loop42", "back-file": str(self.settings.image), "ro": True}
+        swap = {"name": "/dev/loop0", "back-file": "/var/swap", "ro": False}
+        snapshots = iter(([swap, own], [swap, own], [swap, own], [swap]))
+        query = self.io.query
+        now = [0.0]
+
+        def inventory(arguments):
+            if arguments[0] == "losetup":
+                return subprocess.CompletedProcess(arguments, 0, json.dumps({"loopdevices": next(snapshots)}), "")
+            return query(arguments)
+
+        def sleep(seconds):
+            now[0] += seconds
+
+        with mock.patch.object(self.io, "query", side_effect=inventory), \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.monotonic", side_effect=lambda: now[0]), \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.sleep", side_effect=sleep) as pause:
+            self.backend.detach_loop("/dev/loop42")
+        self.assertEqual(pause.call_count, 2)
+        self.assertAlmostEqual(now[0], 0.1)
+        self.assertEqual(self.io.commands, [["losetup", "--detach", "/dev/loop42"]])
+        self.assertEqual(self.io.writes, [])
+
+    def test_lazy_loop_detach_persistent_association_refuses_after_bounded_wait(self):
+        now = [0.0]
+        with mock.patch("raspi_cloud_sync_pro.linux_gadget.time.monotonic", side_effect=lambda: now[0]), \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.sleep", side_effect=lambda seconds: now.__setitem__(0, now[0] + seconds)):
+            with self.assertRaisesRegex(BackupError, "loop_detach_unverified"):
+                self.backend.detach_loop("/dev/loop42")
+        self.assertAlmostEqual(now[0], 5.0)
+        self.assertEqual(self.io.commands, [["losetup", "--detach", "/dev/loop42"]])
+        self.assertEqual(self.io.writes, [])
+
+    def test_lazy_loop_detach_refuses_changed_or_additional_own_image_loops(self):
+        own = {"name": "/dev/loop42", "back-file": str(self.settings.image), "ro": True}
+        for remaining in ([{**own, "name": "/dev/loop43"}], [own, {**own, "name": "/dev/loop43"}],
+                          [{**own, "ro": False}]):
+            with self.subTest(remaining=remaining), \
+                    mock.patch.object(self.backend, "_loops", side_effect=[[own], remaining]), \
+                    mock.patch("raspi_cloud_sync_pro.linux_gadget.time.sleep") as pause:
+                with self.assertRaisesRegex(BackupError, "loop_detach_unverified"):
+                    self.backend.detach_loop("/dev/loop42")
+                pause.assert_not_called()
+        self.assertTrue(all(arguments == ["losetup", "--detach", "/dev/loop42"] for arguments in self.io.commands))
+
+    def test_lazy_loop_detach_refuses_a_mount_appearing_while_waiting(self):
+        with mock.patch.object(self.backend, "_mounts", side_effect=[(), (("/other", "7:42", "ro", "exfat"),)]), \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.sleep") as pause:
+            with self.assertRaisesRegex(BackupError, "loop_still_mounted"):
+                self.backend.detach_loop("/dev/loop42")
+            pause.assert_not_called()
+        self.assertEqual(self.io.commands, [["losetup", "--detach", "/dev/loop42"]])
+
+    def test_lazy_loop_vanishing_during_block_lookup_requires_fresh_empty_inventory(self):
+        own = {"name": "/dev/loop42", "back-file": str(self.settings.image), "ro": True}
+        with mock.patch.object(self.backend, "_loops", side_effect=[[own], [own], []]), \
+                mock.patch.object(self.backend, "_mounts", side_effect=[(), BackupError("loop_inventory_unverified"), ()]) as mounts, \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.monotonic", return_value=0), \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.sleep") as pause:
+            self.backend.detach_loop("/dev/loop42")
+            self.assertEqual(mounts.call_args.args, ((),))
+            pause.assert_not_called()
+        self.assertEqual(self.io.commands, [["losetup", "--detach", "/dev/loop42"]])
+        for remaining in ([own], [{**own, "name": "/dev/loop43"}]):
+            with self.subTest(remaining=remaining), \
+                    mock.patch.object(self.backend, "_loops", side_effect=[[own], [own], remaining]), \
+                    mock.patch.object(self.backend, "_mounts", side_effect=[(), BackupError("loop_inventory_unverified")]), \
+                    mock.patch("raspi_cloud_sync_pro.linux_gadget.time.sleep") as pause:
+                with self.assertRaisesRegex(BackupError, "loop_inventory_unverified"):
+                    self.backend.detach_loop("/dev/loop42")
+                pause.assert_not_called()
+
+    def test_lazy_loop_detach_late_absence_is_not_success_within_budget(self):
+        own = {"name": "/dev/loop42", "back-file": str(self.settings.image), "ro": True}
+        with mock.patch.object(self.backend, "_loops", side_effect=[[own], []]), \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.monotonic", side_effect=[0, 6]), \
+                mock.patch("raspi_cloud_sync_pro.linux_gadget.time.sleep") as pause:
+            with self.assertRaisesRegex(BackupError, "loop_detach_unverified"):
+                self.backend.detach_loop("/dev/loop42")
+            pause.assert_not_called()
 
     def test_detach_never_clears_loaded_lun_or_uses_forced_eject(self):
         self.io.values[str(self.backend.lun / "file")] = str(self.settings.image)

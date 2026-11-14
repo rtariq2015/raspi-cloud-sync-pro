@@ -1,9 +1,11 @@
 # Architecture
 
-Phase 2 adds the guarded device and sharing layers described in
-[PHASE2.md](PHASE2.md). USB Ethernet plus authenticated Samba is the preferred
-continuous-backup mode; mass storage remains an explicit-eject compatibility mode.
-The Phase 1 core and its guarantees below remain in use.
+The primary product is genuine USB mass storage plus built-in Wi-Fi Google Drive
+backup. The immediate acceptance order is writable Windows drive, safe ownership
+handoff, then verified automatic backup. Stock mass storage still requires a clean
+host eject before staging; no-eject capture is unproven. The device/sharing layers
+in [PHASE2.md](PHASE2.md) preserve Ethernet/Samba as an optional alternative, not a
+replacement for the requested flash-drive interface. The Phase 1 guarantees remain.
 
 The package in `src/raspi_cloud_sync_pro/` evolves Koseng's image → local transfer
 directory → upload design into explicit boundaries. The original source remains
@@ -13,6 +15,7 @@ quarantine. New code does not import those service loops.
 | File | Implemented responsibility |
 | --- | --- |
 | `storage.py` | Fail-closed ownership model; requires clean host release, closed gadget/drained I/O, read-only access, and successful unmount/detach evidence |
+| `mass_storage_appliance.py` | Source-disabled approved-test runtime: continuous ownership controller, explicit existing-host adoption, and no-replace private snapshot handoff to the backup identity; no cloud or reboot provisioning |
 | `staging.py` | Full recursive inventory, descriptor-based no-symlink reads, streamed SHA-256, source-change checks, space reserve, flushed files/manifest and atomic ready publication |
 | `history.py` | SQLite schema version 1, transactional jobs and events, destination/version deduplication, atomic claims, OS worker lock, interrupted-job recovery and read-only history |
 | `engine.py` | One attempt at a time; distinct upload/verification events; capped exponential backoff; network/metered gating; retain every source/staged file |
@@ -46,7 +49,10 @@ quarantine. New code does not import those service loops.
 The new [Google control and transfer components](GOOGLE_CONTROLS.md) have
 source-tested owner dashboard controls, a default-denied private tester and a
 separate per-batch upload API.
-They are not yet deployed or connected to a live recurring cloud executor.
+That web-driven path is not yet connected to a live recurring cloud executor.
+The [core USB trial](CORE_RECOVERY.md) separately uses the existing operator-enabled
+staged worker under the backup identity; its first actual Windows file now passes
+automatic Google upload and downloaded-content verification.
 
 ```mermaid
 flowchart LR
