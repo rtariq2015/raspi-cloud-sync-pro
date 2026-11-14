@@ -1134,7 +1134,7 @@ checks passed. Debian's `/usr/sbin/ip` is a symlink to `/usr/bin/ip`. The latter
 was independently observed as a root-owned mode-0755 regular file with one link
 from iproute2 6.15.0-1. Dev14 gates and invokes that canonical path; the strict
 symlink refusal remains tested. No capability expansion was needed for this
-path correction. Corrected native coordinator startup is still pending.
+path correction. The following separate dev14 observations update startup only.
 
 The captured test service stopped with no remaining processes. Existing live
 services, private state, account/configuration metadata, Wi-Fi/routes/DNS, USB
@@ -1147,3 +1147,26 @@ The live dashboard remains the protected dev11 upload repair. Public HTTPS login
 still returned HTTP 200 with the expected form during this follow-up. Source
 changes do not imply a working Windows mapped drive, restored Google requests,
 automatic backups, physical Android acceptance or a release.
+
+The tested dev14 wheel (`386bacff…`, source `c5c0bfa`) was subsequently installed
+into a fresh protected inactive prefix. Exact package/dependency bytes, copied
+interpreter and imports/console execution as both ordinary identities passed;
+the live dashboard and all previous prefixes were preserved. Both GitHub Actions
+runs for that source passed Python 3.9/3.12/3.13, local rclone, isolated Samba,
+Rust tests and ARM64 cross-build checks.
+
+The dev14 idle-only native trial observed the actual protected coordinator's
+expected idle JSON and its root/capability/NNP/seccomp/mount sample. The original
+helper still returned failure: the successful one-shot service cleared its
+terminal InvocationID, which the helper required for its post-exit ownership
+checks. This is retained as a helper failure, not relabeled as a full pass.
+
+Independent read-only reconciliation checked the root-owned unit bytes against
+its durable plan, unchanged description/fragment, the captured invocation's exact
+idle journal, inactive/dead state, zero main/control PIDs and an empty/missing
+cgroup. A separate dependency-link check found no wants/requires links for this
+unit under `/etc` or `/run`. No reconciliation write or re-run was performed.
+The full coordinator service, cross-identity source children, BPF capability
+sufficiency, valid release, real Google Test/refresh and recurring worker remain
+unaccepted. Live services, private configuration and networking were preserved.
+[Dev14 installation and idle observations](acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).

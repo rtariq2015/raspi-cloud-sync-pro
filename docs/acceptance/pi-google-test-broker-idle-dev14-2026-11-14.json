@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "source_commit": "c5c0bfafc2da32187a71b7b918cacd5b5121bec9",
+  "installed_version": "0.1.0.dev14",
+  "wheel_sha256": "386bacffd12a16778e5eb06ff5e10034124ec35f20150888d537843f422318b4",
+  "wheel_bytes": 200419,
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie aarch64",
+  "kernel": "6.18.60+rpt-rpi-v8",
+  "systemd": "257.13-1~deb13u1",
+  "inactive_installation_accepted": true,
+  "installation_checks": {
+    "fresh_protected_prefix_and_copied_interpreter": true,
+    "exact_wheel_modules_verified": true,
+    "existing_public_dependency_bytes_preserved": true,
+    "ordinary_dashboard_and_backup_imports_and_console_verified": true,
+    "live_dashboard_or_units_changed": false,
+    "all_predecessor_prefixes_retained": true
+  },
+  "idle_only_observations": {
+    "actual_installed_cli_idle_json_verified": true,
+    "status": "idle",
+    "code": "google_test_broker_no_request",
+    "root_identity_and_expected_capability_sample_observed": true,
+    "no_new_privileges_seccomp_and_mount_policy_sample_observed": true,
+    "empty_synthetic_source_used": true,
+    "full_qa_helper_passed": false,
+    "helper_limitation": "The successful one-shot service cleared its terminal InvocationID. The helper requires the captured ID and refused its post-exit ownership check."
+  },
+  "independent_read_only_reconciliation": {
+    "exact_root_owned_unit_bytes_description_and_fragment_verified": true,
+    "captured_invocation_journal_has_exact_idle_result": true,
+    "unit_inactive_and_dead": true,
+    "main_and_control_pid_zero": true,
+    "control_group_empty_and_cgroup_absent": true,
+    "terminal_invocation_id_empty": true,
+    "no_dependency_enablement_links_observed": true,
+    "reconciliation_changed_unit_or_configuration": false
+  },
+  "scope_limits": {
+    "full_coordinator_service_accepted": false,
+    "bpf_inspection_capability_sufficiency_qualified": false,
+    "source_child_identity_drop_tested": false,
+    "real_owner_intent_or_prepared_state_used": false,
+    "google_authorization_payloads_read": false,
+    "worker_started_or_valid_gate_sent": false,
+    "provider_test_or_token_refresh_performed": false,
+    "recurring_uploads_or_windows_share_accepted": false
+  },
+  "preserved": {
+    "live_dashboard_and_connector": true,
+    "accounts_and_private_configuration_metadata": true,
+    "wifi_routes_dns_and_usb_address_carrier": true,
+    "network_settings_and_boot_enablement": true,
+    "all_private_fixture_records": true
+  },
+  "automatic_backups_enabled": false,
+  "notes": "The source identity gate reads the protected local locked-account database. No password, token, account identifier, private state path or service invocation identifier is included. The live dashboard remains dev11. These observations do not qualify a credentialed worker or provide future release authority."
+}

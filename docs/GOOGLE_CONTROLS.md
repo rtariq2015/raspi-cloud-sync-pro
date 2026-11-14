@@ -195,11 +195,16 @@ The private operator command is:
 /opt/raspi-cloud-sync-pro/releases/0.1.0.dev14/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
 ```
 
-The example targets dev14 source; it does not install that build. The inactive
+The example targets dev14 source; it does not install that build. A protected
+dev14 prefix has separately passed inactive installation checks. The older inactive
 protected dev13 build also contains the command, but its separate idle-service
 trial failed before handling requests: Debian's `/usr/sbin/ip` symlink was
 correctly refused by the no-follow executable check. Dev14 uses the verified
-canonical `/usr/bin/ip` path; corrected native startup remains to be tested.
+canonical `/usr/bin/ip` path. Its actual idle result and process sandbox were
+observed, but the helper refused a post-exit check when systemd cleared the
+terminal invocation ID. Independent read-only checks confirmed the owned unit
+inactive with zero PIDs and no cgroup. Full service/worker acceptance remains
+separate. [Dev14 observations](acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).
 [Startup evidence](acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
 The live dev11 upload-fix wheel does not contain this command. It runs once and
 selects an existing current owner intent through the source identity's private

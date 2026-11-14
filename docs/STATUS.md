@@ -207,6 +207,13 @@ identity's independent checks. A separate private batch-upload API uses a fresh
 batch-bound owner admission and root release, retains generation-wide history,
 and distinguishes newly verified files from historical reuse. These additions
 are not running services and do not enable automatic backups.
+The protected dev14 prefix now passes inactive installation, exact code/dependency
+and ordinary identity checks, preserving the live dev11 dashboard. Its actual
+coordinator returned the expected idle JSON. The test helper refused post-exit
+ownership when systemd cleared the terminal invocation ID; an independent
+read-only reconciliation confirmed the exact unit inactive, zero PIDs and no
+cgroup. Full service/worker acceptance is still pending.
+[Dev14 observations](acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).
 
 The isolated dev13 coordinator idle trial failed before processing an intent.
 Read-only follow-up identified a concrete Debian path mismatch: `/usr/sbin/ip`

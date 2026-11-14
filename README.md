@@ -118,10 +118,15 @@ enabled neither uploads nor USB sharing. The live dashboard remains dev11.
 Dev14 adds a one-scan SMB capture command and disabled service/timer examples,
 plus a private Google batch-upload API that binds each attempt to an owner
 admission and independently verified batch. Enable/Disable decisions now have
-a coordinator application path. These additions are source-tested and remain
-undeployed. A separate coordinator startup trial caught Debian's linked legacy
+a coordinator application path. Dev14 is installed in a protected inactive
+prefix; these paths are not connected to the live dashboard or automatic worker.
+A separate coordinator startup trial caught Debian's linked legacy
 `ip` path; the source now uses the canonical executable and still refuses
 symlinks. [Startup finding](docs/acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
+The corrected build returned the expected idle response on the Pi. Independent
+checks confirmed no test processes remained after systemd cleared the terminal
+invocation ID; the full service trial remains unaccepted.
+[Dev14 observations](docs/acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).
 
 A confirmed small-upload bug is fixed in development: the multipart parser's
 32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the
