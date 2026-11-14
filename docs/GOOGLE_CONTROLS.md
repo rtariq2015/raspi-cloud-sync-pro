@@ -1,9 +1,11 @@
 # Google controls and completed-file transfer
 
 These are development components, tested with synthetic private state and
-temporary files. Owner controls and a guarded Google tester now exist in source;
-they are not deployed or enabled in the current dev10 Pi dashboard. Automatic
-backups remain disabled. The control and transfer APIs make no cloud requests;
+temporary files. The current dev11 Pi dashboard keeps both Google preparation
+and control-request flags off. The accepted dev11 wheel contains the guarded
+worker components, but the new coordinator command and service example below
+are later source changes and are not deployed. Automatic backups remain disabled.
+The control and transfer APIs make no cloud requests;
 the separately gated tester can upload a small fixture when deliberately run by
 an accepted coordinator.
 
@@ -92,7 +94,8 @@ a root peer through kernel credentials and release the exact request and worker
 PID with a short-lived private frame. A root release proves coordinator
 authority; it does **not** prove network confinement. The coordinator must accept
 actual per-run Wi-Fi confinement before releasing it. Its private operator CLI
-and source coordinator are described below; neither is installed on the Pi yet.
+and source coordinator are described below. Their presence in an installed wheel
+does not activate a coordinator or establish cloud acceptance.
 
 The ordinary backup identity validates the protected rclone executable's exact
 digest and creates a new operational generation from the bound preparation.
@@ -123,7 +126,7 @@ history and local child processes. They do not establish live Google refresh,
 per-run Wi-Fi confinement or recurring backup acceptance. The documented
 External/Testing refresh-token lifetime still applies.
 
-## Dev11 supervised worker, not yet deployed
+## Dev11 supervised worker, not activated
 
 `google_test_broker.py` now supplies `GoogleTestBrokerSettings.load` and
 `run_google_test_broker`. Its protected configuration defaults to disabled;
@@ -181,6 +184,81 @@ Actual source-worker, per-run confinement and Google account acceptance remain
 required before deploying or enabling this integration. Empirical USB packet
 tests remain separate from a fresh exact wlan0-only kernel allowlist.
 
+## One-shot coordinator command and disabled examples
+
+The private operator command is:
+
+```sh
+/opt/raspi-cloud-sync-pro/releases/0.1.0.dev12/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
+```
+
+This command is planned for the reviewed dev12 source build. The live dev11
+upload-fix wheel does not contain this command. It runs once and selects only an existing,
+current owner Test intent through the source identity's private export. It does
+not create an owner/session proof, request or Enable decision. A private root
+release can be sent only by the existing coordinator after its required fresh
+worker, confinement, canary and source checks.
+Disabled configuration and an absent current request start no worker. There is
+no path watcher, timer, boot enablement or automatic retry in this first route.
+An owner request alone therefore does not cause this command to run.
+
+Stdout contains only the fixed `status`, `code`, `uploads_enabled: false`,
+`account_verified: false` and `current_worker_state_checked: false` projection.
+Exit status is zero for disabled, idle or a recorded verified Test, and two for
+failure. Parser/configuration exceptions use one fixed error without echoing
+paths or private values. A successful Test still needs a separate owner Enable
+and future per-batch admission; it does not establish a running backup service.
+
+The [disabled configuration example](../config/google-test-broker.example.json)
+uses `enabled: false`. Its zero executable digest, zero Wi-Fi profile UUID,
+documentation DNS address, sample origin and rclone path are placeholders, not
+accepted device values. A reviewed operator must bind the actual protected
+copied interpreter/current package, rclone bytes, HTTPS origin, Wi-Fi profile,
+numeric DNS and metered policy. The loader requires a root-owned mode-0600
+configuration and approval file under protected, non-symlink parents. Source,
+preparation and operational roots stay private mode-0700 directories owned by
+their distinct ordinary identities; the operational root belongs to
+`raspi-backup`. The configured runtime directory is root-owned mode 0700. No path is supplied
+by the browser.
+
+The separately reviewed approval file, named `GOOGLE_TEST_APPROVED` in the
+example, has exactly these private JSON bytes (JSON whitespace is immaterial):
+
+```json
+{"schema_version": 1, "google_test_broker_approved": true}
+```
+
+The [one-shot systemd example](../deploy/systemd/raspi-cloud-google-test-broker.service.example)
+has an `.example` suffix and no Install section. It is not an installed unit.
+Before any reviewed installation, its command/configuration must match the
+protected release actually containing this CLI. The root coordinator needs the
+host network namespace for its nonce controls and wlan0 observation; its
+read-only iproute queries use netlink. These permissions belong to the root
+coordinator. The separately created backup worker retains its own capability-free,
+IPv4-only, wlan0-confined policy and inherited Unix channels.
+
+The administrative capability list is a candidate, not a native-qualified
+least-privilege claim. In particular, the current inspector's read-only
+get-program/map-by-ID operations require `CAP_SYS_ADMIN` in
+[upstream Linux 6.18](https://raw.githubusercontent.com/torvalds/linux/v6.18/kernel/bpf/syscall.c).
+`CAP_BPF` alone cannot replace that requirement. Cross-identity process inspection
+also needs appropriate process/filesystem access. The example preserves
+NoNewPrivileges, an empty ambient set, protected filesystems and denied mount,
+swap and reboot syscalls. Fresh actual worker identity, held kernel policy and
+all canary/source checks remain mandatory; a service template or old QA receipt
+never supplies those proofs.
+
+Failures retain generations and root-private run records. After confirmed
+cleanup, a fresh matching unexpired source authority may receive a conservative
+failed-Test receipt. Changed or revoked authority, expiry and unconfirmed
+cleanup prevent that update. Repeating a completed intent cannot overwrite its
+receipt. Manual recovery must inspect the retained fixed result, restore the
+approved prerequisites and select the same still-current intent or a new owner
+Test. A previously exhausted systemd start limit needs a scoped reset of only
+this coordinator unit before another deliberate start. Native qualification of
+this exact coordinator service and actual Google account/refresh acceptance are
+still required; these examples install or activate nothing.
+
 ## Remaining integration
 
 The private `google-test` operator command now exposes the Test worker. A trusted
@@ -197,7 +275,8 @@ the framed output descriptor. Ordinary stdout contains a fixed disabled summary;
 parser errors and worker exceptions do not echo arguments or private values.
 Request framing has a five-second deadline; the Test defaults to 120 seconds
 and cannot exceed 300. The command cannot create an owner intent or root release.
-It is source-tested and not installed on the Pi.
+It remains unavailable without the inherited private root gate; installation
+alone does not activate it.
 
 Private operator CLI commands now expose `google-control-status`,
 `google-control-export`, `google-control-record` and `google-control-admission`
@@ -206,8 +285,8 @@ worker. `web-batch-describe`, `web-batch-export` and `web-batch-import` require
 inherited private descriptors; describe sends identifiers and manifest hashes
 only through its framed output descriptor. Normal stdout contains a fixed
 disabled summary. These are coordinator interfaces, not browser endpoints or
-general file-copy commands. They are source-tested and have not been deployed
-to the current dev10 Pi runtime.
+general file-copy commands. They are source-tested interfaces in the dev11
+package, not activated dashboard or recurring-backup services.
 
 1. Deploy the source-tested owner controls with the separately reviewed
    coordinator and restore preparation for the current HTTPS origin.

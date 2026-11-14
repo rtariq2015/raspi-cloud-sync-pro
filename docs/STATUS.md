@@ -80,7 +80,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **578 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **615 Python tests and 11 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -150,6 +150,26 @@ and [remote access guide](REMOTE_ACCESS.md).
   four-channel handoff and post-exit cgroup lifecycle were tested separately.
   [Native evidence](acceptance/pi-openfile-handoff-2026-11-13.json),
   [source contracts](GOOGLE_CONTROLS.md).
+- The first actual-source native trial refused startup before creating a worker:
+  systemd omitted empty properties from its default `show` output. The source
+  now requests `--all` and can confirm that a refused start created no unit or
+  cgroup processes. Three regression tests pass. The next protected build must
+  repeat native worker testing; no canary or Google acceptance is claimed from
+  this failed attempt. [Preflight evidence](acceptance/pi-google-test-source-preflight-2026-11-14.json).
+- Dev12 adds a private one-shot Google coordinator command, fixed public error
+  projection, disabled config and an uninstalled systemd example. Ten new CLI
+  tests pass. This route is not in the live dev11 wheel; no watcher or automatic
+  activation is added. [Operator contract](GOOGLE_CONTROLS.md).
+- A default-disabled capture-only SMB API publishes private completed batches
+  without cloud providers. Twenty-four new tests cover active writers, failed
+  reads/CLOSE, restart/retention, private state, revoked authority, file limits,
+  bounded memory and fair scanning past busy/oversized files. It preserves the
+  existing default hardware gate. This runtime has no installed service or CLI
+  and has not passed native USB/Windows acceptance. [Capture contract](SMB_CAPTURE.md).
+- A Rust CI fixture race was reproduced as Linux `ETXTBSY` and corrected with
+  test-only isolation. The eleven-test suite, formatting/clippy and 1,000 repeated
+  unit/CLI runs pass; the ARM64 production binary is byte-identical to the prior
+  build. [Rust evidence](RUST_EVALUATION.md).
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private

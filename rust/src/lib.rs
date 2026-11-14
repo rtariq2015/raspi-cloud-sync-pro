@@ -209,8 +209,13 @@ pub fn path_argument(value: Option<String>) -> Result<PathBuf> {
 mod tests {
     use super::*;
     use std::os::unix::fs::PermissionsExt;
+    use std::sync::Mutex;
     use std::sync::atomic::{AtomicU64, Ordering};
     static NEXT: AtomicU64 = AtomicU64::new(0);
+    // A concurrent fork can retain another test's writable runner FD until its
+    // exec, even with CLOEXEC. Serialize executable writes and child launches
+    // together so a freshly closed fixture cannot spuriously fail with ETXTBSY.
+    static RUNNER_PROCESSES: Mutex<()> = Mutex::new(());
 
     struct Fixture(PathBuf);
     impl Fixture {
@@ -273,6 +278,7 @@ mod tests {
 
     #[test]
     fn worker_must_report_pending_jobs_without_claiming_upload_success() {
+        let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
         let fixture = Fixture::new();
         let runner = fixture.0.join("runner.sh");
         fs::write(
@@ -313,6 +319,32 @@ mod tests {
         assert_eq!(
             run_worker(&runner, &fixture.0.join("worker.json")),
             Err("worker_failed")
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn writable_runner_still_fails_closed_then_runs_after_writer_closes() {
+        let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
+        let fixture = Fixture::new();
+        let runner = fixture.0.join("runner.sh");
+        fs::write(
+            &runner,
+            "#!/bin/sh\nprintf '%s\\n' '{\"pending_jobs\":2}'\n",
+        )
+        .unwrap();
+        fs::set_permissions(&runner, fs::Permissions::from_mode(0o700)).unwrap();
+        let writer = fs::OpenOptions::new().write(true).open(&runner).unwrap();
+        assert_eq!(
+            run_worker(&runner, &fixture.0.join("unused.json")),
+            Err("worker_start_failed")
+        );
+        drop(writer);
+        assert_eq!(
+            run_worker(&runner, &fixture.0.join("unused.json"))
+                .unwrap()
+                .pending_jobs,
+            2
         );
     }
 
@@ -363,6 +395,7 @@ mod tests {
 
     #[test]
     fn paused_fixture_reduces_actual_child_invocations_under_a_virtual_clock() {
+        let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
         fn runner(fixture: &Fixture) -> PathBuf {
             let path = fixture.0.join("runner.sh");
             fs::write(&path, "#!/bin/sh\nprintf 'call\\n' >> \"${0%/*}/calls\"\nprintf '%s\\n' '{\"pending_jobs\":5,\"network_policy_allows_upload\":false}'\n").unwrap();

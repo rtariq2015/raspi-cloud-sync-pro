@@ -540,6 +540,55 @@ class GoogleTestBrokerTests(unittest.TestCase):
 
 
 class GoogleTestNativeFacadeTests(unittest.TestCase):
+    def test_show_requests_all_properties_so_empty_native_fields_are_present(self):
+        unit = "raspi-cloud-google-test-" + "a" * 32 + ".service"
+        manager = broker._Systemd(None, None, time.monotonic() + 2)
+        raw = ("Id=" + unit + "\nLoadState=not-found\nActiveState=inactive\n"
+               "DropInPaths=\nInvocationID=\n").encode()
+        with mock.patch.object(manager, "_run", return_value=raw) as command:
+            fields = manager.show(unit)
+        command.assert_called_once_with(["/usr/bin/systemctl", "show", "--all", "--no-pager", unit])
+        self.assertEqual(fields["DropInPaths"], "")
+        self.assertEqual(fields["InvocationID"], "")
+
+    def test_cleanup_confirms_absence_when_start_never_created_a_unit(self):
+        unit = "raspi-cloud-google-test-" + "a" * 32 + ".service"
+        expired = time.monotonic() - 10
+        manager = broker._Systemd(None, None, expired)
+        absent = {"Id": unit, "LoadState": "not-found", "ActiveState": "inactive", "SubState": "dead",
+                  "MainPID": "0", "ControlPID": "0", "Transient": "no", "FragmentPath": "",
+                  "DropInPaths": "", "InvocationID": "", "ControlGroup": ""}
+        with mock.patch.object(manager, "show", return_value=absent), \
+                mock.patch.object(manager, "capture") as capture, mock.patch.object(manager, "_run") as command, \
+                mock.patch.object(broker, "_cgroup_pids", return_value=()) as pids:
+            manager.stop(unit, "never-created", None)
+        capture.assert_not_called()
+        command.assert_not_called()
+        pids.assert_called_once_with("/system.slice/" + unit, missing=True)
+        self.assertEqual(manager.deadline, expired)
+
+    def test_cleanup_refuses_inconsistent_absence_or_remaining_cgroup_processes(self):
+        unit = "raspi-cloud-google-test-" + "a" * 32 + ".service"
+        manager = broker._Systemd(None, None, time.monotonic() - 10)
+        absent = {"Id": unit, "LoadState": "not-found", "ActiveState": "inactive", "SubState": "dead",
+                  "MainPID": "0", "ControlPID": "0", "Transient": "no", "FragmentPath": "",
+                  "DropInPaths": "", "InvocationID": "", "ControlGroup": ""}
+        cases = [({key: value}, ()) for key, value in (
+            ("Id", "foreign.service"), ("ActiveState", "active"), ("SubState", "running"),
+            ("MainPID", "17"), ("ControlPID", "18"), ("Transient", "yes"),
+            ("FragmentPath", "/unrelated/unit"), ("DropInPaths", "/unrelated/override"),
+            ("InvocationID", "b" * 32), ("ControlGroup", "/foreign"), ("DropInPaths", None))]
+        cases.append(({}, (17,)))
+        for changes, processes in cases:
+            with self.subTest(changes=changes, processes=processes), \
+                    mock.patch.object(manager, "show", return_value={**absent, **changes}), \
+                    mock.patch.object(manager, "capture") as capture, mock.patch.object(manager, "_run") as command, \
+                    mock.patch.object(broker, "_cgroup_pids", return_value=processes):
+                with self.assertRaises(broker.GoogleTestBrokerError):
+                    manager.stop(unit, "never-created", None)
+                capture.assert_not_called()
+                command.assert_not_called()
+
     def test_expired_command_never_launches_privileged_process(self):
         with mock.patch.object(broker.subprocess, "Popen") as process:
             with self.assertRaises(broker.GoogleTestBrokerError):

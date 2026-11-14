@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "interpreter": "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev12/venv/bin/python3",
+  "rclone": "/opt/raspi-cloud-sync-pro/tools/rclone-1.76.0",
+  "rclone_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "source_state": "/var/lib/raspi-cloud-sync-pro/dashboard",
+  "backup_state": "/var/lib/raspi-cloud-sync-pro/google-setup-backup",
+  "operational_state": "/var/lib/raspi-cloud-sync-pro/google-operational",
+  "dashboard_user": "raspi-dashboard",
+  "backup_user": "raspi-backup",
+  "public_origin": "https://replace-with-your-hostname.example",
+  "approval_file": "/etc/raspi-cloud-sync-pro/GOOGLE_TEST_APPROVED",
+  "runtime_directory": "/run/raspi-cloud-google-test-broker",
+  "lock_file": "/run/raspi-cloud-google-test-broker/broker.lock",
+  "wifi_profile_uuid": "00000000-0000-0000-0000-000000000000",
+  "dns_ipv4": "192.0.2.53",
+  "allow_metered": false
+}

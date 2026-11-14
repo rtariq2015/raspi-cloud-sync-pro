@@ -2,9 +2,13 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 static NEXT: AtomicU64 = AtomicU64::new(0);
+// Keep executable fixture writes and watcher launches under the same lock:
+// CLOEXEC does not close a writer inherited by a parallel fork until its exec.
+static RUNNER_PROCESSES: Mutex<()> = Mutex::new(());
 
 struct Fixture(PathBuf);
 
@@ -49,6 +53,7 @@ impl Drop for Fixture {
 
 #[test]
 fn once_returns_failure_when_child_fails_or_report_is_invalid() {
+    let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
     for runner in [
         "#!/bin/sh\nexit 7\n",
         "#!/bin/sh\nprintf '%s\\n' '{\"uploaded\":true}'\n",
@@ -61,6 +66,7 @@ fn once_returns_failure_when_child_fails_or_report_is_invalid() {
 
 #[test]
 fn once_keeps_reconciliation_signal_when_no_jobs_have_been_registered() {
+    let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
     let output = Fixture::new(
         "#!/bin/sh\nprintf '%s\\n' '{\"pending_jobs\":0,\"reconciliation_pending\":true}'\n",
     )
@@ -73,6 +79,7 @@ fn once_keeps_reconciliation_signal_when_no_jobs_have_been_registered() {
 
 #[test]
 fn paused_and_legacy_reports_work_but_invalid_network_policy_types_fail() {
+    let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
     for report in [
         "{\"pending_jobs\":2,\"network_policy_allows_upload\":false}",
         "{\"pending_jobs\":2}",

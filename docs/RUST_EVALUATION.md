@@ -135,3 +135,24 @@ Further Rust work should follow profiles: inventory scanning or streamed hashing
 are possible candidates if sustained file-count/transfer tests identify them as
 bottlenecks. Keep protocol handling in rclone/Samba and the tested dashboard in
 Python until a representative comparison justifies moving another component.
+
+## CI executable-fixture isolation — 2026-11-14
+
+The [push run for `49eeb8d`](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions/runs/43563276469)
+failed while starting a freshly rewritten test runner. An isolated local copy
+reproduced `ETXTBSY` (OS error 26) on its sixth parallel test-suite invocation.
+A sibling process launch can inherit a writable runner descriptor until its
+exec, even when that descriptor has `CLOEXEC`; this is the mechanism described in
+[Rust issue 114554](https://github.com/rust-lang/rust/issues/114554).
+
+The executable fixtures now share a test-only mutex covering script writes and
+child launches within each test process. A Linux regression holds a runner open
+for writing, verifies the existing `worker_start_failed` result, then closes the
+writer and requires a valid pending-job report. Production watcher behavior and
+its failure/backoff policy remain unchanged. No Pi binary was replaced for this
+test-fixture change.
+
+All eleven Rust tests, formatting and clippy pass with the pinned toolchain.
+The unit and CLI suites also passed 1,000 repetitions with eight test threads
+per suite (11,000 test cases), following the reproduced failure on the unchanged
+fixtures.

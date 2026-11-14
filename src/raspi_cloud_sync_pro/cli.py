@@ -18,6 +18,31 @@ from .history import read_history
 
 
 _GOOGLE_TEST_ERROR = "Private Google Test unavailable; no uploads were enabled and no private details were printed."
+_GOOGLE_TEST_BROKER_ERROR = "Google Test coordinator unavailable; no uploads were enabled and no private details were printed."
+_GOOGLE_TEST_BROKER_CODES = frozenset("google_test_broker_" + value for value in (
+    "approval_required authority_changed canary_invalid cleanup_unconfirmed command_invalid completion_invalid "
+    "configuration_changed configuration_invalid disabled identity_unsafe installation_unsafe loopback_reached "
+    "manager_unapproved no_request no_test pidfd_required receipt_invalid request_invalid single_thread_required "
+    "source_refused storage_invalid systemd_unavailable test_verified_not_enabled timeout unavailable "
+    "unit_changed unit_conflict unit_invalid wifi_unavailable worker_changed worker_failed worker_invalid"
+).split())
+
+
+def _google_test_broker_projection(report):
+    fields = {"status", "code", "uploads_enabled", "account_verified", "current_worker_state_checked"}
+    if (not isinstance(report, dict) or set(report) != fields
+            or report["status"] not in ("disabled", "idle", "tested", "failed")
+            or not isinstance(report["code"], str) or report["code"] not in _GOOGLE_TEST_BROKER_CODES
+            or any(report[key] is not False for key in
+                   ("uploads_enabled", "account_verified", "current_worker_state_checked"))):
+        raise BackupError("google_test_broker_report_invalid")
+    completed = {"disabled": {"google_test_broker_disabled"},
+                 "idle": {"google_test_broker_no_request", "google_test_broker_no_test"},
+                 "tested": {"google_test_broker_test_verified_not_enabled"}}
+    if ((report["status"] in completed and report["code"] not in completed[report["status"]])
+            or (report["status"] == "failed" and report["code"] in set().union(*completed.values()))):
+        raise BackupError("google_test_broker_report_invalid")
+    return {key: report[key] for key in ("status", "code", "uploads_enabled", "account_verified", "current_worker_state_checked")}
 
 
 def _run_private_google_test(args):
@@ -130,6 +155,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     setup_import.add_argument("--folder-name", required=True)
     setup_broker = commands.add_parser("google-setup-broker", help="gated Pi-only preparation broker; no network or upload actions")
     setup_broker.add_argument("--config", type=Path, required=True)
+    test_broker = commands.add_parser("google-test-broker", help="one explicit root-coordinated owner Test; disabled configuration starts nothing")
+    test_broker.add_argument("--config", type=Path, required=True, help="protected root-owned private coordinator configuration")
     google_test = commands.add_parser("google-test", help="private owner Test worker; inherited root release required")
     google_test.add_argument("--prepared-state", type=Path, required=True)
     google_test.add_argument("--operational-state", type=Path, required=True)
@@ -217,7 +244,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate = commands.add_parser("device-gate", help="fail unless the reviewed hardware code gate is enabled")
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
-    if (sys.argv[1:] if argv is None else argv)[:1] == ["google-test"]:
+    private_command = (sys.argv[1:] if argv is None else argv)[:1]
+    if private_command in (["google-test"], ["google-test-broker"]):
         # Private operator arguments can themselves contain private strings.
         # Argparse diagnostics normally echo invalid values and unknown options.
         try:
@@ -226,10 +254,20 @@ def main(argv: Optional[List[str]] = None) -> int:
         except SystemExit as error:
             if error.code == 0:
                 return 0
-            print(_GOOGLE_TEST_ERROR, file=sys.stderr)
+            print(_GOOGLE_TEST_BROKER_ERROR if private_command == ["google-test-broker"] else _GOOGLE_TEST_ERROR,
+                  file=sys.stderr)
             return 2
     else:
         args = parser.parse_args(argv)
+    if args.command == "google-test-broker":
+        try:
+            from .google_test_broker import GoogleTestBrokerSettings, run_google_test_broker
+            report = _google_test_broker_projection(run_google_test_broker(GoogleTestBrokerSettings.load(args.config)))
+            print(json.dumps(report, indent=2))
+            return 2 if report["status"] == "failed" else 0
+        except Exception:
+            print(_GOOGLE_TEST_BROKER_ERROR, file=sys.stderr)
+            return 2
     if args.command == "google-test":
         try:
             report = _run_private_google_test(args)

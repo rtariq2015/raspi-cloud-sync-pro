@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**578 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**615 Python tests and 11 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -104,6 +104,12 @@ Dev11 adds the supervised Test coordinator and worker, including fresh kernel
 network checks and a completion handshake. They remain disabled. The live Pi
 dashboard now runs dev11; native worker integration and real Google acceptance
 come next.
+
+Dev12 development adds a private one-shot coordinator command and an offline
+[SMB capture queue](docs/SMB_CAPTURE.md), without requiring a cloud account to
+capture completed files. The first native worker trial found a systemd-property
+startup bug; its source repair and conservative cleanup have regression tests.
+Dev12 is not deployed, and neither new component enables uploads or USB sharing.
 
 A confirmed small-upload bug is fixed in development: the multipart parser's
 32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the

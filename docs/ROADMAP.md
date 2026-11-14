@@ -86,6 +86,14 @@ native health and enablement checks; actual reboot acceptance remains. OAuth
 callback and Pi client origin have now been migrated with backups; restore the
 broker and require fresh owner preparation before restoring live setup requests.
 
+Dev12 supplies the one-shot coordinator CLI and disabled examples. Its first
+native source trial exposed systemd's omission of empty properties; source
+checks now explicitly request them and safely recognize a never-created unit.
+The independent [capture-only runtime](SMB_CAPTURE.md) now queues completed SMB
+snapshots without providers and fairly scans past busy files. Both additions
+remain source-tested and undeployed. Accept the next protected build, its worker
+and an actual Windows/USB share before joining capture to automatic uploads.
+
 Dev10 adds durable owner requests, private source/configuration bindings, a
 gated root coordinator, and historical dashboard receipts. Its native synthetic
 Pi trial passed separate identities, interrupted-receipt recovery and retained

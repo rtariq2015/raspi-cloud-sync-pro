@@ -1,0 +1,59 @@
+# Uninstalled, disabled configuration example. Native qualification is required
+# before copying this to a .service file; there is no watcher or boot enablement.
+[Unit]
+Description=Raspi Cloud Sync Pro one-shot private Google Test coordinator
+ConditionPathExists=/etc/raspi-cloud-sync-pro/GOOGLE_TEST_APPROVED
+ConditionPathIsRegular=/etc/raspi-cloud-sync-pro/google-test-broker.json
+StartLimitIntervalSec=300
+StartLimitBurst=1
+
+[Service]
+Type=oneshot
+# PID1 defaults to root; the coordinator independently requires actual root.
+# Omit explicit User/Group to avoid the systemd 257 root credential transition.
+WorkingDirectory=/
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev12/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
+Restart=no
+TimeoutStartSec=300
+TimeoutStopSec=10
+KillMode=control-group
+SendSIGKILL=yes
+UMask=0077
+LimitCORE=0
+RuntimeDirectory=raspi-cloud-google-test-broker
+RuntimeDirectoryMode=0700
+# Keep the lock inode and private retained run records between manual starts.
+RuntimeDirectoryPreserve=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+# Root's nonce echo controls, wlan0 observation and worker must share host netns.
+PrivateNetwork=no
+ReadWritePaths=/var/lib/raspi-cloud-sync-pro/dashboard /run/raspi-cloud-google-test-broker
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+# Root's read-only iproute observations use netlink; the backup worker has its
+# own stricter native IPv4-only policy and no ability to create Unix/netlink FDs.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_NETLINK
+SystemCallArchitectures=native
+# The current read-only kernel BPF get-by-ID ABI requires CAP_SYS_ADMIN.
+# This administrative capability floor is unqualified on the target as a unit;
+# it is not equivalent to the separately validated cap-zero backup worker.
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_SETUID CAP_SETGID CAP_KILL CAP_SYS_PTRACE CAP_SYS_ADMIN
+AmbientCapabilities=
+# Keep mount/swap/reboot operations out of the coordinator's syscall surface.
+# PID1 creates the independently confined worker; bpf inspection stays allowed.
+SystemCallFilter=~mount umount2 pivot_root reboot kexec_load kexec_file_load swapon swapoff
+SystemCallErrorNumber=EPERM
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+# No Install section. Approval presence alone never enables the disabled JSON.

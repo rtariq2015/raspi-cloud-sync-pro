@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "kernel": "6.18.60+rpt-rpi-v8",
+  "systemd": "257.13-1~deb13u1",
+  "installed_wheel_sha256": "2060882bbb020ad46e4937c72caac2d3735513dc4f9d0548a03e2bc1eaf0f7c8",
+  "trial": {
+    "kind": "Credential-free actual-source canaries and intentionally invalid gate",
+    "overall_passed": false,
+    "failure_stage": "start_exact_source_bootstrap",
+    "worker_started": false,
+    "worker_logs_empty": true,
+    "valid_gate_sent": false,
+    "credentials_read": false,
+    "provider_test_performed": false,
+    "canary_or_usb_denial_acceptance": false
+  },
+  "diagnosis": {
+    "default_show_exit_status": 0,
+    "default_show_omitted_empty_dropin_and_invocation_properties": true,
+    "show_all_exit_status": 0,
+    "show_all_explicit_empty_properties_verified": true,
+    "fresh_unit_check_refused_missing_dropin_property": true,
+    "corrected_source_requests_show_all": true,
+    "source_fix_deployed": false
+  },
+  "read_only_reconciliation": {
+    "unit_load_state": "not-found",
+    "unit_active_state": "inactive",
+    "unit_sub_state": "dead",
+    "main_pid": 0,
+    "control_pid": 0,
+    "invocation_fragment_dropins_and_control_group_empty": true,
+    "no_existing_worker_to_stop": true,
+    "network_or_service_reset_performed": false
+  },
+  "source_regressions": {
+    "new_tests": 3,
+    "coordinator_tests_passing": 43,
+    "explicit_empty_property_projection": true,
+    "confirmed_absent_cleanup_without_stop_or_adoption": true,
+    "foreign_inconsistent_or_live_resource_refusal": true,
+    "independent_review": true,
+    "ruff_and_python39_grammar": true
+  },
+  "preservation": {
+    "live_dashboard_and_connector_unchanged": true,
+    "account_private_configuration_and_network_profile_metadata_preserved": true,
+    "wifi_routes_dns_and_usb_preserved": true,
+    "power_status_healthy": true,
+    "reboot_format_or_source_deletion_performed": false,
+    "retained_failed_fixture": true
+  },
+  "remaining": "Install a new protected build, repeat source-worker/canary checks, then accept the separately authorized Google Test and recurring backup path.",
+  "private_data_omitted": [
+    "Host addresses and Wi-Fi profile UUID",
+    "Unit, invocation and run identifiers",
+    "Private fixture paths",
+    "Passwords, tokens and account identifiers"
+  ]
+}

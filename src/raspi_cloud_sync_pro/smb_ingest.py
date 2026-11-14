@@ -20,15 +20,18 @@ from .staging import CHUNK_SIZE, ReadyBatch, StagedFile, _fsync_directory, relat
 class LocalSambaReader:
     """Optional smbprotocol client; no session is opened before the hardware gate."""
 
-    def __init__(self, share="CloudSync", username=None, password=None):
+    def __init__(self, share="CloudSync", username=None, password=None, *, approval_guard=None):
+        from .linux_gadget import require_hardware_test_approval
         if not share or not share.isascii() or not share.replace("_", "").isalnum():
             raise BackupError("invalid_smb_share")
+        if approval_guard is not None and not callable(approval_guard):
+            raise BackupError("invalid_smb_approval_guard")
         self.share, self.username, self.password = share, username, password
+        self._approval_guard = require_hardware_test_approval if approval_guard is None else approval_guard
 
     @contextmanager
     def open_version(self, relative):
-        from .linux_gadget import require_hardware_test_approval
-        require_hardware_test_approval()  # No live SMB sessions until separately approved.
+        self._approval_guard()  # Default gate, or the separate capture-only authority, before networking.
         try:
             import smbclient
         except ImportError as exc:

@@ -495,7 +495,9 @@ class _Systemd:
         return raw
 
     def show(self, unit):
-        raw = self._run(["/usr/bin/systemctl", "show", "--no-pager", unit])
+        # v257 omits empty fields by default. Absence is not an empty value:
+        # startup/capture checks must see e.g. DropInPaths= explicitly.
+        raw = self._run(["/usr/bin/systemctl", "show", "--all", "--no-pager", unit])
         result = {}
         for line in raw.decode("utf-8").splitlines():
             key, separator, value = line.partition("=")
@@ -599,6 +601,18 @@ class _Systemd:
         previous_deadline = self.deadline
         self.deadline = time.monotonic() + 5
         try:
+            value = self.show(unit)
+            if value.get("LoadState") == "not-found":
+                # A refused start may never create a unit. Confirm absence
+                # without adopting/stopping a differently identified unit.
+                if (value.get("Id") != unit or value.get("ActiveState") != "inactive"
+                        or value.get("SubState") != "dead" or value.get("MainPID") != "0"
+                        or value.get("ControlPID") != "0" or value.get("Transient") != "no"
+                        or value.get("FragmentPath") != "" or value.get("DropInPaths") != ""
+                        or value.get("InvocationID") != "" or value.get("ControlGroup") != ""
+                        or _cgroup_pids("/system.slice/" + unit, missing=True)):
+                    _fail("google_test_broker_cleanup_unconfirmed")
+                return
             current = self.capture(unit, description)
             if invocation is not None and current != invocation:
                 _fail("google_test_broker_cleanup_unconfirmed")

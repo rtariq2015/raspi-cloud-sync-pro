@@ -943,3 +943,71 @@ for these checks, and their actual file retry remains unobserved. The exactly
 100 MiB boundary was tested locally, not on the physical Pi. No cloud backup,
 Windows share or USB mass-storage acceptance is implied by these upload checks.
 [Sanitized native evidence](acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
+
+## Actual-source Google worker preflight — 14 November 2026
+
+The first credential-free trial imported the protected dev11 coordinator,
+bootstrap and inspector and attempted their real systemd startup path. It
+refused before creating a worker. Read-only diagnosis established that
+`systemctl show --no-pager UNIT` returned success but omitted empty properties,
+including `DropInPaths`. The coordinator required an explicit empty value, so
+its fresh-unit conflict check refused the missing key. A direct `show --all`
+query on the same Pi returned those keys explicitly with empty values.
+
+The retained failed fixture's unit was independently confirmed not-found,
+inactive/dead with no main/control PID, invocation or cgroup. Worker logs were
+empty; no valid gate, credential release or provider request occurred. Existing
+services, private configuration/account metadata, Wi-Fi/routes, USB and power
+were preserved. The fixture's conservative cleanup result was false because its
+capture-based cleanup could not capture an invocation that had never existed;
+the later read-only inspection confirmed there was no worker to stop.
+
+The narrow source correction requests `--all` and permits no-op cleanup only
+after confirming exact absent-unit identity, empty runtime/load-path fields and
+no process in its known cgroup. Three new tests cover explicit empty properties,
+never-created cleanup and inconsistent/foreign/live resource refusal. All 43
+coordinator tests pass, with independent review, Ruff and Python 3.9 grammar.
+The corrected coordinator is not in the currently installed wheel. A new
+protected build and native trial remain required; actual bootstrap/canary/gate
+and Google account acceptance are still pending.
+[Sanitized preflight evidence](acceptance/pi-google-test-source-preflight-2026-11-14.json).
+
+## Dev12 operator and offline capture source — 14 November 2026
+
+**615 Python tests pass locally**, with actual rclone against temporary local
+storage. Dev12 adds ten one-shot coordinator CLI tests, the three native-facade
+regressions above and 24 capture-only runtime tests. Eleven Rust tests pass;
+formatting, clippy and the ARM64 cross-build pass. A reproduced test-fixture
+`ETXTBSY` race was corrected without changing the production binary, as recorded
+in [Rust evaluation](RUST_EVALUATION.md).
+
+The new private `google-test-broker` command runs the existing coordinator once.
+It accepts a protected configuration, emits only a strict fixed report and masks
+private parser/runtime exceptions. Its dev12 configuration is disabled and its
+service example is uninstalled, with no watcher or boot enablement. The proposed
+administrative capability set is not natively qualified. A source command is
+not evidence that an account, worker or live backup is accepted.
+
+The [capture-only SMB API](SMB_CAPTURE.md) runs as the ordinary backup identity
+and rechecks a separate root-protected readable policy/approval before each SMB
+open. Credentials/index/queue stay private to that identity. Its optional reader
+guard preserves the original global gate by default. Completed snapshots reuse
+the existing encrypted deny-write/delete handle and successful-CLOSE publication
+contract; no provider is constructed. Tests use temporary files and simulated
+SMB handles, retaining failed/old versions and validating private filesystem
+boundaries. A real unprivileged read of an existing nonsecret root-owned public
+JSON file checks authority-file readability without privileged laptop writes.
+
+Review reproduced starvation when 32 busy/oversized files consumed every scan.
+A durable cursor in the existing private SQLite index now rotates the bounded
+inventory; a 33-file regression reaches the later completed file on the next
+runtime invocation while earlier writers stay busy. The verified-batch cache,
+inventory, per-scan attempts and child probes are bounded. In-flight kernel/SMB
+operations retain the documented timeout limits, rather than claiming a hard
+wall-clock guarantee.
+
+Independent reviews, changed-file Ruff F/E9, Python 3.9 grammar and whitespace
+checks pass. The live dashboard remains dev11 with the accepted upload repair;
+dev12, the corrected coordinator and this new capture runtime are not deployed.
+Native coordinator/gate/Google acceptance, Samba provisioning, stable USB host
+addressing, Windows mapping and dashboard projection of SMB batches remain.
