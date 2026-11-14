@@ -140,7 +140,7 @@ Dev17 adds pending-control event/recovery examples and a separately approved
 selected-batch upload dispatcher. Existing shared locks permit read-only
 eligibility checks; completed controls do not repeat. Only explicit failures
 before worker creation qualify for automatic retry. Source tests cover the
-private protocols; deployment and actual Google Test/Enable, completed-transfer
+private protocols; service activation and actual Google Test/Enable, completed-transfer
 handoff, recurring scheduling and dashboard result reporting remain necessary.
 The Pi's six-capability root inspection context now passes a credential-free
 native trial. That is a permission prerequisite, not full coordinator or cloud

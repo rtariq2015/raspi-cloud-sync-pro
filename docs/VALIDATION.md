@@ -1351,3 +1351,41 @@ Google refresh or USB packet exclusion. No authorization payload was read and
 no provider operation occurred. Live dashboard/preparation services and network
 settings were left in place.
 [Partial root-context evidence](acceptance/pi-google-root-context-dev14-2026-11-14.json).
+
+
+## Inactive protected dev17 installation — 14 November 2026
+
+Both GitHub workflows for source commit
+[`780dee3`](https://github.com/rtariq2015/raspi-cloud-sync-pro/commit/780dee341a3ce0d2009571899db972e731782394)
+pass: [push checks](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions/runs/43588985075)
+and [pull-request checks](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions/runs/43588988576).
+Each covers Python 3.9/3.12/3.13, actual local-rclone integration on 3.12, isolated
+Samba protocol tests, Rust tests and an ARM64 build. No merge or release occurred.
+
+The 213,794-byte wheel now has a new protected copied-interpreter prefix on the
+verified Pi. Thirty installer tests and independent review preceded execution.
+The installer verified the target root filesystem, refused an existing prefix,
+used a private umask before its first write, copied nine existing public
+dependencies without changing the originals, and installed the exact wheel
+offline with no index or dependency resolution. All installed wheel bytes,
+interpreter and dependency hashes passed; ordinary dashboard and backup
+identities passed version/dependency/file-presence and console probes. New
+coordinator declarations were checked through AST without importing or running
+their provider/gate functions. Private backups, logs and partials are retained.
+
+The first administrator connection ended without a completion marker. Read-only
+checks established no new prefix or installer backup and no remaining Root
+Python job, with existing services still active. A separate read-only
+administrator check succeeded and found no recent kernel OOM messages. One
+controlled retry of the identical approved installer then completed successfully.
+The initial connection failure's cause is unestablished; it is not attributed
+to Wi-Fi, memory or SD-card failure.
+
+The old dev14 prefix, private state/account metadata, live dev11 dashboard, fixed
+connector, persistent preparation watcher, network observations and USB address
+were preserved, and all installer children were reaped. This is an inactive
+installation: no service/configuration, OS account, boot setting or global
+package was changed, and no cloud operation occurred. The live control flag and
+automatic uploads stay off. Actual runner/service and Google Test/Enable
+qualification remain next.
+[Installation evidence](acceptance/pi-inactive-install-dev17-2026-11-14.json).

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie aarch64, CPython 3.13.5",
+  "version": "0.1.0.dev17",
+  "source_commit": "780dee341a3ce0d2009571899db972e731782394",
+  "wheel_sha256": "8378fca0d067225e1b804bcc28847b7760a51c664764dcf4c6d3d86b0dae496a",
+  "wheel_bytes": 213794,
+  "inactive_installation_accepted": true,
+  "scope": "A new protected copied-interpreter installation, with existing live services and configuration preserved",
+  "checks": {
+    "pi_and_root_filesystem_verified_before_writes": true,
+    "exclusive_new_prefix_no_overwrite": true,
+    "private_umask_before_first_write": true,
+    "offline_no_index_no_deps_wheel_install": true,
+    "public_dependencies_copied_and_hash_verified": true,
+    "copied_interpreter_verified": true,
+    "installed_wheel_files_verified": true,
+    "new_coordinator_declarations_checked_without_importing": true,
+    "ordinary_dashboard_and_backup_runtime_probes_passed": true,
+    "old_dev14_prefix_metadata_preserved": true,
+    "private_data_and_account_metadata_preserved": true,
+    "live_dashboard_connector_and_preparation_watcher_preserved": true,
+    "network_and_usb_address_observations_preserved": true,
+    "installer_children_reaped": true,
+    "all_new_code_logs_backups_and_partials_retained": true
+  },
+  "review": {
+    "installer_sha256": "112e1309b5e2d0691150ffe8e02ddcf3130f82b4b077771590915cd38a820170",
+    "installer_tests_passed": 30,
+    "independent_peer_review_passed": true,
+    "ruff_and_python39_passed": true
+  },
+  "ci": {
+    "source_commit": "780dee341a3ce0d2009571899db972e731782394",
+    "push_run": 43588985075,
+    "pull_request_run": 43588988576,
+    "both_runs_successful": true,
+    "checks": [
+      "Python 3.9",
+      "Python 3.12 with real local rclone",
+      "Python 3.13",
+      "Rust tests and ARM64 build",
+      "isolated Samba protocol"
+    ]
+  },
+  "connection_recovery": {
+    "initial_connection_completed_without_result": true,
+    "authoritative_check_before_retry_new_prefix_absent": true,
+    "authoritative_check_before_retry_new_backup_absent": true,
+    "authoritative_check_before_retry_root_python_processes_absent": true,
+    "read_only_administrator_probe_succeeded": true,
+    "recent_kernel_oom_messages_observed": false,
+    "controlled_same_installer_retry_passed": true,
+    "initial_connection_failure_cause_established": false
+  },
+  "limits": {
+    "live_dashboard_upgraded": false,
+    "existing_services_or_configuration_modified": false,
+    "new_services_or_boot_enablement_created": false,
+    "coordinator_or_provider_functions_executed": false,
+    "authorization_payloads_read": false,
+    "real_google_test_or_refresh_accepted": false,
+    "automatic_uploads_enabled": false,
+    "full_usb_or_windows_share_accepted": false,
+    "global_packages_modified": false
+  },
+  "notes": "The first administrator connection ended without a result marker. Read-only checks established that no new prefix or installer backup existed, no Root Python job remained and existing live services stayed active. A separate read-only administrator probe succeeded and found no recent kernel OOM messages. One controlled retry of the identical reviewed installer then completed with exact installed bytes, ordinary-identity probes, retained private records and before/after preservation checks. The initial connection failure remains unexplained. The existing dev11 dashboard, dev14 preparation broker and fixed-address connector continue to run; the new installation is inactive. No owner request, root release, provider operation or service activation occurred."
+}

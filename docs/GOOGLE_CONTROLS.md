@@ -423,6 +423,12 @@ race where eligibility passes but a source lock becomes unavailable before the
 initial full export; an empty source stream is no longer confused with a later
 cloud failure. The worker release/completion protocol is unchanged.
 
+The protected dev17 package is now installed inactive on the Pi, with exact
+wheel/dependency checks and ordinary-identity runtime probes. The live dashboard
+and preparation service remain on their existing versions. No new control or
+upload service is activated by that installation.
+[Installation evidence](acceptance/pi-inactive-install-dev17-2026-11-14.json).
+
 The uninstalled [service](../deploy/systemd/raspi-cloud-google-control.service.example)
 and [path](../deploy/systemd/raspi-cloud-google-control.path.example) examples use
 `PathChanged` on the current intent pointer and a separate boot invocation to

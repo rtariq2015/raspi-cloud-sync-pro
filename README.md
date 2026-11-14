@@ -94,7 +94,8 @@ pending. [Pi trial evidence](docs/acceptance/pi-smb-sdk17-core-dev14-2026-11-14.
 Development also contains the guarded cloud worker, retries, independent
 read-back verification, the private upload bootstrap and a coordinator for one
 selected completed batch. Pending owner controls now have event/recovery
-service examples. These new components remain disabled and undeployed.
+service examples. The dev17 package is installed inactive on the Pi; its new
+control and upload services remain off.
 The next integration
 connects selected completed files, current owner approval and the confined worker
 before automatic uploads can be enabled. Follow [Project progress](docs/STATUS.md)

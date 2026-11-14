@@ -8,8 +8,9 @@ for the current source and [Actions](https://github.com/rtariq2015/raspi-cloud-s
 for remote automated checks.
 
 **Latest development:** 750 Python tests pass, including real rclone against
-temporary local storage. The next build adds a pending-control runner and a
-selected-file upload coordinator, both disabled and undeployed. Temporary
+temporary local storage. Dev17 adds a pending-control runner and a
+selected-file upload coordinator. A protected dev17 prefix is now installed
+inactive; no new control or upload service is activated. Temporary
 failures before a cloud test starts can retry; completed controls and later
 failures are not automatically repeated. The Pi accepted the service-template
 syntax, and its restricted root inspection context passed a credential-free
@@ -18,6 +19,9 @@ QA units and current pinned live processes/network fields. Actual Google
 Test/Enable, automatic uploads and Windows drive mapping still require acceptance.
 [Native prerequisite evidence](acceptance/pi-google-root-context-dev14-2026-11-14.json)
 and [integration details](GOOGLE_CONTROLS.md).
+[Inactive Pi installation](acceptance/pi-inactive-install-dev17-2026-11-14.json).
+Both source-check workflows pass for
+[`780dee3`](https://github.com/rtariq2015/raspi-cloud-sync-pro/commit/780dee341a3ce0d2009571899db972e731782394).
 
 **Upload repair:** the owner reported a 122.7 KB file rejected as exceeding
 100 MiB. This was reproduced: a 32 KiB multipart parser buffer cap rejected

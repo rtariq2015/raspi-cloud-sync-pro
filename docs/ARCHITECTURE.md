@@ -27,12 +27,12 @@ quarantine. New code does not import those service loops.
 | `google_operational.py` | Disabled operational config generations with independent source bindings and separate mutable token storage; no network or worker integration |
 | `google_control.py` | Durable owner Test/Enable/Disable decisions and fresh per-batch admission records; local coordination only, with no cloud or service operations |
 | `google_control_runner.py` | Pending-request eligibility over an ordinary-identity private channel; skips completed work and invokes the separately gated coordinator at most once |
-| `google_test.py` | Default-denied private Google fixture worker with a root-peer release gate, strict mutable settings, forced token refresh and downloaded-content verification; not deployed |
-| `google_test_broker.py` | Opt-in protected root Test coordinator with fresh source/network/kernel authority, private channels, scoped cleanup and historical receipts; not deployed |
-| `google_test_executor.py` | Ordinary backup-UID bootstrap, credential-free canaries, same-PID Test CLI and live completion barrier; not deployed |
-| `google_upload.py` | Default-denied selected-batch upload API; fresh owner admission, separate root release, generation-scoped jobs and downloaded-content verification; not deployed |
-| `google_upload_executor.py` | Ordinary backup-UID upload bootstrap; authenticated inherited channels, credential-free canaries, request binding and a live receipt-completion barrier; not deployed |
-| `google_upload_dispatcher.py` | Default-disabled root coordinator for one selected, already-transferred batch; fresh admission, read-only staging, actual confinement and private receipt/completion checks; not deployed |
+| `google_test.py` | Default-denied private Google fixture worker with a root-peer release gate, strict mutable settings, forced token refresh and downloaded-content verification; live activation pending |
+| `google_test_broker.py` | Opt-in protected root Test coordinator with fresh source/network/kernel authority, private channels, scoped cleanup and historical receipts; live activation pending |
+| `google_test_executor.py` | Ordinary backup-UID bootstrap, credential-free canaries, same-PID Test CLI and live completion barrier; live activation pending |
+| `google_upload.py` | Default-denied selected-batch upload API; fresh owner admission, separate root release, generation-scoped jobs and downloaded-content verification; live activation pending |
+| `google_upload_executor.py` | Ordinary backup-UID upload bootstrap; authenticated inherited channels, credential-free canaries, request binding and a live receipt-completion barrier; live activation pending |
+| `google_upload_dispatcher.py` | Default-disabled root coordinator for one selected, already-transferred batch; fresh admission, read-only staging, actual confinement and private receipt/completion checks; live activation pending |
 | `wifi_confinement.py` | Read-only held inspection of current systemd RNI ingress/egress attachments and exact shared allowlist maps; no credential authority |
 | `batch_transfer.py` | Private descriptor-based streaming of selected completed web batches between service identities; hashes, completion framing and retained partials |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
