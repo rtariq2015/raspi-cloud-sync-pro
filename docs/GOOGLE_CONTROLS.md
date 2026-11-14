@@ -137,7 +137,8 @@ External/Testing refresh-token lifetime still applies.
 reviewed root-owned configuration/approval files, a protected copied interpreter
 and package/import tree, a pinned rclone executable, separate ordinary service
 identities and private state directories. It accepts only the tested Pi and
-systemd platform. There is no installer, startup watcher or public bypass option.
+systemd platform. The dev17 event/recovery examples below remain uninstalled;
+there is no public native-proof bypass option.
 
 The enabled coordinator privately re-exports an existing owner's current Test
 intent as the dashboard identity. Root receives metadata, not the authorization
@@ -256,12 +257,21 @@ The administrative capability list is a candidate, not a native-qualified
 least-privilege claim. In particular, the current inspector's read-only
 get-program/map-by-ID operations require `CAP_SYS_ADMIN` in
 [upstream Linux 6.18](https://raw.githubusercontent.com/torvalds/linux/v6.18/kernel/bpf/syscall.c).
-`CAP_BPF` alone cannot replace that requirement. Cross-identity process inspection
+`CAP_BPF` alone cannot replace that requirement. A credential-free native trial
+now accepts this six-capability inspection context with NoNewPrivileges, seccomp
+and a live ordinary worker. It does not qualify the full coordinator, valid-gate
+Test or source-recorder path. Cross-identity process inspection
 also needs appropriate process/filesystem access. The example preserves
 NoNewPrivileges, an empty ambient set, protected filesystems and denied mount,
 swap and reboot syscalls. Fresh actual worker identity, held kernel policy and
 all canary/source checks remain mandatory; a service template or old QA receipt
 never supplies those proofs.
+
+[Root inspection-context evidence](acceptance/pi-google-root-context-dev14-2026-11-14.json)
+separates the credential-free native trial, its read-only follow-up and the later
+unit parser check. The original in-memory preservation baseline was not saved;
+the follow-up validates that report and independently checks current pinned live
+identities/network fields, not a reconstruction of the historical baseline.
 
 Failures retain generations and root-private run records. After confirmed
 cleanup, a fresh matching unexpired source authority may receive a conservative
@@ -344,8 +354,8 @@ completion proof for both exit outcomes. Exit zero alone is not acceptance.
 
 Fifteen new transport tests use a stub worker and no provider/network release.
 The confined upload bootstrap is added in dev16 below. The root per-batch
-dispatcher, live source admission, real account tests and automatic scheduling
-remain separate integration work.
+dispatcher is added in dev17 below. Live real-account integration and automatic
+scheduling remain separate work.
 
 ## Private upload bootstrap
 
@@ -391,6 +401,106 @@ an arbitrary service. Sixteen new local behavior tests use real Unix streams
 and the actual private CLI with explicit fake activation, sandbox, canaries and
 upload API. They verify protocol and failure handling, not native confinement,
 provider access or a recurring worker. Native deployment remains pending.
+
+## Dev17 pending controls and event recovery
+
+`google-control-runner --config …` checks current eligibility through a separate
+ordinary-source child and invokes the existing Test coordinator at most once.
+Its `google-control-pending` producer uses existing shared account, control and
+preparation locks, opened read-only. Missing or busy locks report unavailable;
+this check creates no directories, locks, requests or receipts. The private
+frame contains only a fixed state, pending boolean and fresh timestamp. It is
+not admission or permission to release credentials. Root requires bounded
+framing, EOF and a zero child exit, then the coordinator independently exports
+and validates actual authority again.
+
+Completed, expired, revoked or absent requests return idle without repeating the
+Test or applying Enable again. Invalid state is a permanent failure. Temporary
+eligibility failures and explicitly classified source/Wi-Fi failures **before
+worker creation** return exit 75. Later source, network, provider, completion,
+cleanup and unexpected errors do not qualify for this retry. This closes the
+race where eligibility passes but a source lock becomes unavailable before the
+initial full export; an empty source stream is no longer confused with a later
+cloud failure. The worker release/completion protocol is unchanged.
+
+The uninstalled [service](../deploy/systemd/raspi-cloud-google-control.service.example)
+and [path](../deploy/systemd/raspi-cloud-google-control.path.example) examples use
+`PathChanged` on the current intent pointer and a separate boot invocation to
+check a request already present. They do not use `PathExists`, which would keep
+completed pointers eligible for activation. Both units must be deliberately
+installed and enabled only after native acceptance. They use the existing
+protected Test config/approval; its interpreter must match the service's exact
+dev17 prefix. The disabled dev14 configuration example is not a ready dev17
+installation. No dashboard flag, service or approval is enabled by this source.
+
+On the pinned systemd 257 target, `Restart=no` with
+`RestartForceExitStatus=75` retries only that explicit temporary exit, every
+30 seconds. Exit two, a signal, timeout or OOM does not automatically restart
+the coordinator. Readable pending intents expire normally; unavailable source
+recovery can continue indefinitely at this frequency. The start limit controls
+trigger storms, not elapsed recovery duration. If it is exhausted, inspect the
+private run records and owned worker/cgroup before a scoped `reset-failed` and
+restart of only these two units. Never retry an unconfirmed cleanup blindly.
+The [systemd 257 path](https://www.freedesktop.org/software/systemd/man/257/systemd.path.html)
+and [service](https://www.freedesktop.org/software/systemd/man/257/systemd.service.html)
+contracts govern these semantics. Older systemd versions may reject this
+oneshot restart policy; they are not qualified targets.
+
+The actual Pi's 257.13 parser accepts these examples and the corrected manual
+Test template with no diagnostics, using temporary copies and a substituted
+`/usr/bin/true` command. Nothing was installed or started by that parser check.
+`ConditionFileNotEmpty` replaces the invalid advisory `ConditionPathIsRegular`
+key; the protected JSON loader still requires actual root-owned private regular
+files under trusted non-symlink parents. Full event-delivery, worker and
+credentialed Test/Enable acceptance remain pending.
+
+## Dev17 selected-batch dispatcher
+
+`google_upload_dispatcher.run_google_upload_dispatcher` coordinates exactly one
+independently selected, already-transferred ready batch. It has no scheduler,
+CLI activation command or dashboard endpoint. Its
+[separate configuration example](../config/google-upload-dispatcher.example.json)
+is disabled, with placeholder origin, executable digest, Wi-Fi UUID and DNS.
+Its distinct root-owned approval file must contain exactly:
+
+```json
+{"schema_version": 1, "google_upload_dispatcher_approved": true}
+```
+
+Test approval cannot authorize uploads. Root reads only the selected manifest's
+metadata; ordinary identities retain payload and credential access. Before any
+source lookup or command, the dispatcher requires the actual Pi/platform,
+protected matching package/configuration and the same network namespace as PID1.
+The source supplies fresh per-batch admission before and after credential-free
+canaries. Stable authority must match; the release binds the complete latest
+frame, including its actual timestamp, to the live worker, batch and canonical
+manifest digest. A saved QA result supplies no authority.
+
+The ordinary upload worker receives read-only preparation and staging mounts.
+Root checks the staging identity and read-only mount state, the preparation
+mount's read-only state, live confinement, Wi-Fi policy, protected coordinator
+configuration and unchanged selected manifest before release and at completion.
+The ordinary worker independently validates actual Google settings and tokens.
+Valid verified, historical, pending and failed receipts all need
+the live completion barrier; expected child exits are respectively zero, zero,
+two and two. A valid receipt is retained privately even if a later proof or
+cleanup fails. A mismatched receipt never receives completion acknowledgement.
+The coordinator stops only its fresh captured worker/invocation and retains
+originals, snapshots, incomplete data and private run records.
+
+Disable denies the next admission; a batch already admitted can finish. The
+caller must first establish transfer framing, final EOF and successful exits of
+**both** exporter and importer. The dispatcher does not infer this from the
+existence of a ready directory. It accepts no public proof, clock or native-gate
+bypass. The 300-second worker, 390-second unit and 420-second coordinator bounds
+do not turn uninterruptible kernel I/O into a hard wall-clock guarantee.
+
+Local tests exercise real private Unix framing, immutable manifest selection,
+changed authority, read-only staging checks, all four receipt outcomes, live
+acknowledgement and scoped failure cleanup with simulated PID1/network/provider
+boundaries. Native dispatcher/cloud acceptance, transfer orchestration,
+per-file dashboard results and recurring scheduling remain necessary before
+enabling automatic backups.
 
 ## Remaining integration
 

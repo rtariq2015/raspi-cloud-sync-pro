@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**696 Python tests and 11 Rust tests pass locally.** Python tests include actual
+**750 Python tests and 11 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -92,7 +92,10 @@ versions. This qualifies the local reader, with Windows drive mapping still
 pending. [Pi trial evidence](docs/acceptance/pi-smb-sdk17-core-dev14-2026-11-14.json).
 
 Development also contains the guarded cloud worker, retries, independent
-read-back verification and the private upload bootstrap. The next integration
+read-back verification, the private upload bootstrap and a coordinator for one
+selected completed batch. Pending owner controls now have event/recovery
+service examples. These new components remain disabled and undeployed.
+The next integration
 connects selected completed files, current owner approval and the confined worker
 before automatic uploads can be enabled. Follow [Project progress](docs/STATUS.md)
 for the current deployment and [the implementation guide](docs/GOOGLE_CONTROLS.md)

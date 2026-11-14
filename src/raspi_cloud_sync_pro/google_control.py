@@ -14,12 +14,14 @@ source binding remain current. Disable supersedes it immediately. No record here
 asserts that a worker is currently running or identifies the Google account.
 """
 
+import fcntl
 import hashlib
 import hmac
 import json
 import os
 import re
 import secrets
+import stat
 from contextlib import contextmanager
 
 from . import google_destination as destination
@@ -31,6 +33,11 @@ WORKFLOW_DIRECTORY = "google-control"
 REQUEST_LIFETIME = 600.0
 TEST_FRESHNESS = 600.0
 DEFAULT_TIMEOUT = 5.0
+PENDING_STATES = frozenset(("test_requested", "enable_requested", "disable_requested"))
+CONTROL_STATES = PENDING_STATES | frozenset((
+    "not_requested", "test_verified", "test_failed", "test_expired", "enable_recorded",
+    "disable_recorded", "enable_failed", "disable_failed", "expired", "stale_binding",
+    "invalid", "unavailable"))
 _ACTIONS = {"test", "enable", "disable"}
 _ID = re.compile(r"[0-9a-f]{32}\Z")
 _HASH = re.compile(r"[0-9a-f]{64}\Z")
@@ -194,8 +201,8 @@ def _owner(root, username, tag):
         _fail("google_control_owner_changed")
 
 
-def _preparation(root, origin, username, tag, now):
-    with setup._workflow(root) as workflow:
+def _preparation(root, origin, username, tag, now, *, read_only=False):
+    with (_existing_workflow(root, setup.WORKFLOW_DIRECTORY) if read_only else setup._workflow(root)) as workflow:
         record = setup._current(workflow) if workflow is not None else None
         if record is None:
             _fail("google_control_preparation_required")
@@ -286,12 +293,12 @@ def _successful_test(workflow, record, now, payload, *, fresh):
     return binding
 
 
-def _authority(root, workflow, origin, record, now, *, fresh_test=False):
+def _authority(root, workflow, origin, record, now, *, fresh_test=False, read_only=False):
     _owner(root, record["owner_username"], record["owner_credential_tag"])
     if record["action"] == "disable":
         return None
     binding, payload = _preparation(root, origin, record["owner_username"],
-                                    record["owner_credential_tag"], now)
+                                    record["owner_credential_tag"], now, read_only=read_only)
     if binding != record["preparation"]:
         _fail("google_control_source_changed")
     if record["action"] == "enable":
@@ -309,13 +316,15 @@ def _projection(state, record=None, receipt=None, now=None, *, admitted=False):
             "automatic_deletion": False}
 
 
-def _status(root, workflow, origin, now, record=None):
+def _status(root, workflow, origin, now, record=None, *, read_only=False):
     record = _current(workflow) if record is None else record
     if record is None:
         return _projection("not_requested")
     try:
-        payload = _authority(root, workflow, origin, record, now)
-    except GoogleControlError:
+        payload = _authority(root, workflow, origin, record, now, read_only=read_only)
+    except GoogleControlError as error:
+        if read_only and error.code == "google_control_busy":
+            raise
         return _projection("stale_binding", record, now=now)
     receipt = _receipt(workflow, record, now, payload)
     action = record["action"]
@@ -432,6 +441,87 @@ def google_control_status(state, origin, *, now=None):
         return _projection("invalid" if error.code in invalid else "unavailable")
     except (destination.GoogleDestinationError,) + _FAILURES:
         return _projection("unavailable")
+
+
+@contextmanager
+def _existing_shared_lock(parent, name):
+    """Read existing locks without creating missing state during a boot check."""
+    fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                or stat.S_IMODE(info.st_mode) != 0o600 or info.st_nlink != 1):
+            _fail("google_control_storage_invalid")
+        try:
+            fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
+        except BlockingIOError:
+            _fail("google_control_busy")
+        yield
+    finally:
+        os.close(fd)
+
+
+@contextmanager
+def _existing_workflow(root, name):
+    try:
+        fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=root)
+    except FileNotFoundError:
+        yield None
+        return
+    try:
+        info = os.fstat(fd)
+        if info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) != 0o700:
+            _fail("google_control_storage_invalid")
+        with _existing_shared_lock(fd, "workflow.lock"):
+            yield fd
+    finally:
+        os.close(fd)
+
+
+def export_google_control_pending(state, origin, output_fd, *, now=None):
+    """Export eligibility metadata only; never request, record or authorize work.
+
+    A root runner may use this to skip completed intents, then must call the
+    existing broker which independently exports and validates current authority.
+    Missing/busy locks are unavailable; this operation creates no lock files.
+    """
+    destination._unprivileged()
+    with destination._channel(output_fd, writing=True) as channel:
+        deadline, checked = destination._deadline(DEFAULT_TIMEOUT), _now(now)
+        destination._origin(origin)
+        try:
+            with destination._private_directory(state) as root, _existing_shared_lock(root, "auth.lock"):
+                try:
+                    workflow = os.open(WORKFLOW_DIRECTORY, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=root)
+                except FileNotFoundError:
+                    report = _projection("not_requested")
+                else:
+                    try:
+                        info = os.fstat(workflow)
+                        if info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) != 0o700:
+                            _fail("google_control_storage_invalid")
+                        with _existing_shared_lock(workflow, "workflow.lock"):
+                            report = _status(root, workflow, origin, checked, read_only=True)
+                    finally:
+                        os.close(workflow)
+        except GoogleControlError as error:
+            invalid = {"google_control_storage_invalid", "google_control_receipt_invalid",
+                       "google_control_request_invalid", "google_control_time_invalid"}
+            report = _projection("invalid" if error.code in invalid else "unavailable")
+        except (destination.GoogleDestinationError,) + _FAILURES:
+            report = _projection("unavailable")
+        current = report["control_state"]
+        if current not in CONTROL_STATES:
+            _fail("google_control_pending_invalid")
+        pending = current in PENDING_STATES
+        if pending and (report["historical"] is not False
+                        or report["requested_action"] != current.removesuffix("_requested")):
+            _fail("google_control_pending_invalid")
+        destination._write_frame(channel, destination._canonical({
+            "schema_version": 1, "provider": "google_drive", "control_state": current,
+            "pending": pending, "checked_at": checked}), deadline)
+    return {"schema_version": 1, "provider": "google_drive", "pending_exported": True,
+            "current_worker_state_checked": False, "account_verified": False, "automatic_deletion": False}
 
 
 def _live(workflow, request_id, now):

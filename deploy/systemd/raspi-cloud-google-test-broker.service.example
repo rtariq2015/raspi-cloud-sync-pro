@@ -3,7 +3,7 @@
 [Unit]
 Description=Raspi Cloud Sync Pro one-shot private Google Test coordinator
 ConditionPathExists=/etc/raspi-cloud-sync-pro/GOOGLE_TEST_APPROVED
-ConditionPathIsRegular=/etc/raspi-cloud-sync-pro/google-test-broker.json
+ConditionFileNotEmpty=/etc/raspi-cloud-sync-pro/google-test-broker.json
 StartLimitIntervalSec=300
 StartLimitBurst=1
 

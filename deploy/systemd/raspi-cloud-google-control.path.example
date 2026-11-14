@@ -1,0 +1,12 @@
+# Uninstalled example: no watcher or boot link is created by this file.
+[Unit]
+Description=Observe owner Google control intent changes
+ConditionPathExists=/etc/raspi-cloud-sync-pro/GOOGLE_TEST_APPROVED
+
+[Path]
+PathChanged=/var/lib/raspi-cloud-sync-pro/dashboard/google-control/current.json
+Unit=raspi-cloud-google-control.service
+# No PathExists: completed pointers must not cause a trigger loop.
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,8 @@
 # Phase 2 validation record
 
+Current source: **0.1.0.dev17**, with **750 Python tests passing** locally.
+The dated records below distinguish earlier builds and real-device evidence.
+
 Date: 2026-11-12. Linux x86-64 development environment, Python 3.12.3.
 Package `0.1.0.dev2`; target branch `development`. Hardware gate remains false.
 
@@ -1280,3 +1283,71 @@ Persistent watcher status, unchanged live invocations and the broker's last
 zero exit were verified. This is offline preparation proof, without a provider
 request, token refresh, current cloud worker, Test/Enable or reboot acceptance.
 [Fresh owner preparation evidence](acceptance/pi-google-prepare-fresh-dev14-2026-11-14.json).
+
+
+## Pending controls and selected-batch dispatch — development 0.1.0.dev17
+
+All **750 Python tests pass** in 34.542 seconds, including actual rclone against
+temporary local storage. The 54 new tests exercise read-only pending eligibility,
+owner Test/Enable/Disable lifecycle, missing/busy locks, real private framing and
+EOF/child exits, initial source-export races, terminal later-stage failures,
+private CLI errors and the selected-batch dispatcher. Tests use simulated
+PID1/network/provider boundaries; they do not authorize credentials or activate
+services. Ruff, Python 3.9 parsing of changed modules/tests and upstream license,
+README and ancestry checks pass. The existing eleven Rust tests remain unchanged.
+
+The pending producer opens existing account/control/preparation shared locks
+read-only and never creates a missing lock. Its fixed private metadata grants no
+cloud authority. Completed or expired decisions do not call the broker again.
+The initial full-source export can fail after eligibility succeeds; an actual
+empty pipe from a nonzero child now receives a specific pre-worker refusal.
+Only that phase and initial Wi-Fi unavailability are retryable. Later network,
+source, completion and cleanup failures remain terminal, including when writing
+a failure receipt also fails. The accepted worker protocol is unchanged.
+
+The new disabled service/path examples pair pointer-change events with a boot
+check for existing pending requests. On systemd 257, only normal exit 75 forces
+a restart; signals, timeouts, exit two and later failures do not. Recovery retries
+run every 30 seconds while availability is unknown; this is a frequency bound,
+not a finite recovery window. Readable intents expire normally. The actual Pi's
+257.13 parser accepted three temporary unit copies with no diagnostics, including
+the corrected manual Test example. Only ExecStart was replaced with
+/usr/bin/true; no unit was installed or started. The Zorin host's older systemd
+255 rejects forced oneshot restarts and is not the target. Both templates now
+use the valid advisory ConditionFileNotEmpty in place of the unrecognized
+ConditionPathIsRegular; strict protected-JSON validation still governs access.
+
+The separate selected-batch dispatcher requires its own disabled protected
+configuration and upload approval, fresh admission bracketing canaries, actual
+held Wi-Fi policy and a live worker with read-only staging. Root reads manifest
+metadata, not payload or credential contents. Tests cover all four valid receipt
+outcomes, exact latest-admission binding, changed manifests/authority, staging
+replacement, mismatched receipts, owned cleanup and retained evidence. Existing
+Test approval cannot enable this path. The completed-transfer coordinator,
+per-file dashboard bridge, native dispatcher and real Google refresh/Test/Enable
+acceptance are still needed. Live controls and automatic uploads remain off.
+
+A credential-free native trial also passed with the protected dev14 inspector
+inside the actual six-capability restricted root service context. Root's
+effective/permitted/bounding mask, empty ambient/inheritable sets, NoNewPrivileges
+and seccomp mode were observed. Program/map-by-zero-ID lookups reached ENOENT
+instead of a permission refusal. The unchanged held policy inspector passed its
+initial and repeated checks while an ordinary capability-free worker remained
+alive; cross-identity process observation passed. Both exact owned QA units were
+stopped and their cgroups empty or absent. Twenty-two pre-run helper tests and
+independent peer review preceded execution.
+
+A separate read-only follow-up, with fifteen tests and independent review,
+validated exact protected code/plan/result/invocations, complete stage, stopped
+QA units and unbound retained socket nodes. Current dashboard/connector identity,
+Wi-Fi profile, IPv4 defaults and USB carrier matched separately pinned current
+values. The original helper compared its own before/after preservation snapshot
+in memory but did not persist that baseline; the follow-up validates its report
+and current fields, not an independent reconstruction of historical equality.
+The historical unit fixture removed production approval/config conditions. This
+trial does not qualify the corrected production template, ordinary source-child
+drop, recorder path, valid gate, network canaries, completion protocol, real
+Google refresh or USB packet exclusion. No authorization payload was read and
+no provider operation occurred. Live dashboard/preparation services and network
+settings were left in place.
+[Partial root-context evidence](acceptance/pi-google-root-context-dev14-2026-11-14.json).

@@ -1,0 +1,70 @@
+# Uninstalled example. Review and native qualification precede installation.
+# Marker and enabled protected JSON are both required; this enables no uploads.
+[Unit]
+Description=Raspi Cloud Sync Pro pending owner Google control runner
+ConditionPathExists=/etc/raspi-cloud-sync-pro/GOOGLE_TEST_APPROVED
+ConditionFileNotEmpty=/etc/raspi-cloud-sync-pro/google-test-broker.json
+StartLimitIntervalSec=900
+StartLimitBurst=64
+
+[Service]
+Type=oneshot
+# PID1 defaults to root; the coordinator independently requires actual root.
+# Omit explicit User/Group to avoid the systemd 257 root credential transition.
+WorkingDirectory=/
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-control-runner --config /etc/raspi-cloud-sync-pro/google-test-broker.json
+Restart=no
+# Only a normal exit 75 means temporary pre-worker source/Wi-Fi deferral.
+# Signals, timeouts and all other failures require a new event or recovery.
+RestartForceExitStatus=75
+# Retry pre-worker availability indefinitely at this rate until the readable
+# intent expires or becomes completed/invalid. StartLimit limits trigger storms;
+# it is not an elapsed recovery deadline. No post-worker failure is retryable.
+RestartSec=30
+TimeoutStartSec=330
+TimeoutStopSec=10
+KillMode=control-group
+SendSIGKILL=yes
+UMask=0077
+LimitCORE=0
+RuntimeDirectory=raspi-cloud-google-test-broker
+RuntimeDirectoryMode=0700
+# Keep the lock inode and private retained run records between manual starts.
+RuntimeDirectoryPreserve=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+# Root's nonce echo controls, wlan0 observation and worker must share host netns.
+PrivateNetwork=no
+ReadWritePaths=/var/lib/raspi-cloud-sync-pro/dashboard /run/raspi-cloud-google-test-broker
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+# Root's read-only iproute observations use netlink; the backup worker has its
+# own stricter native IPv4-only policy and no ability to create Unix/netlink FDs.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_NETLINK
+SystemCallArchitectures=native
+# The current read-only kernel BPF get-by-ID ABI requires CAP_SYS_ADMIN.
+# This administrative capability floor is unqualified on the target as a unit;
+# it is not equivalent to the separately validated cap-zero backup worker.
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_SETUID CAP_SETGID CAP_KILL CAP_SYS_PTRACE CAP_SYS_ADMIN
+AmbientCapabilities=
+# Keep mount/swap/reboot operations out of the coordinator's syscall surface.
+# PID1 creates the independently confined worker; bpf inspection stays allowed.
+SystemCallFilter=~mount umount2 pivot_root reboot kexec_load kexec_file_load swapon swapoff
+SystemCallErrorNumber=EPERM
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+# The service scans existing pending intent once at boot; the path catches new
+# atomic pointers, including changes made while this one-shot was active.
+# Neither existence nor an eligibility report creates owner/cloud authority.
+[Install]
+WantedBy=multi-user.target

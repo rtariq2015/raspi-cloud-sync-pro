@@ -136,6 +136,16 @@ throughput/memory on the Zero 2 W. Add cancellation, explicit failed-job recover
 periodic verification/audit and a scheduler with observed network state. Do not
 mirror deletions. Large-file resumability remains separate from whole-file retry.
 
+Dev17 adds pending-control event/recovery examples and a separately approved
+selected-batch upload dispatcher. Existing shared locks permit read-only
+eligibility checks; completed controls do not repeat. Only explicit failures
+before worker creation qualify for automatic retry. Source tests cover the
+private protocols; deployment and actual Google Test/Enable, completed-transfer
+handoff, recurring scheduling and dashboard result reporting remain necessary.
+The Pi's six-capability root inspection context now passes a credential-free
+native trial. That is a permission prerequisite, not full coordinator or cloud
+acceptance. [Control integration](GOOGLE_CONTROLS.md).
+
 ## Phase 4 — OS Wi-Fi management
 
 Implement the [Wi-Fi design](NETWORKING.md) against the selected OS NetworkManager

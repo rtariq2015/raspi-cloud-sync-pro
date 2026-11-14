@@ -824,11 +824,26 @@ def _orchestrate(settings, source, backup, source_fd, deadline, manager, source_
     request_id = _current_request(source_fd, source.pw_uid)
     if request_id is None:
         return _result("idle", "google_test_broker_no_request")
-    exported = source_transport.export(request_id, deadline)
+    # Only this initial transport phase is eligible for unattended retry. No
+    # runtime, worker, release or provider request exists yet. A later source
+    # refusal must retain its terminal classification even if recording fails.
+    try:
+        exported = source_transport.export(request_id, deadline)
+    except GoogleTestBrokerError as error:
+        if error.code != "google_test_broker_source_refused":
+            raise
+        _fail("google_test_broker_source_unavailable_before_worker")
+    except (preparation.GoogleBrokerError, OSError):
+        _fail("google_test_broker_source_unavailable_before_worker")
     if isinstance(exported, dict) and exported.get("action") in ("enable", "disable"):
         return _apply_control(exported, request_id, source_transport, deadline)
     request = _request(exported, request_id)
-    network = _network(settings, deadline)
+    try:
+        network = _network(settings, deadline)
+    except GoogleTestBrokerError as error:
+        if error.code != "google_test_broker_wifi_unavailable":
+            raise
+        _fail("google_test_broker_wifi_unavailable_before_worker")
     with _runtime(settings) as (path, directory, identifier):
         unit = "raspi-cloud-google-test-" + identifier + ".service"
         description = "Private Google Test " + identifier

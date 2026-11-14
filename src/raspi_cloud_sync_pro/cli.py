@@ -20,13 +20,15 @@ from .history import read_history
 _GOOGLE_UPLOAD_ERROR = "Private Google upload unavailable; no private details were printed."
 _GOOGLE_TEST_ERROR = "Private Google Test unavailable; no uploads were enabled and no private details were printed."
 _GOOGLE_TEST_BROKER_ERROR = "Google Test coordinator unavailable; no uploads were enabled and no private details were printed."
+_GOOGLE_CONTROL_RUNNER_ERROR = "Google control runner unavailable; no private details were printed."
+_GOOGLE_CONTROL_ERROR = "Private Google control operation unavailable; no private details were printed."
 _SMB_CAPTURE_ERROR = "SMB capture unavailable; no cloud uploads were enabled and no private details were printed."
 _GOOGLE_TEST_BROKER_CODES = frozenset("google_test_broker_" + value for value in (
     "approval_required authority_changed canary_invalid cleanup_unconfirmed command_invalid completion_invalid "
     "configuration_changed configuration_invalid control_applied disabled identity_unsafe installation_unsafe loopback_reached "
     "manager_unapproved no_request no_test pidfd_required receipt_invalid request_invalid single_thread_required "
-    "source_refused storage_invalid systemd_unavailable test_verified_not_enabled timeout unavailable "
-    "unit_changed unit_conflict unit_invalid wifi_unavailable worker_changed worker_failed worker_invalid"
+    "source_refused source_unavailable_before_worker storage_invalid systemd_unavailable test_verified_not_enabled timeout unavailable "
+    "unit_changed unit_conflict unit_invalid wifi_unavailable wifi_unavailable_before_worker worker_changed worker_failed worker_invalid"
 ).split())
 
 
@@ -63,6 +65,22 @@ def _google_test_broker_projection(report):
             or (report["status"] == "failed" and report["code"] in set().union(*completed.values()))):
         raise BackupError("google_test_broker_report_invalid")
     return {key: report[key] for key in ("status", "code", "uploads_enabled", "account_verified", "current_worker_state_checked")}
+
+
+def _google_control_runner_projection(report):
+    if isinstance(report, dict) and isinstance(report.get("code"), str) and report["code"] in _GOOGLE_TEST_BROKER_CODES:
+        return _google_test_broker_projection(report)
+    expected = {"disabled": {"google_control_runner_disabled"},
+                "idle": {"google_control_runner_no_pending_request"},
+                "deferred": {"google_control_runner_source_unavailable", "google_control_runner_request_deferred"},
+                "failed": {"google_control_runner_configuration_invalid", "google_control_runner_source_invalid",
+                           "google_control_runner_unavailable"}}
+    if (not isinstance(report, dict) or set(report) != {"status", "code", "uploads_enabled", "account_verified", "current_worker_state_checked"}
+            or not isinstance(report.get("status"), str) or report["status"] not in expected
+            or not isinstance(report.get("code"), str) or report["code"] not in expected[report["status"]]
+            or any(report[key] is not False for key in ("uploads_enabled", "account_verified", "current_worker_state_checked"))):
+        raise BackupError("google_control_runner_report_invalid")
+    return dict(report)
 
 
 def _run_private_google_test(args):
@@ -248,6 +266,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     setup_broker.add_argument("--config", type=Path, required=True)
     test_broker = commands.add_parser("google-test-broker", help="one explicit root-coordinated owner Test; disabled configuration starts nothing")
     test_broker.add_argument("--config", type=Path, required=True, help="protected root-owned private coordinator configuration")
+    control_runner = commands.add_parser("google-control-runner", help="process an existing pending owner decision; disabled configuration starts nothing")
+    control_runner.add_argument("--config", type=Path, required=True)
     smb_capture = commands.add_parser("smb-capture", help="one approved local SMB capture scan; never upload or configure the host")
     smb_capture.add_argument("--config", type=Path, required=True, help="nonsecret root-protected configuration readable by the backup identity")
     google_test = commands.add_parser("google-test", help="private owner Test worker; inherited root release required")
@@ -276,13 +296,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         ("google-control-export", "privately export an existing owner control intent; never create one"),
         ("google-control-record", "record a private coordinator receipt for an existing owner intent"),
         ("google-control-admission", "privately export one fresh admission decision; never start a worker"),
+        ("google-control-pending", "privately describe eligibility only; never authorize or start a worker"),
     ):
         control = commands.add_parser(command, help=help_text)
         control.add_argument("--state", type=Path, required=True)
         control.add_argument("--public-origin", required=True)
         if command in ("google-control-export", "google-control-record"):
             control.add_argument("--request-id", required=True)
-        if command in ("google-control-export", "google-control-admission"):
+        if command in ("google-control-export", "google-control-admission", "google-control-pending"):
             control.add_argument("--output-fd", type=int, required=True)
         elif command == "google-control-record":
             control.add_argument("--receipt-fd", type=int, required=True)
@@ -350,7 +371,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     private_command = (sys.argv[1:] if argv is None else argv)[:1]
-    if private_command in (["google-test"], ["google-test-broker"], ["google-upload"], ["smb-capture"]):
+    if private_command in (["google-test"], ["google-test-broker"], ["google-upload"], ["smb-capture"],
+                           ["google-control-runner"], ["google-control-pending"]):
         # Private operator arguments can themselves contain private strings.
         # Argparse diagnostics normally echo invalid values and unknown options.
         try:
@@ -360,6 +382,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             if error.code == 0:
                 return 0
             message = {"google-test-broker": _GOOGLE_TEST_BROKER_ERROR, "google-test": _GOOGLE_TEST_ERROR,
+                       "google-control-runner": _GOOGLE_CONTROL_RUNNER_ERROR, "google-control-pending": _GOOGLE_CONTROL_ERROR,
                        "google-upload": _GOOGLE_UPLOAD_ERROR, "smb-capture": _SMB_CAPTURE_ERROR}[private_command[0]]
             print(message, file=sys.stderr)
             return 2
@@ -383,6 +406,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         except Exception:
             print(_GOOGLE_TEST_BROKER_ERROR, file=sys.stderr)
             return 2
+    if args.command == "google-control-runner":
+        try:
+            from .google_test_broker import GoogleTestBrokerSettings
+            from .google_control_runner import run_google_control_runner
+            report = _google_control_runner_projection(run_google_control_runner(GoogleTestBrokerSettings.load(args.config)))
+            print(json.dumps(report, indent=2))
+            return 75 if report["status"] == "deferred" else 2 if report["status"] == "failed" else 0
+        except Exception:
+            print(_GOOGLE_CONTROL_RUNNER_ERROR, file=sys.stderr)
+            return 2
     if args.command == "google-upload":
         try:
             report = _run_private_google_upload(args)
@@ -400,6 +433,15 @@ def main(argv: Optional[List[str]] = None) -> int:
             # This is the private worker's public error boundary, including raw
             # subprocess/configuration failures. Never print exception context.
             print(_GOOGLE_TEST_ERROR, file=sys.stderr)
+            return 2
+    if args.command == "google-control-pending":
+        try:
+            from . import google_control
+            report = google_control.export_google_control_pending(args.state, args.public_origin, args.output_fd)
+            print(json.dumps(report, indent=2))
+            return 2 if report.get("control_state") in ("invalid", "unavailable") else 0
+        except Exception:
+            print(_GOOGLE_CONTROL_ERROR, file=sys.stderr)
             return 2
     if args.command in ("google-control-status", "google-control-export", "google-control-record",
                         "google-control-admission"):
