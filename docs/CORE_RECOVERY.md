@@ -2,24 +2,34 @@
 
 Updated 14 November 2026. Development only; no merge or release.
 
-The first actual Windows USB file has reached Google Drive and passed downloaded
-SHA-256 verification. This is a real hardware/cloud milestone, not a claim that
-the appliance is finished.
+**Automatic USB capture and Google backup now pass on the Zorin laptop.** Three
+synthetic files (66 bytes, 33 bytes with a Unicode name, and 64 MiB) were written
+and read back through the real gadget. Normal media eject triggered the running
+controller, without an operator capture command. It captured matching bytes,
+reattached the drive, and handed the batch to the separate worker. All three
+Google uploads passed downloaded SHA-256 verification on their first attempt.
+The earlier 10,490,314-byte file remained verified without another upload.
+
+**Host attribution correction:** the earlier user-confirmed copy/eject was
+described as Windows based on conversation context. That host OS was not
+independently recorded. The new automated host test is explicitly Zorin Linux;
+Windows-specific physical acceptance remains outstanding. The earlier file's
+capture, Google upload and verification evidence remains valid.
 
 | Requirement | Result | Evidence and limit |
 | --- | --- | --- |
-| Genuine writable USB drive | PASS | Pi configfs mass-storage gadget configured; user copied a file into CLOUDSTICK in Windows |
-| Larger file copy | PASS | Captured file is 10,490,314 bytes; Windows source hash was not independently supplied |
-| Separate small-file Windows test | NOT TESTED | One physical file has been tested so far |
+| Genuine writable USB drive | PASS on Linux; Windows NOT VERIFIED | Actual 1 GiB removable USB gadget enumerated and mounted on Zorin; Windows still requires separately recorded host acceptance |
+| Small/large/nested/Unicode copies | PASS on Linux | Three synthetic files, including 64 MiB; host read-back and captured SHA-256 match |
+| Separate Windows copy/hash test | NOT TESTED | Earlier host OS attribution was contextual rather than independently recorded |
 | Safe local capture | PASS | User safe eject plus fresh empty LUN; ordinary unbind, read-only loop, nonrepairing exFAT check, clear dirty/media-failure flags and read-only backup-UID staging |
-| Unattended eject detection | NOT TESTED | Initial timed observer expired before the user ejected; explicit operator-confirmed recovery was used and labelled separately |
+| Unattended eject detection | PASS on Linux | Normal unmount and UDisks Drive.Eject; same continuous controller process observed release, staged, reattached and handed off |
 | Automatic Google upload | PASS | Already-running worker discovered the completed batch, uploaded and verified it on attempt 1 |
 | Remote integrity | PASS | Actual job events: queued → uploading → uploaded → verifying → verified; provider downloads remote contents and compares SHA-256 |
 | Original retention | PASS | Image retained; completed local staged copy retained; no cleanup/deletion enabled |
 | Physical Wi-Fi outage recovery | NOT TESTED | Working Wi-Fi/SSH was preserved; automated offline/retry tests do not establish physical outage acceptance |
 | Physical reboot recovery | NOT TESTED | No Pi reboot performed |
 | Worker restart and upload deduplication | PASS | Worker PID changed; verified job, attempt count and event counts stayed unchanged over two more ticks |
-| Safe USB reattachment | PASS | No image loop or mount remained before rebind; host configured the gadget again; second Explorer appearance not separately confirmed |
+| Safe USB reattachment | PASS on Linux | Gadget configured again and automatically remounted by Zorin; no Pi image loop or capture mount remained |
 | Existing Wi-Fi/SSH | PASS | Separate authenticated SSH connections remain on built-in wlan0 |
 | USB Ethernet recovery | PASS | Normally unloaded/reloaded g_ether, restored ICS state, observed configured Ethernet gadget; Windows IP/SSH was not separately tested |
 
@@ -50,8 +60,8 @@ The actual backup worker is running and boot-enabled after its native backup and
 process-restart checks. Its prior unit and rollback instructions are retained;
 physical reboot acceptance still remains.
 
-Next: permanent eject-to-capture operation, safe repeated reattachment, duplicate
-capture prevention, queued-upload restart/outage tests, then controlled reboot
+Next: duplicate capture prevention, queued-upload restart/outage tests, persistent
+USB startup, Windows-specific acceptance, then controlled reboot
 acceptance. A no-eject mass-storage workflow remains unproven. Dashboards and
 other providers stay deferred until the core workflow is accepted.
 
@@ -60,6 +70,12 @@ controller session and transfers completed Root-private snapshots into the
 backup identity's private queue. It adopts only an already loaded, configured
 profile and still requires a fresh loaded observation before accepting eject.
 Its public `APPROVED_TEST_BUILD` flag and the original global hardware gate remain
-false. A separately recorded protected test build is required for native testing.
+false. The separately recorded protected dev19 test build is running and passed
+the automatic Linux-host handoff. Its root service required `CAP_SYS_PTRACE` to
+read PID 1's mount namespace identity; without it startup refused before mutations.
+The corrected service was probed on the Pi before starting the controller.
 It does not provision the USB profile after reboot; interrupted handoffs retain
 data for manual recovery. The example service is therefore static and disabled.
+
+Full sanitized evidence: [automatic USB acceptance](acceptance/pi-mass-storage-auto-linux-2026-11-14.json).
+Plain-language updates and owner questions: [GitHub progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).

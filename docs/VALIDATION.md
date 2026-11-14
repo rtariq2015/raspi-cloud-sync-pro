@@ -2,9 +2,12 @@
 
 Current source: **0.1.0.dev19**, with **810 core Python tests and 28 USB operator
 tests passing** locally, including actual rclone against a temporary local alias.
-The [first actual Windows USB file](CORE_RECOVERY.md) now passed safe manual
-handoff, local capture and automatic Google upload/downloaded-hash verification.
-Physical outage/reboot and continuous capture acceptance remain incomplete.
+The [core USB trial](CORE_RECOVERY.md) now passes automatic eject capture,
+reattachment and Google upload/downloaded-hash verification on the real Zorin
+USB host, with small, nested, Unicode and 64 MiB synthetic files. The earlier
+operator-confirmed file also passed. Its Windows attribution was contextual;
+Windows-specific acceptance is not independently verified. Physical outage/reboot
+and persistent USB startup acceptance remain incomplete.
 The dated records below distinguish earlier builds and real-device evidence.
 
 Date: 2026-11-12. Linux x86-64 development environment, Python 3.12.3.

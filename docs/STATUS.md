@@ -2,15 +2,22 @@
 
 **Updated: 14 November 2026. Development build; no release published.**
 
-**First real USB file backed up and verified.** The user copied a 10,490,314-byte
-file onto CLOUDSTICK in Windows and safely ejected it. A separate, explicitly
-operator-confirmed handoff captured it through a checked read-only filesystem.
-The background Google worker uploaded it and downloaded contents for SHA-256
-verification; one job is verified after one attempt. Both local copies remain.
-The original timed observer expired and is not counted as automatic capture.
-Permanent capture, actual offline/reboot acceptance and no-eject operation remain
-unfinished. Further dashboard/Samba/provider expansion is deferred.
+**Automatic USB-to-Google backup passed on the available Zorin laptop.** Three
+synthetic files, including a 64 MiB file, were copied through the real USB gadget.
+Normal Eject automatically triggered safe capture, USB reattachment, Google
+upload and downloaded-content verification. All local copies remain. Four jobs
+are now verified, including the earlier 10,490,314-byte file; that earlier file
+was not uploaded again. Earlier Windows attribution came from conversation
+context, not an independently recorded host OS. Windows-specific testing,
+duplicate local capture prevention, persistent USB startup and physical
+offline/reboot acceptance remain unfinished. No-eject operation is unproven.
+Further dashboard/Samba/provider expansion is deferred.
 See [the core recovery record](CORE_RECOVERY.md).
+
+**Updates on your phone:** use the [plain-language progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
+It records what works, current work, remaining tests and whether owner help is
+needed. Subscribe there and choose GitHub/email notifications in your account;
+delivery has not been confirmed. No SMS service or MeerkatIO account is required.
 
 This page records evidence, not a percentage estimate. Follow the
 [development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)

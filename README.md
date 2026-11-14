@@ -16,12 +16,13 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 
 </div>
 
-> **First real USB-to-Google file verified — 14 November 2026.** Windows copied
-> a 10,490,314-byte file onto the Pi's writable CLOUDSTICK drive. After the user
-> safely ejected, an operator-confirmed handoff captured it read-only; the
-> background worker uploaded it to Google Drive and verified downloaded contents.
-> Permanent automatic capture, offline/reboot acceptance and a no-eject workflow
-> remain unfinished. [Exact results and limits](docs/CORE_RECOVERY.md).
+> **Automatic USB-to-Google test passed — 14 November 2026.** Three files,
+> including a 64 MiB file, were copied onto CLOUDSTICK from the Zorin laptop.
+> Normal Eject triggered safe capture, USB reattachment, Google upload and
+> downloaded-content verification automatically. Local copies remain. Windows
+> acceptance, duplicate local capture prevention and physical outage/reboot tests
+> are still outstanding. [Exact results](docs/CORE_RECOVERY.md) ·
+> [Plain-language updates and questions](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 
 ## The core product comes first
 
@@ -31,8 +32,8 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 4. Upload over the Pi's built-in Wi-Fi into the selected Google Drive folder.
 5. Verify uploaded contents, retry failures and avoid repeating verified versions.
 
-The first writable-drive/capture/upload test now passes. Its capture handoff was
-operator-confirmed; the unattended capture service still needs acceptance.
+The writable-drive/capture/upload test now passes automatically after safe eject
+on a real Linux USB host. Windows-specific acceptance remains outstanding.
 A quiet period cannot prove host caches are flushed or
 files are complete. Classic mass storage currently requires a clean host eject
 before Pi-side staging. Eliminating that requirement is a research target, not
@@ -57,7 +58,7 @@ address is replaced with a generic label. No cloud backup is claimed in this vie
 **Plug in.** The intended everyday mode uses one USB data cable for power and
 genuine mass storage. USB Ethernet/Samba remains an optional alternative; it does
 not satisfy the requested flash-drive interface. The first disposable-image
-mass-storage trial has now accepted a real Windows file copy.
+mass-storage trial has accepted real host copies, including an automatic Linux-host test.
 
 **Keep a local copy.** Completed files stay on the Pi when an approved Internet
 connection is unavailable. The backup engine queues jobs and retries; it never
@@ -69,7 +70,7 @@ and checked against SHA-256. Real Google browser authorization and one controlle
 QA-file backup have passed on the Pi. Koofr and Dropbox real-account tests remain.
 The web folder/test/enable workflow is unfinished. Separately, the approved USB
 trial now runs a persistent Google worker for completed local batches; its first
-real Windows file passed upload and downloaded-content verification.
+real USB files passed upload and downloaded-content verification.
 
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
@@ -89,7 +90,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Home Wi-Fi and authenticated SSH | Reboot and long-duration checks |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated HTTPS preview; fixed-address login page and enabled persistent services | Actual reboot, off-LAN phone and Android web-app installation |
-| First real Windows USB file captured and automatically backed up to Google Drive | Permanent eject capture, physical outage/reboot and repeated-transfer acceptance |
+| Automatic Linux USB eject → capture → reattach → verified Google backup | Windows, persistent USB startup, outage/reboot and duplicate-capture acceptance |
 | Fresh owner-requested Google preparation through the persistent watcher | Live Test/Enable and recurring backup acceptance |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
@@ -137,8 +138,9 @@ the Samba-to-dashboard bridge and dashboard status for the USB worker remain in 
 ## USB storage first; network sharing remains optional
 
 **What appears on the computer today?** The approved Pi trial presents a genuine
-writable USB mass-storage disk labelled CLOUDSTICK. The user confirmed a Windows
-copy and safe eject. The new [core acceptance record](docs/CORE_RECOVERY.md)
+writable USB mass-storage disk labelled CLOUDSTICK. Automatic copying/eject
+acceptance passes on Zorin Linux. Earlier Windows attribution relied on context
+and is not independently verified. The [core acceptance record](docs/CORE_RECOVERY.md)
 separates that test from earlier dashboard and Samba work.
 
 **USB mass storage — primary product mode.** The computer sees a traditional
