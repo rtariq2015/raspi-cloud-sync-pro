@@ -1,0 +1,10 @@
+# UNINSTALLED REVIEW EXAMPLE. Not native-qualified; no boot enablement supplied.
+[Unit]
+Description=Periodic local SMB capture scans (no cloud uploads)
+
+[Timer]
+OnBootSec=30
+OnUnitInactiveSec=15
+AccuracySec=1
+Unit=raspi-cloud-smb-capture.service
+# No persistent catch-up, Install section, or automatic installation/start/enable.

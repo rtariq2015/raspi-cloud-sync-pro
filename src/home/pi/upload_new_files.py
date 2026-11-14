@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import os, subprocess, shutil, time, json
+# Raspi Cloud Sync Pro modification: quarantine unsafe legacy runtime.
+# Original source: Koseng/RaspiAsUSBStickWithCloudSync (GPL-3.0).
+import os, subprocess, time, json
 import logging, logging.handlers
-import dropbox
-from dropbox.files import WriteMode
 from inspect import getsourcefile
 
 BASE_PATH = os.path.dirname(os.path.abspath(getsourcefile(lambda:0)))
@@ -35,7 +35,8 @@ def wait_until_no_copying_active(copy_active_file):
 def transfer_via_scp(source_dir, config):
     source_dir_content = os.path.join(source_dir, '*')
     result = subprocess.run(['expect', '-f', 'scp-copy.exp', source_dir_content, config['ScpPath']], capture_output=True, text=True)
-    logging.info(f'{result.returncode}' f'{result.stdout}')
+    result.check_returncode()
+    logging.info("SCP process completed; remote content is not yet verified")
 
 
 def get_all_files(folder):
@@ -47,6 +48,9 @@ def get_all_files(folder):
 
 
 def transfer_to_dropbox(source_dir, config):
+    import dropbox
+    from dropbox.files import WriteMode
+
     token = config['DropBoxRefreshToken']
     key = config['DropboxAppKey']
     secret = config['DropboxAppSecret']
@@ -63,26 +67,39 @@ def transfer_to_dropbox(source_dir, config):
 # ----------------
 # MAIN
 # ----------------
-setup_logging(os.path.join(BASE_PATH, 'logs/uploadLogging.log')) 
-try:
-    logging.info(f"----STARTED upload_new_files.py----")
-    os.makedirs(SOURCE_BASE_DIR, exist_ok=True)
+# Code-only quarantine; configuration cannot re-enable this legacy loop.
+LEGACY_RUNTIME_DISABLED = True
 
-    # load config file
-    with open(os.path.join(BASE_PATH,'config.json')) as config_file:
-        config = json.load(config_file)
-    logging.info(f"Configuration loaded.")
 
-    while (True):
-        folders_to_transfer = [d for d in os.scandir(SOURCE_BASE_DIR) if d.is_dir()]
-        if folders_to_transfer:
-            wait_until_no_copying_active(COPYING_ACTIVE_FILE)
-            for folder in folders_to_transfer:
-                if config['ActivateDropboxSync']:
-                    transfer_to_dropbox(folder, config)
-                if config['ActivateScpSync']:
-                    transfer_via_scp(folder, config)                
-                shutil.rmtree(folder) # delete
-        time.sleep(4.5)
-except Exception as ex:
-    logging.exception(ex)
+def main():
+    if LEGACY_RUNTIME_DISABLED:
+        logging.error("Legacy cloud uploading is disabled; see docs/SAFETY.md")
+        return 2
+    setup_logging(os.path.join(BASE_PATH, 'logs/uploadLogging.log'))
+    try:
+        logging.info(f"----STARTED upload_new_files.py----")
+        os.makedirs(SOURCE_BASE_DIR, exist_ok=True)
+
+        # load config file
+        with open(os.path.join(BASE_PATH,'config.json')) as config_file:
+            config = json.load(config_file)
+        logging.info(f"Configuration loaded.")
+
+        while (True):
+            folders_to_transfer = [d for d in os.scandir(SOURCE_BASE_DIR) if d.is_dir()]
+            if folders_to_transfer:
+                wait_until_no_copying_active(COPYING_ACTIVE_FILE)
+                for folder in folders_to_transfer:
+                    if config['ActivateDropboxSync']:
+                        transfer_to_dropbox(folder, config)
+                    if config['ActivateScpSync']:
+                        transfer_via_scp(folder, config)
+                    # Never remove staging: process success is not backup verification.
+                    logging.info("Retained staging folder: %s", folder.path)
+            time.sleep(4.5)
+    except Exception as ex:
+        logging.exception(ex)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

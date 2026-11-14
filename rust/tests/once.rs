@@ -1,0 +1,103 @@
+use std::fs;
+use std::os::unix::fs::PermissionsExt;
+use std::path::PathBuf;
+use std::process::Command;
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static NEXT: AtomicU64 = AtomicU64::new(0);
+// Keep executable fixture writes and watcher launches under the same lock:
+// CLOEXEC does not close a writer inherited by a parallel fork until its exec.
+static RUNNER_PROCESSES: Mutex<()> = Mutex::new(());
+
+struct Fixture(PathBuf);
+
+impl Fixture {
+    fn new(runner: &str) -> Self {
+        let root = std::env::temp_dir().join(format!(
+            "raspi-watcher-cli-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::SeqCst)
+        ));
+        fs::create_dir(&root).unwrap();
+        fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+        let staging = root.join("staging");
+        fs::create_dir(&staging).unwrap();
+        fs::create_dir(staging.join(format!("{}.ready", "a".repeat(32)))).unwrap();
+        fs::write(root.join("worker.json"), "{}").unwrap();
+        fs::set_permissions(root.join("worker.json"), fs::Permissions::from_mode(0o600)).unwrap();
+        fs::write(root.join("runner.sh"), runner).unwrap();
+        fs::set_permissions(root.join("runner.sh"), fs::Permissions::from_mode(0o700)).unwrap();
+        Self(root)
+    }
+
+    fn run(&self) -> std::process::Output {
+        Command::new(env!("CARGO_BIN_EXE_cloudstick-watcher"))
+            .arg("--staging")
+            .arg(self.0.join("staging"))
+            .arg("--runner")
+            .arg(self.0.join("runner.sh"))
+            .arg("--config")
+            .arg(self.0.join("worker.json"))
+            .arg("--once")
+            .output()
+            .unwrap()
+    }
+}
+
+impl Drop for Fixture {
+    fn drop(&mut self) {
+        fs::remove_dir_all(&self.0).unwrap();
+    }
+}
+
+#[test]
+fn once_returns_failure_when_child_fails_or_report_is_invalid() {
+    let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
+    for runner in [
+        "#!/bin/sh\nexit 7\n",
+        "#!/bin/sh\nprintf '%s\\n' '{\"uploaded\":true}'\n",
+    ] {
+        let output = Fixture::new(runner).run();
+        assert!(!output.status.success());
+        assert!(output.stdout.is_empty());
+    }
+}
+
+#[test]
+fn once_keeps_reconciliation_signal_when_no_jobs_have_been_registered() {
+    let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
+    let output = Fixture::new(
+        "#!/bin/sh\nprintf '%s\\n' '{\"pending_jobs\":0,\"reconciliation_pending\":true}'\n",
+    )
+    .run();
+    assert!(output.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["pending_jobs"], 0);
+    assert_eq!(report["reconciliation_pending"], true);
+}
+
+#[test]
+fn paused_and_legacy_reports_work_but_invalid_network_policy_types_fail() {
+    let _process_fixture = RUNNER_PROCESSES.lock().unwrap();
+    for report in [
+        "{\"pending_jobs\":2,\"network_policy_allows_upload\":false}",
+        "{\"pending_jobs\":2}",
+    ] {
+        let runner = format!("#!/bin/sh\nprintf '%s\\n' '{report}'\n");
+        let output = Fixture::new(&runner).run();
+        assert!(output.status.success());
+        assert_eq!(
+            serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap()["pending_jobs"],
+            2
+        );
+    }
+    for invalid in ["\"false\"", "0", "null", "[]"] {
+        let runner = format!(
+            "#!/bin/sh\nprintf '%s\\n' '{{\"pending_jobs\":2,\"network_policy_allows_upload\":{invalid}}}'\n"
+        );
+        let output = Fixture::new(&runner).run();
+        assert!(!output.status.success());
+        assert!(output.stdout.is_empty());
+    }
+}

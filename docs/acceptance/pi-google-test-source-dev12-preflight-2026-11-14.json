@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "source_commit": "032a0abb0098705fddfe0d714db3a744743f8512",
+  "inactive_version": "0.1.0.dev12",
+  "wheel_sha256": "59a5c3cf5aa930d6befd481e1296d8da1686cfd519c27cab5593f2dca4b7cff2",
+  "inactive_installation": {
+    "passed": true,
+    "exact_wheel_modules_and_dependencies_verified": true,
+    "ordinary_dashboard_and_backup_imports_and_console_verified": true,
+    "old_prefix_and_live_dashboard_preserved": true,
+    "service_account_network_or_boot_settings_changed": false
+  },
+  "worker_trial": {
+    "overall_passed": false,
+    "scoped_transient_unit_created": true,
+    "parent_capture_completed": false,
+    "actual_show_and_capture_error": "google_test_broker_unit_invalid",
+    "repeated_property": "OpenFile",
+    "configured_open_file_entries": 4,
+    "executor_fixed_startup_refusal": true,
+    "separate_executor_cause_established": false,
+    "valid_gate_sent": false,
+    "real_prepared_state_used": false,
+    "provider_test_performed": false,
+    "canary_or_egress_acceptance_claimed": false
+  },
+  "independent_cleanup": {
+    "exact_saved_unit_description_invocation_and_user_verified": true,
+    "empty_cgroup_and_no_main_or_control_pid_verified": true,
+    "only_owned_failed_unit_stopped": true,
+    "no_remaining_worker_processes": true,
+    "unrelated_units_or_network_settings_changed": false,
+    "fixture_data_retained": true
+  },
+  "source_correction": {
+    "version": "0.1.0.dev13",
+    "show_all_retained": true,
+    "queried_single_valued_properties": 21,
+    "unrequested_duplicate_or_malformed_fields_refused": true,
+    "new_regressions": 3,
+    "coordinator_tests": 46,
+    "independent_review": true,
+    "native_acceptance": false
+  },
+  "preservation": {
+    "live_dashboard_version": "0.1.0.dev11",
+    "dashboard_connector_private_metadata_wifi_usb_and_power_preserved": true,
+    "automatic_cloud_uploads_enabled": false,
+    "reboot_format_or_deletion_performed": false
+  },
+  "private_data_omitted": [
+    "Addresses and Wi-Fi profile UUID",
+    "Private fixture paths and unit identifiers",
+    "Invocation identifiers",
+    "Credentials, tokens and account identifiers"
+  ]
+}

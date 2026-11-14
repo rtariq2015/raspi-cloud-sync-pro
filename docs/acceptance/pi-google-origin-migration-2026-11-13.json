@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "dashboard_version": "0.1.0.dev10",
+  "scope": "Existing Google OAuth client callback and Pi client public origin only",
+  "google_console": {
+    "existing_dedicated_project_and_client_matched_privately": true,
+    "new_fixed_https_callback_saved": true,
+    "original_callback_retained": true,
+    "persistence_verified_after_reload_and_reopen": true,
+    "client_credentials_scopes_and_testing_status_changed": false,
+    "billing_or_application_publication_performed": false
+  },
+  "pi_migration": {
+    "actual_pi_identity_and_protected_runtime_verified": true,
+    "client_origin_only_semantically_changed": true,
+    "private_old_config_backup_flushed_before_publication": true,
+    "guarded_standalone_rollback_retained_privately": true,
+    "publication_state": "new_bytes_published",
+    "client_id_and_secret_preserved": true,
+    "authorization_bytes_preserved": true,
+    "accounts_preparations_and_other_private_metadata_preserved": true,
+    "new_origin_readiness_checked_as_ordinary_dashboard_identity": true,
+    "saved_authorization_state": "authorization_saved_untested",
+    "historical_preparation_stale_or_absent": true,
+    "services_restarted": false,
+    "network_or_cloud_requests_performed_by_pi_migration": false,
+    "private_helper_tests_passed": 17
+  },
+  "current_limits": {
+    "preparation_broker_restored": false,
+    "setup_requests_enabled": false,
+    "control_requests_enabled": false,
+    "fresh_owner_preparation_accepted": false,
+    "real_token_refresh_verified_for_new_generation": false,
+    "automatic_cloud_uploads_enabled": false,
+    "account_or_folder_verified_by_this_migration": false
+  },
+  "private_values_omitted": [
+    "public_device_hostname",
+    "google_project_and_client_identifiers",
+    "client_secret_and_tokens",
+    "account_identifiers",
+    "request_and_folder_identifiers",
+    "private_backup_paths"
+  ]
+}

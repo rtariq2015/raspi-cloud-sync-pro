@@ -1,0 +1,20 @@
+{
+  "device": "Raspberry Pi Zero 2 W",
+  "package_version": "0.1.0.dev6",
+  "anonymous_denied": true,
+  "owner_uploads": 3,
+  "byte_and_sha256_download_checks": 3,
+  "viewer_upload_denied": true,
+  "csrf_enforced": true,
+  "logout_revoked": true,
+  "wifi_connected": true,
+  "usb_nm_state_observed": 30,
+  "usb_ipv4_stability_not_established": true,
+  "account_form_accessible": true,
+  "cloud_claimed_configured": false,
+  "real_cloud_test": false,
+  "public_internet_test": true,
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "method": "Authenticated requests through temporary public HTTPS tunnel; not an off-LAN physical phone test"
+}

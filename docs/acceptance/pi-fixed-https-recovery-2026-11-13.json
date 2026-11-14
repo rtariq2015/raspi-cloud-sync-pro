@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "dashboard_version": "0.1.0.dev10",
+  "incident": {
+    "previous_quick_tunnel_error": 1033,
+    "reboot_observed": true,
+    "reboot_cause_established": false,
+    "transient_project_services_missing_after_reboot": true,
+    "stored_project_state_retained": true
+  },
+  "connector": {
+    "provider": "ngrok",
+    "version": "3.39.13",
+    "architecture": "aarch64",
+    "download_archive_sha256": "c99b6ad44ace52d38ae1fc90959ac0bd393cb941655ab404124ce5e5c43ec27d",
+    "binary_sha256": "b9512bdbecfc149510f5f0bcd18d7a06d033d7e2a371f76b37cd55b44f03e5b5",
+    "official_publisher_manifest_verified": true,
+    "fixed_assigned_free_domain": true,
+    "authtoken_transferred_without_clipboard_write_or_arguments": true,
+    "root_private_credential_file": true,
+    "systemd_load_credential": true,
+    "traffic_inspection_disabled": true,
+    "agent_stdout_and_stderr_disabled": true,
+    "dynamic_nonroot_identity_verified": true,
+    "all_capability_sets_zero_verified": true,
+    "no_new_privileges_and_seccomp_verified": true,
+    "read_only_system_mount_verified": true,
+    "loopback_api_listener_owned_by_exact_agent_pid_verified": true
+  },
+  "startup_correction": {
+    "initial_config_check_failed_in_transient_service": true,
+    "direct_protected_config_check_passed": true,
+    "literal_specifier_in_transient_argv_observed": true,
+    "explicit_runtime_credential_path_used": true,
+    "new_agent_start_and_private_api_readiness_passed": true
+  },
+  "restoration": {
+    "protected_release_preserved": true,
+    "local_login_http_200": true,
+    "public_login_http_200": true,
+    "actual_chrome_login_form_reached": true,
+    "provider_warning_handled": true,
+    "password_changes_performed": false,
+    "account_and_upload_metadata_preserved": true,
+    "oauth_and_preparation_metadata_preserved": true,
+    "setup_requests_enabled": false,
+    "oauth_origin_reconciled": false,
+    "automatic_cloud_uploads_enabled": false,
+    "persistent_boot_startup_accepted": false,
+    "off_lan_phone_accepted": false,
+    "persistent_startup_configured": true
+  },
+  "preservation": {
+    "wifi_and_default_routes_preserved": true,
+    "usb_carrier_verified": true,
+    "usb_address_equality_observed": true,
+    "power_healthy": true,
+    "network_usb_or_router_configuration_changed": false,
+    "source_files_deleted": false,
+    "reflash_or_reboot_performed": false
+  },
+  "private_data_omitted": [
+    "public_device_hostname",
+    "host_addresses",
+    "tokens",
+    "account_identifiers",
+    "invocation_identifiers",
+    "private_backup_paths"
+  ],
+  "resource_observation": {
+    "workload": "Development preview idle; one observation, not a load test",
+    "dashboard_rss_kib": 38712,
+    "dashboard_threads": 3,
+    "connector_rss_kib": 27996,
+    "connector_threads": 9,
+    "pi_memory_available_kib": 168364,
+    "memory_limit_enforcement_verified": false,
+    "memory_current_reported": "not set",
+    "boot_or_controller_changes_performed": false
+  },
+  "persistent_services": {
+    "installed_unit_names": [
+      "raspi-cloud-dashboard.service",
+      "raspi-cloud-remote-access.service"
+    ],
+    "only_these_two_units_enabled": true,
+    "root_owned_unit_files_verified": true,
+    "native_systemd_analyze_verify_passed": true,
+    "existing_unit_and_credential_files_reused_without_overwrite": true,
+    "actual_process_identity_arguments_and_sandbox_verified": true,
+    "local_and_public_login_passed_before_and_after_enable": true,
+    "wanted_symlinks_disk_enablement_and_loaded_manager_state_verified": true,
+    "same_runtime_proof_before_and_after_enable": true,
+    "restart_policy": {
+      "on_failure": true,
+      "restart_seconds": 30,
+      "start_limit_interval_seconds": 60,
+      "start_limit_burst": 4
+    },
+    "setup_requests_enabled": false,
+    "root_private_standalone_rollback_saved_before_transition": true,
+    "failed_enable_validation_attempts_rolled_back_to_working_transients": 2,
+    "active_manager_disabled_state_observed_despite_correct_wanted_link": true,
+    "reload_before_loaded_state_check_passed": true,
+    "private_successor_installer_tests": 22,
+    "physical_reboot_test_performed": false,
+    "off_lan_phone_or_fresh_owner_login_accepted": false
+  }
+}

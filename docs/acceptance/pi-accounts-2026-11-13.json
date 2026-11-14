@@ -1,0 +1,16 @@
+{
+  "version": "0.1.0.dev5",
+  "real_pi_loopback_http": true,
+  "password_change_revokes_own_sessions": true,
+  "unrelated_viewer_session_preserved": true,
+  "interactive_cli_recovery_passed": true,
+  "recovery_input_not_echoed": true,
+  "roles_preserved": true,
+  "private_hash_backups": true,
+  "cloud_check_recognized_alias_without_claiming_cloud": true,
+  "account_configuration_changed_by_test": "disposable accounts only",
+  "production_service_replaced": false,
+  "usb_or_wifi_settings_changed": false,
+  "schema_version": 1,
+  "date": "2026-11-13"
+}

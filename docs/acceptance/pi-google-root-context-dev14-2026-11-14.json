@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie aarch64",
+  "kernel": "6.18.60+rpt-rpi-v8",
+  "systemd": "257.13-1~deb13u1",
+  "app_version": "0.1.0.dev14",
+  "app_source_commit": "c5c0bfafc2da32187a71b7b918cacd5b5121bec9",
+  "app_wheel_sha256": "386bacffd12a16778e5eb06ff5e10034124ec35f20150888d537843f422318b4",
+  "scope": "Credential-free inspection permission context with a held ordinary worker; not a complete Google coordinator or cloud Test",
+  "root_context": {
+    "capability_mask_hex": "0x2800e4",
+    "effective_permitted_bounding_sets_match": true,
+    "ambient_and_inheritable_empty": true,
+    "no_new_privileges": true,
+    "seccomp_filter_active": true,
+    "template_denies_mount_swap_reboot_syscalls": true
+  },
+  "verification": {
+    "actual_root_six_capabilities_observed": true,
+    "get_program_and_map_by_zero_id_permission_checks_passed": true,
+    "actual_ordinary_worker_capability_zero_observed": true,
+    "cross_identity_process_observation_passed": true,
+    "unchanged_policy_inspector_initial_and_recheck_passed": true,
+    "policy_proof_observed_while_worker_alive": true,
+    "owned_units_stopped_and_cgroups_empty": true,
+    "original_helper_reported_before_after_live_preservation": true,
+    "usb_address_equality_observed": true
+  },
+  "independent_read_only_followup": {
+    "passed": true,
+    "protected_code_plan_result_and_invocations_validated": true,
+    "complete_stage_and_permission_report_validated": true,
+    "owned_units_inactive_and_cgroups_empty": true,
+    "retained_socket_nodes_not_bound": true,
+    "current_live_process_identity_baseline_matches": true,
+    "current_wifi_profile_ipv4_defaults_carrier_baseline_matches": true,
+    "historical_preservation_independently_reconstructed": false,
+    "credential_or_config_payloads_read": false,
+    "mutations_performed": false
+  },
+  "review": {
+    "qualification_helper_tests_passed": 22,
+    "read_only_followup_tests_passed": 15,
+    "independent_peer_review_passed": true,
+    "qualification_helper_sha256": "51bde8e356b3476bed2f26f2cf466f539891939d6b8935f2f3f2d64fd7aafe4d",
+    "historical_template_sha256": "68c4b137d645fc998fe1217b206ca81deda3d7687972df97aebeb5f3869ae534"
+  },
+  "separate_dev17_parser_check": {
+    "target_systemd_257_verified": true,
+    "temporary_unit_copies": 3,
+    "execstart_substituted_with_true": true,
+    "diagnostics_empty": true,
+    "units_installed_or_activated": false,
+    "unit_source_sha256": {
+      "raspi-cloud-google-control.service.example": "b0a45366c5d9c759b896945a052cfe88752d358394dc12407602fd728e2e87a6",
+      "raspi-cloud-google-control.path.example": "5e1044324dd259ddf1ce5b685d19bd277e74570d784d21d1a1438691b7013725",
+      "raspi-cloud-google-test-broker.service.example": "b32af6f6dabbd1ef7e9645de68a18aebb39c09e1dd95574a5de4ef9d08ecf273"
+    }
+  },
+  "limits": {
+    "production_coordinator_template_qualified": false,
+    "source_child_identity_drop_tested": false,
+    "source_recorder_path_tested": false,
+    "credential_free_network_canaries_performed": false,
+    "valid_root_gate_sent": false,
+    "test_completion_protocol_tested": false,
+    "real_google_request_or_token_refresh_performed": false,
+    "full_google_test_accepted": false,
+    "full_usb_host_or_packet_exclusion_accepted": false,
+    "automatic_cloud_uploads_enabled": false,
+    "network_or_boot_settings_changed": false
+  },
+  "notes": "The qualifier created only fresh owned QA code, units and private records, held a capability-free ordinary worker, and stopped the exact captured units afterward. It compared a live preservation snapshot in memory before and after, but did not persist that historical baseline. The independent read-only follow-up validated protected evidence and current pinned process/network fields; it cannot reconstruct the original baseline. The historical template was adapted to remove both production Condition lines for this no-config fixture. The later dev17 parser check corrected the invalid advisory ConditionPathIsRegular to ConditionFileNotEmpty and accepted normal-exit-75-only forced restarts on systemd 257.13. Neither trial starts the real Google coordinator, creates owner intent, reads authorization payloads or changes the live dashboard/preparation services. No saved report authorizes a future credential release."
+}

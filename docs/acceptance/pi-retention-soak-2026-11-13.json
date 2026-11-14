@@ -1,0 +1,27 @@
+{
+  "version": "0.1.0.dev4",
+  "elapsed_seconds": 300.8,
+  "new_files": 10,
+  "destinations": 2,
+  "total_jobs_including_initial_trial": {
+    "verified": 26
+  },
+  "new_originals_retained": true,
+  "incomplete_retained": true,
+  "wifi_gateway_probes_passed": 20,
+  "wifi_gateway_probes_total": 20,
+  "sampled_process_high_water_kib": {
+    "cloudstick-watc": 1812,
+    "python": 22224,
+    "rclone": 60672,
+    "systemctl": 6896,
+    "nmcli": 10712
+  },
+  "minimum_system_memavailable_kib": 117988,
+  "power_status": "throttled=0x0",
+  "real_cloud_accounts": false,
+  "power_cut_test": false,
+  "passed": true,
+  "schema_version": 1,
+  "date": "2026-11-13"
+}

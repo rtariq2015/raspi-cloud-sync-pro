@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "source_commit": "d4bd6b1e3c695652135b0d8a15f11421a6920ced",
+  "dashboard_version": "0.1.0.dev11",
+  "wheel_sha256": "2060882bbb020ad46e4937c72caac2d3735513dc4f9d0548a03e2bc1eaf0f7c8",
+  "repair": {
+    "reported_size_kb": 122.7,
+    "old_multipart_memory_limit_bytes": 32768,
+    "new_multipart_memory_limit_bytes": 131072,
+    "file_limit_bytes": 104857600,
+    "request_limit_bytes": 106954752,
+    "multipart_parts_limit": 8,
+    "flask_version": "3.1.3",
+    "werkzeug_version": "3.1.9"
+  },
+  "installation": {
+    "new_protected_prefix": true,
+    "old_prefix_retained": true,
+    "exact_wheel_modules_verified": true,
+    "existing_public_dependencies_preserved": true,
+    "ordinary_dashboard_and_backup_uid_imports_and_console_verified": true,
+    "inactive_installer_local_tests": 21,
+    "upgrade_helper_local_tests": 25,
+    "durable_unit_backup_and_guarded_standalone_rollback": true
+  },
+  "native_http_qa": {
+    "server": "Waitress, isolated loopback instance",
+    "ordinary_dashboard_identity_verified": true,
+    "credentials_and_state": "Separate private synthetic QA state",
+    "authenticated_uploads": [
+      {"bytes": 122700, "http_status": 201, "download_bytes_and_sha256_match": true},
+      {"bytes": 125645, "http_status": 201, "download_bytes_and_sha256_match": true},
+      {"bytes": 1048576, "http_status": 201, "download_bytes_and_sha256_match": true}
+    ],
+    "oversized_text_field_http_413": true,
+    "ninth_multipart_part_http_413": true,
+    "google_prepare_and_control_routes_disabled": true,
+    "temporary_unit_stopped": true,
+    "qa_data_retained": true,
+    "exact_100_mib_native_test_performed": false
+  },
+  "live_upgrade": {
+    "only_dashboard_interpreter_and_unit_description_changed": true,
+    "only_dashboard_restarted": true,
+    "actual_new_process_identity_argv_and_listener_verified": true,
+    "local_login_http_200": true,
+    "public_https_login_http_200": true,
+    "connector_process_and_invocation_preserved": true,
+    "accounts_existing_uploads_and_oauth_metadata_preserved": true,
+    "password_changed": false,
+    "production_password_login_performed": false,
+    "existing_browser_sessions_cleared": true,
+    "owner_file_retry_observed": false,
+    "google_setup_requests_enabled": false,
+    "google_control_requests_enabled": false,
+    "automatic_cloud_uploads_enabled": false
+  },
+  "preservation": {
+    "wifi_default_routes_usb_address_and_carrier_preserved": true,
+    "network_or_usb_settings_changed": false,
+    "boot_enablement_changed": false,
+    "power_status": "throttled=0x0",
+    "reboot_or_format_performed": false,
+    "source_files_deleted": false
+  },
+  "transport_interruption": {
+    "first_attempt_returned_no_result": true,
+    "no_prefix_backup_or_active_installer_verified_before_retry": true,
+    "existing_service_invocations_and_uptime_preserved": true,
+    "recovered_without_network_reset_or_reboot": true,
+    "cause_established": false
+  },
+  "remaining_acceptance": [
+    "Owner sign-in and retry of their actual file",
+    "Large-file and sustained-load acceptance on the Pi",
+    "Guided Google Test/Enable and recurring cloud backups",
+    "Windows USB networking and mapped Samba drive",
+    "Classic USB mass-storage hardware trial"
+  ],
+  "private_data_omitted": [
+    "Passwords and tokens",
+    "Public device hostname and network addresses",
+    "Account and invocation identifiers",
+    "Private backup and synthetic state paths"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "profile": {
+    "ssid": "WorkWiFi",
+    "security": "wpa2_enterprise",
+    "priority": 20,
+    "metered": false,
+    "identity": "user@example.org",
+    "anonymous_identity": "anonymous@example.org",
+    "eap": "peap",
+    "phase2": "mschapv2",
+    "password_ref": "os-secret:work-wifi",
+    "ca_certificate": "/etc/raspi-cloud-sync-pro/certificates/approved-work-ca.pem",
+    "server_domain": "radius.example.org"
+  }
+}

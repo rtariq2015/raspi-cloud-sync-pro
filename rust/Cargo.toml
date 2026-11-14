@@ -1,0 +1,18 @@
+[package]
+name = "cloudstick-watcher"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "GPL-3.0-only"
+description = "Low-memory scheduler for exclusively staged Raspi Cloud Sync Pro batches"
+repository = "https://github.com/rtariq2015/raspi-cloud-sync-pro"
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

@@ -1,0 +1,18 @@
+# REVIEW TEMPLATE ONLY. Install on an approved Pi only, mode 0600.
+# Replaces official auto-switching profile policy; never run both policies together.
+[connection]
+id=Raspi Cloud USB local
+type=ethernet
+interface-name=usb0
+autoconnect=false
+
+[ethernet]
+
+[ipv4]
+method=manual
+address1=10.12.194.1/28
+never-default=true
+ignore-auto-dns=true
+
+[ipv6]
+method=disabled

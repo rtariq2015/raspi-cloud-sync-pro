@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "interpreter": "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev10/venv/bin/python3",
+  "source_state": "/var/lib/raspi-cloud-sync-pro/dashboard",
+  "backup_state": "/var/lib/raspi-cloud-sync-pro/google-setup-backup",
+  "dashboard_user": "raspi-dashboard",
+  "backup_user": "raspi-backup",
+  "public_origin": "https://replace-with-your-hostname.example",
+  "approval_file": "/etc/raspi-cloud-sync-pro/GOOGLE_SETUP_APPROVED",
+  "lock_file": "/run/raspi-cloud-google-setup/broker.lock"
+}

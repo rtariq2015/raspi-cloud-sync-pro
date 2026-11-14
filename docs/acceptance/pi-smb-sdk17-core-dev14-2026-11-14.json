@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie aarch64, CPython 3.13.5, glibc 2.41",
+  "app_version": "0.1.0.dev14",
+  "app_source_commit": "c5c0bfafc2da32187a71b7b918cacd5b5121bec9",
+  "app_wheel_sha256": "386bacffd12a16778e5eb06ff5e10034124ec35f20150888d537843f422318b4",
+  "core_transport_staging_accepted": true,
+  "scope": "Actual LocalSambaReader and stage_smb_version against an isolated encrypted loopback fixture; capture runtime and Windows sharing remain separate",
+  "versions": {
+    "samba": "4.22.11",
+    "smbprotocol": "1.17.0",
+    "pyspnego": "0.12.4",
+    "cryptography": "50.0.2",
+    "cffi": "2.1.1",
+    "pycparser": "3.12",
+    "smb_dialect": "3.1.1"
+  },
+  "public_sdk_manifest_sha256": "15d98105d4fcf0b02b77d0526dd2683946ac5d465b662a2a931e487b7bc6c120",
+  "target_lock_sha256": "56f5b48491a8b20b922105365886f97f4c9c25556e9b270126234c5c82ef78a0",
+  "verification": {
+    "encrypted_smb3_session": true,
+    "active_writer_defers_before_batch_creation": true,
+    "snapshot_blocks_new_write_and_delete": true,
+    "backup_account_cannot_write": true,
+    "post_close_staged_bytes_and_sha256_match": true,
+    "injected_read_failure_retains_incomplete_not_ready": true,
+    "original_retained": true,
+    "changed_version_keeps_previous_snapshot": true,
+    "actual_local_samba_reader": true,
+    "server_stopped_after_test": true,
+    "installer_children_reaped": true,
+    "licenses_retained": true
+  },
+  "independent_read_only_verification": {
+    "passed": true,
+    "wheel_file_bytes_verified": 332,
+    "ready_snapshots": 2,
+    "retained_incompletes": 1,
+    "source_fixture_bytes_verified": true,
+    "copied_interpreter_verified": true,
+    "owned_server_stopped": true,
+    "live_network_account_metadata_preserved": true
+  },
+  "review": {
+    "installer_tests_passed": 21,
+    "independent_verifier_tests_passed": 7,
+    "client_tests_passed": 10,
+    "independent_peer_review_passed": true
+  },
+  "preserved": {
+    "original_app_prefix_and_global_package_database": true,
+    "live_data_and_processes": true,
+    "os_accounts_passwords_and_groups": true,
+    "usb_wifi_firewall_and_boot_settings": true,
+    "new_original_version_and_partial_data": true,
+    "usb_address_unchanged_at_observation": true
+  },
+  "limits": {
+    "full_capture_runtime_accepted": false,
+    "usb_profile_accepted": false,
+    "windows_usb_share_accepted": false,
+    "samba_serving_real_user_files": false,
+    "dashboard_smb_file_bridge_accepted": false,
+    "cloud_accounts_used": false,
+    "automatic_cloud_uploads_enabled": false,
+    "global_hardware_gate_changed": false
+  },
+  "notes": "The five official PyPI wheels were installed offline into a new copied-interpreter QA prefix, with the protected app wheel and retained dependency licenses. Four retained pinned Debian Samba archives were extracted there without maintainer scripts or global installation. Existing OS identities were used; synthetic fixture passwords went only over bounded private stdin into a fresh private Samba database. The sole listener was verified at 127.0.0.1:445 before those credentials reached the client. The exact owned transient service was stopped and its cgroup verified empty or absent. The independent check read no credential contents. This does not qualify the current USB profile, bypass the capture guard, or establish Windows transfer behavior."
+}

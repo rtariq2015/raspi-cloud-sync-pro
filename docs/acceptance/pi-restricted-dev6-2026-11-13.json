@@ -1,0 +1,15 @@
+{
+  "version": "0.1.0.dev6",
+  "artifact_sha256": "5167a35b013fe966b6b30249ef5a90d598a2fd1be705b90ff1eb570370868e32",
+  "enabled_at_boot": false,
+  "usb_or_wifi_changed": false,
+  "rollback_version": "0.1.0.dev3",
+  "account_passwords_changed_by_install": false,
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "service_identity": "raspi-dashboard",
+  "protected_system_service": true,
+  "loopback_backend": true,
+  "rollback_prepared": true,
+  "process_and_http_health_checks_passed": true
+}

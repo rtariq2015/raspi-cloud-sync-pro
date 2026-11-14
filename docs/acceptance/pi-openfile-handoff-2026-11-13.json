@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "fixture_kind": "credential_free_four_openfile_lifecycle_v3",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "kernel": "6.18.60+rpt-rpi-v8",
+  "systemd": "257.13-1~deb13u1",
+  "private_helper_sha256": "0469ed938c1ab33d191c06a3b829a5c9a351ef60894700bbe234b9459976e816",
+  "private_helper_tests_sha256": "8ef4d61a35e4ce1fab72209f9eda38b35b1b16c153d49fc923a28c2558a0baaa",
+  "private_helper_tests_passed": 10,
+  "independent_review_passed": true,
+  "handoff_passed": true,
+  "observations": {
+    "four_separate_openfile_properties_used": true,
+    "root_private_listener_directory_and_sockets": true,
+    "four_named_connected_unix_streams_received_above_stdio": true,
+    "ordinary_qa_identity_used": true,
+    "actual_uid_gid_capability_and_no_new_privileges_checks": true,
+    "kernel_root_peer_authenticated_on_all_four_channels": true,
+    "server_connect_time_peer_uid_was_root": true,
+    "server_peer_pid_matched_actual_worker_pid": true,
+    "actual_worker_pidfd_opened": true,
+    "new_unix_socket_creation_denied_after_exec": true,
+    "activation_environment_cleared": true,
+    "four_channel_nonce_roundtrip_and_eof_verified": true,
+    "actual_wlan0_ingress_and_egress_bpf_verified_while_alive": true,
+    "remain_after_exit_active_exited_observed": true,
+    "manager_control_group_empty_after_exit": true,
+    "saved_active_cgroup_path_missing_after_exit": true,
+    "post_exit_bpf_proof_available": false
+  },
+  "preservation": {
+    "owned_temporary_unit_stopped": true,
+    "network_snapshot_preserved": true,
+    "account_metadata_preserved": true,
+    "live_dashboard_and_connector_processes_preserved": true,
+    "private_configuration_metadata_preserved": true,
+    "boot_enablement_changed": false,
+    "existing_services_stopped": false
+  },
+  "earlier_fixtures": {
+    "initial_four_channel_primitive_passed": true,
+    "first_post_exit_diagnostic_incomplete": true,
+    "incomplete_diagnostic_stopped_owned_unit_and_preserved_working_state": true,
+    "all_fixtures_retained": true
+  },
+  "limits": {
+    "production_backup_identity_used": false,
+    "production_source_bootstrap_or_broker_accepted_on_pi": false,
+    "private_dns_mount_accepted": false,
+    "credentials_read": false,
+    "provider_called": false,
+    "credential_release_authorized": false,
+    "automatic_backup_enabled": false,
+    "empirical_usb_egress_accepted": false
+  },
+  "required_next_behavior": "Verify the completed Test while the worker is held alive; then allow only closure and exit. Never treat an active/exited property or a retained old BPF FD as current enforcement."
+}

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "sync": {
+    "provider": "disabled",
+    "enabled": false
+  },
+  "safety": {
+    "automatic_deletion": false
+  }
+}

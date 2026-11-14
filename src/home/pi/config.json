@@ -1,5 +1,5 @@
 {    
-    "ActivateDropboxSync" : 1,
+    "ActivateDropboxSync" : 0,
     "DropboxAppKey" : "xxxxxxxxxxxxx",
     "DropboxAppSecret" : "yyyyyyyyyyyyyy",
     "DropBoxRefreshToken": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",

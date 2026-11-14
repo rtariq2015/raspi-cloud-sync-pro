@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie aarch64",
+  "dashboard_version": "0.1.0.dev11",
+  "preparation_version": "0.1.0.dev14",
+  "preparation_source_commit": "c5c0bfafc2da32187a71b7b918cacd5b5121bec9",
+  "preparation_wheel_sha256": "386bacffd12a16778e5eb06ff5e10034124ec35f20150888d537843f422318b4",
+  "restoration_accepted": true,
+  "scope": "Restore offline owner-requested preparation and its persistent watcher, preserving the live dashboard and private state",
+  "changes": {
+    "broker_configuration_uses_current_fixed_https_origin": true,
+    "broker_uses_protected_copied_dev14_interpreter": true,
+    "persistent_service_and_path_units_installed": true,
+    "only_preparation_path_enabled_at_boot": true,
+    "dashboard_prepare_request_flag_enabled": true,
+    "dashboard_restarted": true,
+    "dashboard_control_request_flag_enabled": false,
+    "cloud_worker_or_recurring_uploads_enabled": false
+  },
+  "verification": {
+    "reviewed_helper_tests_passed": 25,
+    "independent_review_passed": true,
+    "private_backup_and_guarded_standalone_rollback_saved_before_mutations": true,
+    "static_unit_syntax_verified": true,
+    "actual_loaded_service_policy_checked": true,
+    "path_active_and_waiting_after_restoration": true,
+    "exact_single_owned_boot_link_and_fresh_manager_enablement_verified": true,
+    "source_uid_saved_google_grant_validated_offline": true,
+    "expected_config_marker_and_unit_bytes_verified": true,
+    "live_dashboard_pid_argv_identity_and_login_health_verified": true,
+    "independent_read_only_post_restoration_checks_passed": true,
+    "no_active_broker_at_post_restoration_check": true,
+    "short_lived_broker_launch_absence_claimed": false,
+    "browser_required_fresh_sign_in": true
+  },
+  "preserved": {
+    "account_passwords_roles_and_operating_system_accounts": true,
+    "auth_oauth_existing_preparations_and_uploaded_file_metadata": true,
+    "connector_invocation_and_existing_dashboard_boot_link": true,
+    "wifi_routes_dns_and_usb_address_carrier": true,
+    "healthy_power_status": true,
+    "original_and_partial_files": true
+  },
+  "limits": {
+    "actual_reboot_accepted": false,
+    "fresh_owner_prepare_after_restoration_observed": false,
+    "current_preparation_worker_checked": false,
+    "cloud_requests_or_token_refresh_performed": false,
+    "google_account_verified": false,
+    "test_enable_or_automatic_uploads_accepted": false,
+    "windows_usb_share_accepted": false
+  },
+  "notes": "The source identity read the saved grant only for offline validation; its contents and private configuration were not restored or overwritten. The preparation service retains its separately accepted private-network, AF_UNIX, NoNewPrivileges and restricted-capability policy. Loaded settings are not a new kernel-worker or cloud acceptance test. The helper reports final inactivity, not proof that a short attempt never occurred. Private backups, logs and rollback remain on the Pi. No passwords, tokens, account identifiers, private backup paths or invocation identifiers are published."
+}

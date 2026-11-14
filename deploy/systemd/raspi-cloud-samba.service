@@ -1,0 +1,13 @@
+[Unit]
+Description=Raspi Cloud Sync Pro disposable-test standalone Samba server
+After=network.target
+ConditionPathExists=/etc/raspi-cloud-sync-pro/DISPOSABLE_TEST_APPROVED
+
+[Service]
+Type=simple
+User=root
+ExecStartPre=/opt/raspi-cloud-sync-pro/venv/bin/python -m raspi_cloud_sync_pro device-gate --mode ethernet_samba --device-policy /etc/raspi-cloud-sync-pro/device.json
+ExecStart=/usr/sbin/smbd --foreground --no-process-group --configfile=/etc/raspi-cloud-sync-pro/smb.conf
+Restart=no
+NoNewPrivileges=yes
+# Static template only. Provision Unix/Samba users and permissions before review.
