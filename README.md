@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**615 Python tests and 11 Rust tests pass locally.** Python tests include actual
+**618 Python tests and 11 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
@@ -109,7 +109,10 @@ Dev12 development adds a private one-shot coordinator command and an offline
 [SMB capture queue](docs/SMB_CAPTURE.md), without requiring a cloud account to
 capture completed files. The first native worker trial found a systemd-property
 startup bug; its source repair and conservative cleanup have regression tests.
-Dev12 is not deployed, and neither new component enables uploads or USB sharing.
+Dev12 is installed in an inactive protected prefix; its native worker trial
+exposed repeated systemd properties that the parser must exclude. Dev13 source
+now selects the 21 single-valued fields it needs. Neither component enables
+uploads or USB sharing. [Worker preflight evidence](docs/acceptance/pi-google-test-source-dev12-preflight-2026-11-14.json).
 
 A confirmed small-upload bug is fixed in development: the multipart parser's
 32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the

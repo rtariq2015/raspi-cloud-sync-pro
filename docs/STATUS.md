@@ -80,7 +80,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **615 Python tests and 11 Rust tests pass locally.** Python includes real rclone
+- **618 Python tests and 11 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -170,6 +170,14 @@ and [remote access guide](REMOTE_ACCESS.md).
   test-only isolation. The eleven-test suite, formatting/clippy and 1,000 repeated
   unit/CLI runs pass; the ARM64 production binary is byte-identical to the prior
   build. [Rust evidence](RUST_EVALUATION.md).
+- Dev12 is now installed in a separate inactive prefix, preserving the live dev11
+  dashboard. Its native trial created a worker but the parent rejected repeated
+  `OpenFile` properties in the manager output. The worker exited with a fixed
+  startup refusal; its separate cause is not established. The owned failed unit
+  was independently stopped after verifying its exact identity and empty cgroup.
+  Dev13 source queries only the 21 consumed single-valued fields, retaining
+  strict parsing and empty-value checks. Native worker acceptance remains open.
+  [Dev12 preflight](acceptance/pi-google-test-source-dev12-preflight-2026-11-14.json).
 
 - Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
   recovery prompt, own-session revocation, preserved viewer session and private

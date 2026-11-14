@@ -189,7 +189,7 @@ tests remain separate from a fresh exact wlan0-only kernel allowlist.
 The private operator command is:
 
 ```sh
-/opt/raspi-cloud-sync-pro/releases/0.1.0.dev12/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
+/opt/raspi-cloud-sync-pro/releases/0.1.0.dev13/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
 ```
 
 This command is planned for the reviewed dev12 source build. The live dev11

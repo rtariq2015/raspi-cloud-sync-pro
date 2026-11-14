@@ -151,7 +151,7 @@ class GoogleTestBrokerExamplesTests(unittest.TestCase):
         self.assertFalse(loaded.enabled)
         self.assertEqual(example["rclone_sha256"], "0" * 64)
         self.assertEqual(example["wifi_profile_uuid"], "00000000-0000-0000-0000-000000000000")
-        self.assertEqual(example["interpreter"], "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev12/venv/bin/python3")
+        self.assertEqual(example["interpreter"], "/opt/raspi-cloud-sync-pro/releases/0.1.0.dev13/venv/bin/python3")
         self.assertEqual(Path(example["lock_file"]).parent, Path(example["runtime_directory"]))
 
     def test_service_example_is_uninstalled_oneshot_and_matches_disabled_config(self):

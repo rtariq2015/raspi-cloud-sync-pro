@@ -49,6 +49,12 @@ _CANARY_TIMEOUT = 45.0
 _ENV = {"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "HOME": "/nonexistent", "LANG": "C", "LC_ALL": "C"}
 _CANARY_FLAGS = {"kernel_sandbox_verified", "loopback_tcp_blocked", "loopback_udp_blocked",
                  "dns_udp_verified", "dns_tcp_verified", "official_https_verified"}
+_SYSTEMD_PROPERTIES = (
+    "Id", "Description", "InvocationID", "LoadState", "ActiveState", "SubState",
+    "MainPID", "ControlPID", "Transient", "FragmentPath", "DropInPaths", "User",
+    "NoNewPrivileges", "CapabilityBoundingSet", "AmbientCapabilities", "RestrictAddressFamilies",
+    "PrivateNetwork", "ControlGroup", "ExecMainCode", "ExecMainStatus", "Result",
+)
 
 
 class GoogleTestBrokerError(BackupError):
@@ -496,12 +502,15 @@ class _Systemd:
 
     def show(self, unit):
         # v257 omits empty fields by default. Absence is not an empty value:
-        # startup/capture checks must see e.g. DropInPaths= explicitly.
-        raw = self._run(["/usr/bin/systemctl", "show", "--all", "--no-pager", unit])
+        # startup/capture checks must see e.g. DropInPaths= explicitly. Query
+        # only the single-valued fields used here: OpenFile legitimately emits
+        # repeated lines, and unrelated structured properties need no parsing.
+        raw = self._run(["/usr/bin/systemctl", "show", "--all", "--no-pager",
+                         "--property=" + ",".join(_SYSTEMD_PROPERTIES), unit])
         result = {}
         for line in raw.decode("utf-8").splitlines():
             key, separator, value = line.partition("=")
-            if not separator or key in result:
+            if not separator or key not in _SYSTEMD_PROPERTIES or key in result:
                 _fail("google_test_broker_unit_invalid")
             result[key] = value
         return result

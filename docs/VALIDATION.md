@@ -1011,3 +1011,37 @@ checks pass. The live dashboard remains dev11 with the accepted upload repair;
 dev12, the corrected coordinator and this new capture runtime are not deployed.
 Native coordinator/gate/Google acceptance, Samba provisioning, stable USB host
 addressing, Windows mapping and dashboard projection of SMB batches remain.
+
+## Dev12 native worker and dev13 query correction — 14 November 2026
+
+Dev12 was installed into a fresh inactive protected prefix from wheel
+`59a5c3cf…`. Exact package/dependency and both ordinary-identity import/console
+checks passed. The live dev11 dashboard, connector, private metadata and network
+configuration were preserved; no dashboard restart occurred.
+
+Its actual-source negative-gate trial created the scoped transient worker, but
+the parent refused manager output before completing capture. Read-only diagnosis
+found legitimate repeated `OpenFile=` lines in full `systemctl show --all` output.
+The strict duplicate-property parser therefore refused both capture and cleanup.
+The worker exited with its fixed startup-refusal message, without a valid gate
+or real prepared state. No separate executor fault has been established.
+
+An independent guarded cleanup matched the exact saved unit name, description,
+invocation, user, transient fragment and empty cgroup before stopping only that
+failed unit. No worker processes remained, and all fixture data was retained.
+
+Dev13 source retains `--all` and requests exactly the 21 single-valued fields
+consumed by the coordinator. Repeated `OpenFile` and unrelated structured values
+are excluded at the query. Unknown, malformed and duplicate selected properties
+still refuse. Three new regressions cover projected real-shaped repeated output,
+strict selected-property parsing and consumer coverage. All 46 coordinator tests
+and the combined 618-test Python suite pass; independent review and static checks
+pass. One initial existing simulated cleanup test returned a generic unavailable
+result instead of the expected cleanup failure; subsequent local and independent
+module runs passed, and that intermittent result's cause is unestablished.
+No hardware or account conclusion is drawn from it.
+
+The corrected source needs another protected build and native trial. Canary,
+valid-gate, completion and actual Google acceptance remain pending; automatic
+uploads and live USB sharing are still disabled.
+[Sanitized dev12 evidence](acceptance/pi-google-test-source-dev12-preflight-2026-11-14.json).

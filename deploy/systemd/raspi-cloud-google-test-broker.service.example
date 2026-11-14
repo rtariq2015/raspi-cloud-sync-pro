@@ -12,7 +12,7 @@ Type=oneshot
 # PID1 defaults to root; the coordinator independently requires actual root.
 # Omit explicit User/Group to avoid the systemd 257 root credential transition.
 WorkingDirectory=/
-ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev12/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev13/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-test-broker --config /etc/raspi-cloud-sync-pro/google-test-broker.json
 Restart=no
 TimeoutStartSec=300
 TimeoutStopSec=10

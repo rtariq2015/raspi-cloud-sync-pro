@@ -547,9 +547,67 @@ class GoogleTestNativeFacadeTests(unittest.TestCase):
                "DropInPaths=\nInvocationID=\n").encode()
         with mock.patch.object(manager, "_run", return_value=raw) as command:
             fields = manager.show(unit)
-        command.assert_called_once_with(["/usr/bin/systemctl", "show", "--all", "--no-pager", unit])
+        command.assert_called_once_with(["/usr/bin/systemctl", "show", "--all", "--no-pager",
+                                         "--property=" + ",".join(broker._SYSTEMD_PROPERTIES), unit])
         self.assertEqual(fields["DropInPaths"], "")
         self.assertEqual(fields["InvocationID"], "")
+
+    def test_show_selects_single_properties_from_native_repeated_openfile_shape(self):
+        unit = "raspi-cloud-google-test-" + "a" * 32 + ".service"
+        settings = SimpleNamespace(backup_user="raspi-backup")
+        manager = broker._Systemd(settings, None, time.monotonic() + 2)
+        # systemd v257 prints one OpenFile line per inherited connection. Its
+        # full output also has structured ExecStart/Environment properties.
+        full = ("Id=" + unit + "\nDescription=owned\nInvocationID=" + "b" * 32
+                + "\nLoadState=loaded\nActiveState=failed\nSubState=failed\n"
+                "MainPID=0\nControlPID=0\nTransient=yes\nFragmentPath=/run/systemd/transient/" + unit
+                + "\nDropInPaths=\nUser=raspi-backup\nNoNewPrivileges=yes\n"
+                "CapabilityBoundingSet=\nAmbientCapabilities=\nRestrictAddressFamilies=AF_INET\n"
+                "PrivateNetwork=no\nControlGroup=\nExecMainCode=1\nExecMainStatus=2\nResult=exit-code\n"
+                "OpenFile=/run/private/gate.sock:gate\nOpenFile=/run/private/request.sock:request\n"
+                "OpenFile=/run/private/receipt.sock:receipt\nOpenFile=/run/private/canary.sock:canary\n"
+                "ExecStart={ path=/protected/python ; argv[]=/protected/python -I -B ; }\n"
+                "Environment=LANG=C\n").encode()
+        self.assertEqual(full.count(b"\nOpenFile="), 4)
+        def selected_query(arguments):
+            selected = next(value for value in arguments if value.startswith("--property=")).split("=", 1)[1].split(",")
+            self.assertEqual(len(selected), len(set(selected)))
+            self.assertNotIn("OpenFile", selected)
+            self.assertNotIn("ExecStart", selected)
+            self.assertNotIn("Environment", selected)
+            return b"\n".join(line for line in full.splitlines() if line.split(b"=", 1)[0].decode() in selected) + b"\n"
+        with mock.patch.object(manager, "_run", side_effect=selected_query):
+            value = manager.show(unit)
+            self.assertEqual(manager.capture(unit, "owned"), "b" * 32)
+        self.assertEqual(set(value), set(broker._SYSTEMD_PROPERTIES))
+        self.assertEqual(value["DropInPaths"], "")
+        self.assertEqual(value["ExecMainStatus"], "2")
+
+    def test_show_still_rejects_duplicate_malformed_or_unrequested_properties(self):
+        manager = broker._Systemd(None, None, time.monotonic() + 2)
+        cases = (b"DropInPaths=\nDropInPaths=/unexpected\n", b"MainPID=0\nMainPID=123\n",
+                 b"Description=owned\nnot-a-property\n", b"=missing-key\n", b"Id=x\n\n",
+                 b"OpenFile=/run/a:gate\nOpenFile=/run/b:request\n", b"Id=\xff\n")
+        for raw in cases:
+            with self.subTest(raw=raw), mock.patch.object(manager, "_run", return_value=raw):
+                with self.assertRaises((broker.GoogleTestBrokerError, UnicodeError)):
+                    manager.show("fresh.service")
+
+    def test_selected_properties_cover_every_systemd_consumer(self):
+        import ast
+        import inspect
+        tree = ast.parse(inspect.getsource(broker._Systemd))
+        accessed = set()
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "get"
+                    and isinstance(node.func.value, ast.Name) and node.func.value.id in ("value", "current")
+                    and node.args and isinstance(node.args[0], ast.Constant)):
+                accessed.add(node.args[0].value)
+            if (isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name)
+                    and node.value.id in ("value", "current") and isinstance(node.slice, ast.Constant)):
+                accessed.add(node.slice.value)
+        self.assertTrue(accessed)
+        self.assertLessEqual(accessed, set(broker._SYSTEMD_PROPERTIES))
 
     def test_cleanup_confirms_absence_when_start_never_created_a_unit(self):
         unit = "raspi-cloud-google-test-" + "a" * 32 + ".service"
