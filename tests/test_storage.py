@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from raspi_cloud_sync_pro.errors import BackupError
-from raspi_cloud_sync_pro.staging import CHUNK_SIZE, ReadyBatch, hash_stream, relative_path, stage_snapshot
+from raspi_cloud_sync_pro.staging import CHUNK_SIZE, ReadyBatch, hash_stream, relative_path, stage_changed_snapshot, stage_snapshot
 from raspi_cloud_sync_pro.storage import Ownership, StorageOwnership
 
 
@@ -188,3 +188,88 @@ class StagingTests(unittest.TestCase):
             batch.files[0].sha256 = "0" * 64
         with self.assertRaisesRegex(BackupError, "batch_not_ready"):
             ReadyBatch.load(batch.root.with_suffix(".incomplete"))
+
+    def test_unchanged_inventory_hashes_but_creates_no_new_capture(self):
+        (self.source / 'qa.txt').write_bytes(b'USB QA')
+        first, complete = stage_changed_snapshot(self.source, self.destination, staging_owner())
+        before = sorted(self.destination.iterdir())
+        with mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot') as copy, \
+                mock.patch('raspi_cloud_sync_pro.staging.hash_stream', wraps=hash_stream) as hashed:
+            second, current = stage_changed_snapshot(self.source, self.destination, staging_owner(), complete)
+        self.assertIsNone(second);self.assertEqual(current, complete);copy.assert_not_called();hashed.assert_called_once()
+        self.assertEqual(sorted(self.destination.iterdir()), before)
+        self.assertEqual((first.root / 'files/qa.txt').read_bytes(), b'USB QA')
+
+    def test_only_changed_and_new_versions_copied_even_with_restored_mtime(self):
+        for name in ('changed', 'unchanged'):(self.source / name).write_bytes(b'old')
+        first, previous = stage_changed_snapshot(self.source, self.destination, staging_owner())
+        file = self.source / 'changed';before = file.stat();file.write_bytes(b'new')
+        os.utime(file, ns=(before.st_atime_ns, before.st_mtime_ns))
+        (self.source / 'new').write_bytes(b'added')
+        batch, complete = stage_changed_snapshot(self.source, self.destination, staging_owner(), previous)
+        self.assertEqual([item.relative for item in batch.files], ['changed', 'new'])
+        self.assertEqual([item.relative for item in complete], ['changed', 'new', 'unchanged'])
+        self.assertFalse((batch.root / 'files/unchanged').exists())
+        self.assertEqual((first.root / 'files/changed').read_bytes(), b'old')
+        self.assertEqual((self.source / 'unchanged').read_bytes(), b'old')
+
+    def test_delete_then_recreate_never_deletes_old_capture_and_recaptures_version(self):
+        file = self.source / 'qa.txt';file.write_bytes(b'retain')
+        first, previous = stage_changed_snapshot(self.source, self.destination, staging_owner())
+        file.unlink()
+        deleted, empty = stage_changed_snapshot(self.source, self.destination, staging_owner(), previous)
+        self.assertIsNone(deleted);self.assertEqual(empty, ())
+        self.assertEqual((first.root / 'files/qa.txt').read_bytes(), b'retain')
+        file.write_bytes(b'retain')
+        recreated, current = stage_changed_snapshot(self.source, self.destination, staging_owner(), empty)
+        self.assertEqual([item.relative for item in recreated.files], ['qa.txt']);self.assertEqual(len(current), 1)
+        self.assertTrue(first.root.exists())
+
+    def test_source_change_after_inventory_never_returns_a_baseline(self):
+        file = self.source / 'qa.txt';file.write_bytes(b'original')
+        real_copy = stage_snapshot
+        def changed_copy(*args, **kwargs):
+            file.write_bytes(b'changed before copy')
+            return real_copy(*args, **kwargs)
+        with mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot', side_effect=changed_copy), self.assertRaisesRegex(BackupError, 'source_changed'):
+            stage_changed_snapshot(self.source, self.destination, staging_owner())
+        self.assertTrue(list(self.destination.glob('*.ready')))  # Completed partial outcome is retained for review.
+
+    def test_change_to_skipped_file_after_hash_is_detected_without_copying(self):
+        from raspi_cloud_sync_pro import staging
+        file = self.source / 'qa.txt';file.write_bytes(b'old')
+        _, previous = stage_changed_snapshot(self.source, self.destination, staging_owner())
+        inventory = staging._capture_inventory
+        def mutate_after_hash(*args, **kwargs):
+            result = inventory(*args, **kwargs)
+            if kwargs['contents']:file.write_bytes(b'new')
+            return result
+        with mock.patch.object(staging, '_capture_inventory', side_effect=mutate_after_hash), \
+                mock.patch.object(staging, 'stage_snapshot') as copy, self.assertRaisesRegex(BackupError, 'source_changed'):
+            stage_changed_snapshot(self.source, self.destination, staging_owner(), previous)
+        copy.assert_not_called();self.assertEqual(len(list(self.destination.glob('*.ready'))), 1)
+
+    def test_changed_snapshot_still_requires_exclusive_ownership_and_safe_entries(self):
+        with mock.patch('raspi_cloud_sync_pro.staging.os.walk') as walk, self.assertRaises(BackupError):
+            stage_changed_snapshot(self.source, self.destination, StorageOwnership())
+        walk.assert_not_called()
+        (self.source / 'unsafe').symlink_to(self.base / 'private')
+        with self.assertRaisesRegex(BackupError, 'unsupported_source_entry'):
+            stage_changed_snapshot(self.source, self.destination, staging_owner())
+        self.assertFalse(self.destination.exists())
+
+    def test_changed_snapshot_flat_count_and_depth_limits_before_copy(self):
+        for index in range(4):(self.source / str(index)).write_bytes(b'')
+        with mock.patch('raspi_cloud_sync_pro.staging._CAPTURE_ENTRY_LIMIT', 5), \
+                mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot') as copied, self.assertRaisesRegex(BackupError, 'capture_inventory_limit'):
+            stage_changed_snapshot(self.source, self.destination, staging_owner())
+        copied.assert_not_called();self.assertFalse(self.destination.exists())
+        with mock.patch('raspi_cloud_sync_pro.staging._CAPTURE_METADATA_LIMIT', 4097), \
+                mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot') as copied, self.assertRaisesRegex(BackupError, 'capture_inventory_limit'):
+            stage_changed_snapshot(self.source, self.destination, staging_owner())
+        copied.assert_not_called();self.assertFalse(self.destination.exists())
+        (self.source / 'one/two').mkdir(parents=True)
+        with mock.patch('raspi_cloud_sync_pro.staging._CAPTURE_DEPTH_LIMIT', 2), \
+                mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot') as copied, self.assertRaisesRegex(BackupError, 'capture_inventory_limit'):
+            stage_changed_snapshot(self.source, self.destination, staging_owner())
+        copied.assert_not_called();self.assertFalse(self.destination.exists())

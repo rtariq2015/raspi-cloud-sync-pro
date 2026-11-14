@@ -72,6 +72,57 @@ class StagedWorkerTests(unittest.TestCase):
         self.assertTrue(all(job["state"] == "verified" for job in self.history.jobs()))
         self.assertEqual((batch.root / "files/QA.txt").read_bytes(), b"version")
 
+    def test_long_outage_retries_durably_with_capped_delay_and_no_verified_reupload(self):
+        batch = stage_upload(io.BytesIO(b"retain through an outage"), "QA.txt", self.settings.staging)
+        good, failing = Destination("first"), Destination("second", fail=True)
+        now = 100
+        for attempt in range(1, 10):
+            # Each tick opens a new connection and scheduler, as after a restart.
+            with History(self.history.path) as history:
+                worker = StagedWorker(self.settings, history, [good, failing])
+                result = worker.tick(now=now, observation=("wifi", Connectivity.ONLINE, False))
+                self.assertEqual(result["cloud_results"], ["verified" if attempt == 1 else None, "retry"])
+                self.assertEqual(result["pending_jobs"], 1)
+                job = history.jobs()[1]
+                self.assertEqual((job["state"], job["attempts"]), ("retry", attempt))
+                self.assertEqual(job["next_attempt"], now + min(30 * 2 ** (attempt - 1), 3600))
+                self.assertEqual(history.jobs()[0]["attempts"], 1)
+                self.assertEqual((good.uploads, failing.uploads), (1, attempt))
+                self.assertEqual(worker.tick(now=job["next_attempt"] - 1,
+                                             observation=("wifi", Connectivity.ONLINE, False))["cloud_results"],
+                                 [None, None])
+                now = job["next_attempt"]
+        failing.fail = False
+        with History(self.history.path) as history:
+            worker = StagedWorker(self.settings, history, [good, failing])
+            result = worker.tick(now=now, observation=("wifi", Connectivity.ONLINE, False))
+            self.assertEqual(result["cloud_results"], [None, "verified"])
+            self.assertEqual((result["jobs_added"], result["pending_jobs"]), (0, 0))
+            self.assertEqual([job["attempts"] for job in history.jobs()], [1, 10])
+            self.assertEqual([event["attempt"] for event in history.events(2) if event["state"] == "uploading"],
+                             list(range(1, 11)))
+            self.assertEqual(worker.tick(now=now + 10000,
+                                         observation=("wifi", Connectivity.ONLINE, False))["cloud_results"],
+                             [None, None])
+        self.assertEqual((good.uploads, failing.uploads), (1, 10))
+        self.assertEqual((batch.root / "files/QA.txt").read_bytes(), b"retain through an outage")
+
+    def test_unbounded_worker_keeps_nonretryable_failure_terminal_after_restart(self):
+        batch = stage_upload(io.BytesIO(b"retain failed source"), "QA.txt", self.settings.staging)
+        provider = Destination("first")
+        with mock.patch.object(provider, "upload", side_effect=BackupError("permanent_failure")) as upload:
+            result = StagedWorker(self.settings, self.history, [provider]).tick(
+                now=100, observation=("wifi", Connectivity.ONLINE, False))
+            self.assertEqual(result["cloud_results"], ["failed"])
+            upload.assert_called_once()
+        with History(self.history.path) as history:
+            result = StagedWorker(self.settings, history, [provider]).tick(
+                now=10000, observation=("wifi", Connectivity.ONLINE, False))
+            self.assertEqual(result["cloud_results"], [None])
+            self.assertEqual((history.jobs()[0]["state"], history.jobs()[0]["attempts"]), ("failed", 1))
+        self.assertEqual(provider.uploads, 0)
+        self.assertEqual((batch.root / "files/QA.txt").read_bytes(), b"retain failed source")
+
     def test_receipts_skip_rehash_after_restart_but_cannot_authorize_changed_payload(self):
         batch = stage_upload(io.BytesIO(b"good"), "QA.txt", self.settings.staging)
         provider = Destination("first")

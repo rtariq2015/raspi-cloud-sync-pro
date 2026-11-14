@@ -26,6 +26,7 @@ capture, Google upload and verification evidence remains valid.
 | Automatic Google upload | PASS | Already-running worker discovered the completed batch, uploaded and verified it on attempt 1 |
 | Remote integrity | PASS | Actual job events: queued → uploading → uploaded → verifying → verified; provider downloads remote contents and compares SHA-256 |
 | Original retention | PASS | Image retained; completed local staged copy retained; no cleanup/deletion enabled |
+| Isolated worker offline/restart/recovery | PASS | Real USB file queued with zero attempts through two fresh network-isolated workers; restored normal worker uploaded and downloaded-hash verified it on attempt 1 |
 | Physical Wi-Fi outage recovery | NOT TESTED | Working Wi-Fi/SSH was preserved; automated offline/retry tests do not establish physical outage acceptance |
 | Physical reboot recovery | NOT TESTED | No Pi reboot performed |
 | Worker restart and upload deduplication | PASS | Worker PID changed; verified job, attempt count and event counts stayed unchanged over two more ticks |
@@ -78,4 +79,10 @@ It does not provision the USB profile after reboot; interrupted handoffs retain
 data for manual recovery. The example service is therefore static and disabled.
 
 Full sanitized evidence: [automatic USB acceptance](acceptance/pi-mass-storage-auto-linux-2026-11-14.json).
+The [offline worker trial](acceptance/pi-core-offline-worker-2026-11-14.json)
+isolated only the backup worker's network namespace, preserving the Pi radio and
+SSH. Its real captured 72-byte file stayed queued through two fresh processes,
+then reached Google and passed verification when the normal worker resumed.
+Five jobs are now verified; the four older jobs were not uploaded again. This
+does not establish physical radio-outage or Pi-reboot acceptance.
 Plain-language updates and owner questions: [GitHub progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).

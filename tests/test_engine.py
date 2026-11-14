@@ -153,6 +153,39 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(self.history.jobs()[0]["state"], "failed")
         self.assertEqual(self.provider.uploads, 1)
 
+    def test_unbounded_retry_policy_recovers_crash_beyond_finite_limit(self):
+        self.engine = BackupEngine(self.history, max_attempts=None, base_delay=10, max_delay=15)
+        self.provider.corrupt = True
+        for now in (100, 110, 125):
+            self.assertEqual(self.run_job(now), "retry")
+        self.provider.corrupt = False
+        with mock.patch.object(self.provider, "verify", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_job(140)
+        self.assertEqual((self.history.jobs()[0]["state"], self.history.jobs()[0]["attempts"]),
+                         ("verifying", 4))
+        self.history.close()
+        self.history = History(self.path)
+        self.engine = BackupEngine(self.history, max_attempts=None, base_delay=10, max_delay=15)
+        self.assertEqual(self.run_job(200), "verified")
+        self.assertEqual(self.history.jobs()[0]["attempts"], 5)
+        self.assertEqual([event["attempt"] for event in self.history.events(1)
+                          if event["error_code"] == "interrupted"], [4])
+        self.assertIsNone(self.run_job(1000))
+        self.assertEqual(self.provider.uploads, 5)
+
+    def test_unbounded_retry_backoff_stays_capped_at_large_attempt_count(self):
+        self.engine = BackupEngine(self.history, max_attempts=None, base_delay=10, max_delay=15)
+        with self.history.connection:
+            self.history.connection.execute("UPDATE jobs SET attempts=1000000")
+        with mock.patch.object(self.provider, "upload", side_effect=BackupError("temporary", True)):
+            self.assertEqual(self.run_job(100), "retry")
+        job = self.history.jobs()[0]
+        self.assertEqual((job["attempts"], job["next_attempt"]), (1000001, 115))
+        self.assertIsNone(self.run_job(114))
+        self.assertEqual(self.run_job(115), "verified")
+        self.assertEqual(self.history.jobs()[0]["attempts"], 1000002)
+
     def test_workers_cannot_overlap(self):
         with self.history.worker():
             with self.assertRaisesRegex(BackupError, "backup_worker_busy"):

@@ -117,7 +117,9 @@ def scheduler_lock(directory):
 class StagedWorker:
     def __init__(self, settings, history, providers):
         self.settings, self.history, self.providers = settings, history, tuple(providers)
-        self.engine = BackupEngine(history)
+        # Published batches survive temporary outages for as long as necessary;
+        # each tick still makes one bounded attempt with capped durable backoff.
+        self.engine = BackupEngine(history, max_attempts=None)
         self.reconciled = set()
         self.rejected = {}
         with history.connection:

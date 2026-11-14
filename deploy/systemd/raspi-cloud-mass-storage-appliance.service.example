@@ -6,7 +6,7 @@ ConditionPathExists=/etc/raspi-cloud-sync-pro/MASS_STORAGE_APPLIANCE_APPROVED
 [Service]
 Type=simple
 # This is a protected, separately approved test build, not the public package.
-ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B /opt/raspi-cloud-sync-pro/qa/mass-storage-appliance-dev19/launcher.py
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B /opt/raspi-cloud-sync-pro/qa/mass-storage-appliance-dev20/launcher.py
 WorkingDirectory=/
 Environment=PATH=/usr/sbin:/usr/bin:/sbin:/bin HOME=/nonexistent LANG=C LC_ALL=C
 UMask=0077

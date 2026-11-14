@@ -14,6 +14,12 @@ offline/reboot acceptance remain unfinished. No-eject operation is unproven.
 Further dashboard/Samba/provider expansion is deferred.
 See [the core recovery record](CORE_RECOVERY.md).
 
+**Offline queue check passed:** a further real USB file remained queued with
+zero upload attempts through two fresh backup workers without network access.
+After restoring the normal worker, it uploaded and passed Google verification.
+The Pi's radio and SSH stayed up; this was worker network isolation rather than
+a physical Wi-Fi outage. Five files are now verified without repeat uploads.
+
 **Updates on your phone:** use the [plain-language progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 It records what works, current work, remaining tests and whether owner help is
 needed. Subscribe there and choose GitHub/email notifications in your account;

@@ -24,7 +24,8 @@ class Provider(Protocol):
 
 class BackupEngine:
     def __init__(self, history: History, *, max_attempts=3, base_delay=30, max_delay=3600):
-        if type(max_attempts) is not int or not 1 <= max_attempts <= 20 \
+        """None permits unlimited retryable attempts; the default remains finite."""
+        if (max_attempts is not None and (type(max_attempts) is not int or not 1 <= max_attempts <= 20)) \
                 or type(base_delay) is not int or type(max_delay) is not int \
                 or not 1 <= base_delay <= max_delay:
             raise ValueError("invalid retry policy")
@@ -74,9 +75,12 @@ class BackupEngine:
             except Exception:
                 # Unexpected adapter failures cannot become successful backups or leak secrets.
                 error = BackupError("unexpected_provider_error")
-            retry = error.retryable and job["attempts"] < self.max_attempts
+            retry = error.retryable and (self.max_attempts is None or job["attempts"] < self.max_attempts)
             state = "retry" if retry else "failed"
-            delay = min(self.max_delay, self.base_delay * 2 ** (job["attempts"] - 1))
+            # Saturate the exponent too: an unattended outage must not construct
+            # ever larger integers after its backoff has already reached the cap.
+            exponent = min(job["attempts"] - 1, (self.max_delay // self.base_delay).bit_length())
+            delay = min(self.max_delay, self.base_delay * 2 ** exponent)
             failed_at = clock()
             try:
                 self.history.update(job["id"], state, failed_at, error_code=error.code,

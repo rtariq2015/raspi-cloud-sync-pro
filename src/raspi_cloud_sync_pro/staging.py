@@ -19,6 +19,9 @@ from .errors import BackupError
 from .storage import StorageOwnership
 
 CHUNK_SIZE = 1024 * 1024
+_CAPTURE_ENTRY_LIMIT = 10000
+_CAPTURE_DEPTH_LIMIT = 32
+_CAPTURE_METADATA_LIMIT = 1024 * 1024
 
 
 def relative_path(value: str) -> str:
@@ -146,7 +149,7 @@ class ReadyBatch:
 
 
 def stage_snapshot(source: Path, destination: Path, ownership: StorageOwnership,
-                   *, reserve_bytes: int = 16 * 1024 * 1024) -> ReadyBatch:
+                   *, reserve_bytes: int = 16 * 1024 * 1024, _selected=None) -> ReadyBatch:
     """Copy every regular file under a trusted exclusive read-only source root.
 
     Caller-supplied evidence in StorageOwnership is a model only, not permission
@@ -182,7 +185,10 @@ def stage_snapshot(source: Path, destination: Path, ownership: StorageOwnership,
                     if stat.S_ISLNK(mode) or not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
                         raise BackupError("unsupported_source_entry")
                     if stat.S_ISDIR(mode):
-                        (payload / relative).mkdir(parents=True, exist_ok=True)
+                        if _selected is None:
+                            (payload / relative).mkdir(parents=True, exist_ok=True)
+                        continue
+                    if _selected is not None and relative not in _selected:
                         continue
                     output = payload / relative
                     output.parent.mkdir(parents=True, exist_ok=True)
@@ -220,3 +226,89 @@ def stage_snapshot(source: Path, destination: Path, ownership: StorageOwnership,
         except OSError as exc:
             # Includes ENOSPC; no cursor advances and partial batches remain for recovery.
             raise BackupError("staging_io_error") from exc
+
+
+def _capture_inventory(source, *, contents):
+    """Caller holds exclusive read-only ownership; metadata also detects test races."""
+    files, fingerprints, budget = [], {}, [_CAPTURE_ENTRY_LIMIT - 2, _CAPTURE_METADATA_LIMIT]
+    def fingerprint(value):
+        return value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns
+    def walk(directory, prefix, depth):
+        if depth > _CAPTURE_DEPTH_LIMIT:
+            raise BackupError('capture_inventory_limit')
+        names = []
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                if budget[0] <= 0:
+                    raise BackupError('capture_inventory_limit')
+                budget[0] -= 1;names.append(entry.name)
+        for name in sorted(names):
+            relative = relative_path(prefix + '/' + name if prefix else name)
+            budget[1] -= len(relative.encode('utf-8')) + 128
+            if budget[1] < 0:
+                raise BackupError('capture_inventory_limit')
+            info = os.stat(name, dir_fd=directory, follow_symlinks=False)
+            if stat.S_ISLNK(info.st_mode) or not (stat.S_ISDIR(info.st_mode) or stat.S_ISREG(info.st_mode)):
+                raise BackupError('unsupported_source_entry')
+            if stat.S_ISDIR(info.st_mode):
+                child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+                try:
+                    walk(child, relative, depth + 1)
+                finally:
+                    os.close(child)
+                continue
+            if contents:
+                fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+                with os.fdopen(fd, 'rb') as incoming:
+                    before = os.fstat(incoming.fileno())
+                    if not stat.S_ISREG(before.st_mode) or fingerprint(before) != fingerprint(info):
+                        raise BackupError('source_changed_during_staging')
+                    size, digest = hash_stream(incoming)
+                    info = os.fstat(incoming.fileno())
+                    if fingerprint(before) != fingerprint(info) or size != before.st_size:
+                        raise BackupError('source_changed_during_staging')
+                files.append(StagedFile(relative, size, digest))
+            fingerprints[relative] = fingerprint(info)
+    root = os.open(source, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        walk(root, '', 1)  # Reserve the staged batch's files/ directory level.
+    finally:
+        os.close(root)
+    return tuple(sorted(files, key=lambda item: item.relative)), fingerprints
+
+
+def stage_changed_snapshot(source, destination, ownership, previous_files=None, *, reserve_bytes=16 * 1024 * 1024):
+    """Hash all current files, copy only new/changed versions, or return no batch.
+
+    The returned full inventory means local capture only, never handoff or cloud
+    verification. The controller must retain it privately after clean release.
+    It cannot be supplied by an untrusted writer as permission to skip capture.
+    """
+    with ownership.read_access():
+        try:
+            if type(reserve_bytes) is not int or reserve_bytes < 0:
+                raise BackupError('invalid_space_reserve')
+            source, destination = Path(source).absolute(), Path(destination).absolute()
+            if source.is_symlink() or destination.is_symlink():
+                raise BackupError('unsafe_staging_roots')
+            source, destination = source.resolve(strict=True), destination.resolve()
+            if not source.is_dir() or source == destination or source in destination.parents or destination in source.parents:
+                raise BackupError('overlapping_staging_roots')
+            previous = {}
+            for item in previous_files or ():
+                if not isinstance(item, StagedFile) or item.relative in previous:
+                    raise BackupError('invalid_capture_manifest')
+                previous[item.relative] = item
+            current, fingerprints = _capture_inventory(source, contents=True)
+            if len(json.dumps([vars(item) for item in current], ensure_ascii=True).encode('ascii')) > _CAPTURE_METADATA_LIMIT - 4096:
+                raise BackupError('capture_inventory_limit')
+            changed = tuple(item for item in current if previous.get(item.relative) != item)
+            batch = stage_snapshot(source, destination, ownership, reserve_bytes=reserve_bytes,
+                                   _selected={item.relative for item in changed}) if changed else None
+            if (batch is not None and batch.files != changed) or _capture_inventory(source, contents=False)[1] != fingerprints:
+                raise BackupError('source_changed_during_staging')
+            return batch, current
+        except BackupError:
+            raise
+        except OSError as error:
+            raise BackupError('staging_io_error') from error

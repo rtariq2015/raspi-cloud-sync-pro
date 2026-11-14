@@ -1,6 +1,6 @@
 # Phase 2 validation record
 
-Current source: **0.1.0.dev19**, with **810 core Python tests and 28 USB operator
+Current source: **0.1.0.dev20**, with **827 core Python tests and 28 USB operator
 tests passing** locally, including actual rclone against a temporary local alias.
 The [core USB trial](CORE_RECOVERY.md) now passes automatic eject capture,
 reattachment and Google upload/downloaded-hash verification on the real Zorin
@@ -9,6 +9,22 @@ operator-confirmed file also passed. Its Windows attribution was contextual;
 Windows-specific acceptance is not independently verified. Physical outage/reboot
 and persistent USB startup acceptance remain incomplete.
 The dated records below distinguish earlier builds and real-device evidence.
+
+Dev20 adds content-based local capture suppression: only after exclusive
+read-only access, hash the bounded complete inventory and copy changed/new
+versions. Identical ejects create no new batch. A private image-bound inventory
+advances only after publication and clean unmount/loop detach; it proves local
+capture, not queue handoff or cloud verification. Corrupt/pending/mismatched
+inventories fail closed and retained data is never deleted. Tests cover changed,
+deleted/recreated, unchanged, interrupted and oversized inventories.
+
+The staged worker explicitly retries temporary provider failures without an
+attempt ceiling, with durable exponential backoff capped at one hour. Existing
+finite engine callers retain their three-attempt default; permanent failures and
+verified jobs remain terminal. Tests cross nine failures and fresh worker/history
+instances before a verified recovery, with no repeat of another verified target.
+Native dev19 acceptance and the separate network-isolated dev17 worker trial
+remain labelled with their actual artifacts; neither proves dev20 deployment.
 
 Date: 2026-11-12. Linux x86-64 development environment, Python 3.12.3.
 Package `0.1.0.dev2`; target branch `development`. Hardware gate remains false.

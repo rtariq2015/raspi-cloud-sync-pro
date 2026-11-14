@@ -113,10 +113,10 @@ class History:
         """Call only while holding worker(); never treat a crash as verification."""
         rows = self.connection.execute(
             "SELECT id,attempts,state FROM jobs WHERE state IN ('uploading','uploaded','verifying') "
-            "OR (state IN ('queued','retry') AND attempts>=?)", (max_attempts,),
+            "OR (? IS NOT NULL AND state IN ('queued','retry') AND attempts>=?)", (max_attempts, max_attempts),
         ).fetchall()
         for row in rows:
-            state = "retry" if row["attempts"] < max_attempts else "failed"
+            state = "retry" if max_attempts is None or row["attempts"] < max_attempts else "failed"
             error = "retry_exhausted" if row["state"] in ("queued", "retry") else "interrupted"
             self.update(row["id"], state, now, error_code=error, next_attempt=now if state == "retry" else 0)
 
@@ -127,9 +127,9 @@ class History:
             self.connection.execute("BEGIN IMMEDIATE")
             row = self.connection.execute("""
                 SELECT * FROM jobs WHERE destination=? AND state IN ('queued','retry')
-                AND next_attempt<=? AND attempts<? AND (? IS NULL OR batch_root=?)
+                AND next_attempt<=? AND (? IS NULL OR attempts<?) AND (? IS NULL OR batch_root=?)
                 ORDER BY id LIMIT 1
-            """, (destination, now, max_attempts, selected, selected)).fetchone()
+            """, (destination, now, max_attempts, max_attempts, selected, selected)).fetchone()
             if row is None:
                 return None
             self.connection.execute(

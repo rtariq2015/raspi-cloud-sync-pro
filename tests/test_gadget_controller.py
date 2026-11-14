@@ -278,7 +278,7 @@ class GadgetControllerTests(unittest.TestCase):
         with self.controller.session():
             self.arm(self.controller)
             self.backend.eject()
-            with mock.patch("raspi_cloud_sync_pro.gadget.stage_snapshot", side_effect=KeyboardInterrupt):
+            with mock.patch("raspi_cloud_sync_pro.gadget.stage_changed_snapshot", side_effect=KeyboardInterrupt):
                 with self.assertRaises(KeyboardInterrupt): self.controller.poll(self.root / "staging")
         self.assertTrue(self.backend.mounted)
         restarted = GadgetController(self.backend, self.root / "state")
@@ -302,3 +302,96 @@ class GadgetControllerTests(unittest.TestCase):
     def test_no_operations_outside_a_session(self):
         with self.assertRaisesRegex(BackupError, "session_required"): self.controller.start()
         self.assertEqual(self.backend.events, [])
+
+    def capture_cycle(self, controller=None, backend=None, root=None):
+        controller, backend, root = controller or self.controller, backend or self.backend, root or self.root
+        self.assertEqual(controller.poll(root / 'staging'), 'waiting_for_host_eject')
+        backend.eject()
+        return controller.poll(root / 'staging')
+
+    def test_identical_eject_creates_no_batch_and_retains_private_baseline(self):
+        with self.controller.session():
+            self.controller.start();first = self.capture_cycle()
+            path = self.root / 'state/capture-manifest.json'
+            before = path.read_bytes(), path.stat().st_ino
+            second = self.capture_cycle()
+            self.assertEqual(second, 'unchanged_snapshot')
+            self.assertEqual((path.read_bytes(), path.stat().st_ino), before)
+            self.assertEqual(list((self.root / 'staging').glob('*.ready')), [first.root])
+            self.assertTrue(self.backend.bound);self.assertFalse(self.backend.mounted)
+            self.assertEqual(self.controller.ownership.state, Ownership.HOST)
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+
+    def test_previous_capture_survives_restart_without_reading_live_image(self):
+        with self.controller.session():
+            self.controller.start();first = self.capture_cycle()
+        restarted = GadgetController(self.backend, self.root / 'state')
+        with restarted.session():
+            with mock.patch('raspi_cloud_sync_pro.gadget.stage_changed_snapshot') as capture:
+                restarted.start();capture.assert_not_called()
+            self.assertEqual(self.capture_cycle(restarted), 'unchanged_snapshot')
+        self.assertTrue(first.root.exists());self.assertEqual(len(list((self.root / 'staging').glob('*.ready'))), 1)
+
+    def test_changed_new_deleted_and_recreated_files_capture_only_current_changes(self):
+        with self.controller.session():
+            self.controller.start();first = self.capture_cycle()
+            original = self.backend.mountpoint / 'original.txt'
+            original.write_bytes(b'new content');(self.backend.mountpoint / 'new.txt').write_bytes(b'added')
+            second = self.capture_cycle()
+            self.assertEqual([item.relative for item in second.files], ['new.txt', 'original.txt'])
+            self.assertEqual((first.root / 'files/original.txt').read_bytes(), b'retain original')
+            original.unlink();self.assertEqual(self.capture_cycle(), 'unchanged_snapshot')
+            original.write_bytes(b'new content');recreated = self.capture_cycle()
+            self.assertEqual([item.relative for item in recreated.files], ['original.txt'])
+            self.assertTrue(first.root.exists());self.assertTrue(second.root.exists())
+
+    def test_corrupt_insecure_or_wrong_image_baseline_refuses_before_device_actions(self):
+        for kind in ('malformed', 'image', 'identity', 'mode', 'symlink', 'hardlink', 'pending'):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory);backend = SimulatedGadget(root);controller = GadgetController(backend, root/'state')
+                with controller.session():
+                    controller.start();self.capture_cycle(controller, backend, root)
+                path = root/'state/capture-manifest.json'
+                if kind == 'malformed':path.write_text('{')
+                elif kind in ('image', 'identity'):
+                    value = json.loads(path.read_text());value['image' if kind == 'image' else 'image_identity'] = '/other' if kind == 'image' else [1, 999, 1]
+                    path.write_text(json.dumps(value))
+                elif kind == 'mode':path.chmod(0o644)
+                elif kind == 'symlink':path.rename(root/'saved');path.symlink_to(root/'saved')
+                elif kind == 'hardlink':
+                    import os
+                    os.link(path, root/'alias')
+                else:(root/'state/capture-manifest.pending').write_bytes(b'interrupted metadata retained')
+                backend.events.clear();restarted = GadgetController(backend, root/'state')
+                with restarted.session(), self.assertRaises(BackupError):restarted.start()
+                self.assertEqual(backend.events, []);self.assertTrue(backend.bound)
+
+    def test_stage_unmount_or_detach_failure_never_advances_baseline(self):
+        for failure in ('stage', 'unmount', 'loop_detach'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory);backend = SimulatedGadget(root);controller = GadgetController(backend, root/'state')
+                with controller.session():
+                    controller.start();first = self.capture_cycle(controller, backend, root)
+                    path = root/'state/capture-manifest.json';before = path.read_bytes()
+                    (backend.mountpoint/'original.txt').write_bytes(b'changed on host')
+                    self.assertEqual(controller.poll(root/'staging'), 'waiting_for_host_eject');backend.eject();backend.events.clear()
+                    backend.failure = failure if failure != 'stage' else None
+                    context = mock.patch('raspi_cloud_sync_pro.gadget.stage_changed_snapshot', side_effect=BackupError('synthetic_stage_failure')) \
+                        if failure == 'stage' else mock.patch('raspi_cloud_sync_pro.gadget.stage_changed_snapshot', wraps=__import__(
+                            'raspi_cloud_sync_pro.staging', fromlist=['stage_changed_snapshot']).stage_changed_snapshot)
+                    with context, self.assertRaises(BackupError):controller.poll(root/'staging')
+                    self.assertEqual(path.read_bytes(), before);self.assertTrue(first.root.exists())
+                    self.assertNotIn('attach', backend.events);self.assertEqual(controller.journal.data['phase'], 'recovery_required')
+
+    def test_baseline_publication_failure_retains_batch_and_stops_before_reattach(self):
+        with self.controller.session():
+            self.controller.start();first = self.capture_cycle()
+            path = self.root/'state/capture-manifest.json';before = path.read_bytes()
+            (self.backend.mountpoint/'original.txt').write_bytes(b'changed')
+            self.controller.poll(self.root/'staging');self.backend.eject();self.backend.events.clear()
+            with mock.patch.object(self.controller.journal, 'save_capture', side_effect=OSError('full metadata disk')), self.assertRaises(BackupError):
+                self.controller.poll(self.root/'staging')
+            self.assertEqual(path.read_bytes(), before);self.assertTrue(first.root.exists())
+            self.assertEqual(len(list((self.root/'staging').glob('*.ready'))), 2)
+            self.assertFalse(self.backend.bound);self.assertFalse(self.backend.mounted);self.assertIsNone(self.backend.loop)
+            self.assertNotIn('attach', self.backend.events)

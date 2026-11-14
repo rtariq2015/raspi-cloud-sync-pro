@@ -7,12 +7,13 @@ No force-eject, timeout-based host release, automatic repair, or deletion exists
 import fcntl
 import json
 import os
+import stat
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
 from .errors import BackupError
-from .staging import stage_snapshot
+from .staging import StagedFile, stage_changed_snapshot
 from .storage import StorageOwnership
 
 
@@ -32,6 +33,73 @@ class ControllerJournal:
         self.directory = Path(directory)
         self.path = self.directory / "controller.json"
         self.data = None
+
+    def load_capture(self, image, image_identity):
+        """Read only our private local-capture baseline, never backup-owned data."""
+        path = self.directory / 'capture-manifest.json'
+        if os.path.lexists(self.directory / 'capture-manifest.pending'):
+            raise BackupError('invalid_capture_manifest')
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        except FileNotFoundError:
+            return None
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_nlink != 1
+                    or stat.S_IMODE(info.st_mode) != 0o600 or info.st_size > 4 * 1024 * 1024):
+                raise ValueError()
+            raw = os.read(fd, 4 * 1024 * 1024 + 1)
+            if len(raw) != info.st_size:
+                raise ValueError()
+            def unique(pairs):
+                value = {}
+                for key, item in pairs:
+                    if key in value:
+                        raise ValueError()
+                    value[key] = item
+                return value
+            value = json.loads(raw, object_pairs_hook=unique)
+            if (set(value) != {'schema_version', 'image', 'image_identity', 'files'}
+                    or type(value['schema_version']) is not int or value['schema_version'] != 1
+                    or value['image'] != str(image) or value['image_identity'] != list(image_identity)
+                    or not isinstance(value['image_identity'], list)
+                    or any(type(item) is not int or item < 0 for item in value['image_identity'])
+                    or not isinstance(value['files'], list)):
+                raise ValueError()
+            files = []
+            for item in value['files']:
+                if not isinstance(item, dict) or set(item) != {'relative', 'size', 'sha256'}:
+                    raise ValueError()
+                files.append(StagedFile(**item))
+            if len({item.relative for item in files}) != len(files) or files != sorted(files, key=lambda item: item.relative):
+                raise ValueError()
+            after, named = os.fstat(fd), path.lstat()
+            signature = lambda row: (row.st_dev, row.st_ino, row.st_size, row.st_mtime_ns, row.st_ctime_ns)
+            if signature(info) != signature(after) or signature(info) != signature(named):
+                raise ValueError()
+            return tuple(files)
+        except (OSError, ValueError, TypeError, KeyError, BackupError) as error:
+            raise BackupError('invalid_capture_manifest') from error
+        finally:
+            os.close(fd)
+
+    def save_capture(self, image, image_identity, files):
+        """Commit only after ready publication and successful unmount/loop detach."""
+        data = {'schema_version': 1, 'image': str(image), 'image_identity': list(image_identity),
+                'files': [vars(item) for item in files]}
+        raw = json.dumps(data, sort_keys=True, ensure_ascii=True).encode('ascii')
+        if len(raw) > 4 * 1024 * 1024:
+            raise BackupError('invalid_capture_manifest')
+        path = self.directory / 'capture-manifest.pending'
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(raw);stream.flush();os.fsync(stream.fileno())
+        os.replace(path, self.directory / 'capture-manifest.json')
+        fd = os.open(self.directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
 
     @contextmanager
     def locked(self):
@@ -86,6 +154,7 @@ class GadgetController:
         self.started = False
         self.in_session = False
         self.loop = None
+        self.capture_files = None
 
     @contextmanager
     def session(self):
@@ -158,6 +227,7 @@ class GadgetController:
                              or previous.get("image_identity") != list(getattr(self.backend, "image_identity", ()) or ())
                              or previous["phase"] != "host"):
                 raise BackupError("controller_recovery_required")
+            self.capture_files = self.journal.load_capture(self.backend.image, getattr(self.backend, 'image_identity', ()) or ())
             if previous:
                 if not observation.bound or observation.backing != str(self.backend.image) \
                         or observation.loops or observation.mounts:
@@ -241,8 +311,9 @@ class GadgetController:
             self.backend.verify_mount_read_only(self.loop)
             self.ownership.begin_staging(loop_read_only=True, mount_read_only=True)
             self._save("staging")
-            batch = stage_snapshot(self.backend.mountpoint, staging_directory, self.ownership)
-            self._save("unmount_intent", batch=str(batch.root))
+            batch, current_files = stage_changed_snapshot(self.backend.mountpoint, staging_directory,
+                                                          self.ownership, self.capture_files)
+            self._save("unmount_intent", batch=str(batch.root) if batch else None)
             self.backend.unmount()
             observation = self._observe()
             if observation.bound or observation.backing or observation.mounts \
@@ -250,9 +321,12 @@ class GadgetController:
                 raise BackupError("unmount_unverified")
             self._detach_loop()
             self.ownership.finish_staging(unmounted=True, loop_detached=True)
-            self._save("returnable", batch=str(batch.root))
+            self._save("returnable", batch=str(batch.root) if batch else None)
+            if current_files != self.capture_files:
+                self.journal.save_capture(self.backend.image, getattr(self.backend, 'image_identity', ()) or (), current_files)
+                self.capture_files = current_files
             self._attach()
-            return batch
+            return batch if batch else 'unchanged_snapshot'
 
     def recover_resources(self):
         """Explicit cleanup only; never reattach, repair, adopt or stage on recovery."""
