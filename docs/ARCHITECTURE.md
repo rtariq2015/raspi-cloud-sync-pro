@@ -51,9 +51,12 @@ source-tested owner dashboard controls, a default-denied private tester and a
 separate per-batch upload API.
 That web-driven path is not yet connected to a live recurring cloud executor.
 The [core USB trial](CORE_RECOVERY.md) separately uses the existing operator-enabled
-staged worker under the backup identity. Actual Linux-host USB files pass automatic
-Google upload and downloaded-content verification; Windows acceptance remains
-unverified.
+staged worker under the backup identity. Actual Windows 11 and Linux-host USB
+files pass safe-eject capture, automatic Google upload and downloaded-content
+verification. The Windows trial includes a 64 MiB file, reattachment and repeated
+identical content without extra uploads. Seventeen retained versions are verified
+after the final offline/reconnect trial. See [Windows evidence](acceptance/pi-windows-mass-storage-google-dev22-2026-11-14.json)
+and [Wi-Fi recovery evidence](acceptance/pi-wifi-recovery-guard-dev22-2026-11-14.json).
 
 ```mermaid
 flowchart LR
@@ -130,10 +133,21 @@ and repair workflow. Corrupt immutable destinations are not overwritten.
 
 SQLite and manifests live on the Pi filesystem, separate from the USB image.
 Use a restricted service-owned state directory; back up the database and staging
-together when no worker is running. History schema migrations, all-disk-full
-database recovery, cancellation, a long-running scheduler and durable hardware
-ownership recovery remain work before deployment. File payloads are streamed;
+together when no worker is running. The approved USB trial runs a persistent
+controller and staged worker; clean reboot and conservative profile reconstruction
+have separate native evidence. History schema migrations, all-disk-full database
+recovery, cancellation and broader power-failure qualification remain work before
+general deployment. File payloads are streamed;
 manifest/job metadata scales with inventory size and still needs Pi benchmarking.
+
+The separate opt-in [Wi-Fi recovery operator](../tools/acceptance/wifi_recovery/README.md)
+can reactivate only one approved saved `wlan0` profile after three eligible failure
+samples and a durable five-minute cooldown. It never restarts global networking
+or USB. Its restricted service passed a real offline Windows copy/eject and
+automatic reconnect/upload trial; its timer is enabled only on the approved test
+Pi. Public source/configuration remain disabled. This mitigates a lost management
+link; the earlier outage's cause is unknown, and arbitrary driver/hardware faults
+are not claimed recoverable.
 
 ## Dashboard boundary
 

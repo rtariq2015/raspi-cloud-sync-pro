@@ -1,25 +1,50 @@
 # Phase 2 validation record
 
-Current source: **0.1.0.dev22**, with **841 core Python tests and 28 USB operator
-tests passing** locally, including actual rclone against a temporary local alias.
+Current source: **0.1.0.dev22**, with **841 core Python tests, 28 USB operator
+tests and 26 Wi-Fi recovery tests passing** locally, including actual rclone
+against a temporary local alias.
 The [core USB trial](CORE_RECOVERY.md) now passes automatic eject capture,
 reattachment and Google upload/downloaded-hash verification on the real Zorin
 USB host, with small, nested, Unicode and 64 MiB synthetic files. The earlier
-operator-confirmed file also passed. Its Windows attribution was contextual;
-Windows-specific acceptance is not independently verified. Dev22 physical
-outage, reboot and persistent USB startup results are recorded below.
+operator-confirmed file also passed. A subsequent independent real Windows 11
+trial now passes small/64 MiB copies, host flush/lock/dismount/eject, live Pi
+ownership observations, capture hashes, Google downloaded-content verification,
+reattachment and repeated content without extra uploads. Dev22 physical outage,
+reboot and persistent USB startup results are recorded below.
 The dated records below distinguish earlier builds and real-device evidence.
 
 Dev22 native acceptance now passes complete profile reconstruction, warm
 adoption, a real Pi restart with a queued file, and actual wlan0 disconnection
 with an offline captured/queued file. Both core services are boot-enabled after
 those checks; firmware/cmdline/initramfs, accounts, Wi-Fi and SSH policy stayed
-preserved. Twelve Google versions are downloaded-hash verified. The final path
+preserved. The earlier Linux trial verified twelve Google versions. Its path
 check used wlan0-bound DNS, gateway ICMP and validated TLS; the probe site
 returned HTTP 403 (transport only). More than twelve minutes of NM logs after
-reconnect contain no unexpected disconnect. Windows physical acceptance remains
-open, and Google External/Testing authorization is not indefinite deployment.
+reconnect contain no unexpected disconnect. Google External/Testing authorization
+is not indefinite deployment.
 See [the current core table](CORE_RECOVERY.md).
+
+The independent Windows trial advanced the retained history from twelve to
+sixteen verified versions, including two Windows metadata files. A later Wi-Fi
+access outage left USB data readable; its historical cause could not be recovered
+from the available journal. One explicitly approved unclean power cycle restored
+Wi-Fi and retained all sixteen versions with no extra upload attempts. This is
+one observed recovery, not arbitrary SD/power-loss durability qualification.
+[Windows acceptance](acceptance/pi-windows-mass-storage-google-dev22-2026-11-14.json).
+[Recovery evidence](acceptance/pi-windows-recovery-powercycle-dev22-2026-11-14.json).
+
+The focused recovery operator then passed the exact restricted systemd context
+with no capabilities. During a deliberately disconnected `wlan0`, Windows copied
+and safely ejected a new 1 MiB file; the Pi captured it and recorded a queued job
+with zero attempts. Three eligible samples caused the operator itself to
+reactivate the approved profile. The independent reconnect failsafe was unused.
+The file subsequently passed downloaded SHA-256 verification in one attempt,
+bringing history to **seventeen verified versions / 212,866,521 bytes**. Boot ID
+and core process IDs stayed unchanged, USB returned configured/HOST, credentials
+and saved profile policy stayed preserved, and 443 seconds of subsequent guard
+observations stayed healthy. The tested timer is now enabled on this Pi; a
+separate reboot test of that timer remains unperformed. Public examples remain
+disabled. [Native guard evidence and rollback](acceptance/pi-wifi-recovery-guard-dev22-2026-11-14.json).
 
 Dev20 adds content-based local capture suppression: only after exclusive
 read-only access, hash the bounded complete inventory and copy changed/new

@@ -2,6 +2,13 @@
 
 ## Immediate delivery order — USB flash drive and Google Drive
 
+The first safe-eject core milestone now passes on real Windows: writable USB
+drive → exclusive read-only capture → automatic Google upload → downloaded hash
+verification, including offline queuing, reconnection and duplicate suppression.
+Seventeen retained versions are verified. [Current evidence and remaining limits](CORE_RECOVERY.md).
+The list below remains the scope boundary; it does not make no-eject operation a
+completed capability.
+
 1. Accept a genuine writable USB mass-storage drive on Windows using a separate
    disposable image, the existing OS and built-in Wi-Fi management.
 2. Accept clean host eject, exclusive read-only staging and retained originals.
@@ -33,12 +40,13 @@ safe config, tests and CI.
 
 See [Phase 1 details](PHASE1.md) for implemented scope and remaining limits.
 
-## Phase 2 — device and network-sharing prototypes implemented; hardware blocked
+## Phase 2 — USB storage trial accepted; network-sharing qualification separate
 
 The Linux configfs mass-storage backend integrates the ownership state machine,
 read-only loops/mounts, non-repairing exFAT checks, an intent journal, cross-process
 locking and conservative resource recovery. Host release detection is session-bound;
-actual kernel/Windows behavior remains to be validated.
+actual kernel/Windows behavior now passes the separately approved disposable
+mass-storage trial. Ethernet/Samba and other host models retain their own limits.
 
 USB Ethernet remains an optional alternative, using the official Raspberry Pi external
 RNDIS/CDC-ECM provider with a stable USB-local network policy and authenticated
@@ -48,18 +56,21 @@ mode plans and future switch guards reject active/unproven transfers; live and
 composite switching are unsupported.
 
 Read-only readiness/power diagnostics, gated runtimes, static service/deployment
-templates and fault simulations are present. All hardware/network mutations remain
-disabled. Follow [the exact Pi trial sequence](PI_TEST_GUIDE.md) only after separate
+templates and fault simulations are present. Public hardware/network mutations
+remain disabled; only reviewed private trial artifacts run on the approved Pi.
+Follow [the exact Pi trial sequence](PI_TEST_GUIDE.md) only after separate
 approval. Samba share-mode behavior passed an isolated container and an encrypted
-loopback share on the actual Pi. Windows/USB transfers, leases/reopens, USB power
-and filesystem recovery tests are still required before deployment.
+loopback share on the actual Pi. Windows USB mass-storage transfers now pass;
+Windows SMB-over-USB transfers, leases/reopens, broader USB power and filesystem
+recovery tests remain separate deployment work.
 
 The [2026-11-13 connectivity baseline](PI_CONNECTIVITY.md) established home Wi-Fi
 and initial USB management; later observation found unstable USB addressing.
 `network-status` exposes current addressing/route/auto-switcher differences from
 the share runtime without changing them. The Pi loopback Samba test is accepted;
-stable USB addressing and actual Windows-host transfers remain, preserving the
-working Wi-Fi management path. Cloud-account acceptance follows local capture.
+stable USB addressing and actual Windows SMB-host transfers remain for that
+optional sharing path. The core mass-storage trial instead uses built-in Wi-Fi
+and has its own accepted real Google backup evidence above.
 
 ## Phase 3 — scheduler implemented; first Google Drive QA backup accepted
 
@@ -67,7 +78,9 @@ The opt-in completed-batch worker and small Rust scheduler are implemented and
 tested locally; the Rust ready-batch fixture also ran on the Pi. Real browser
 owner/session/PKCE authorization and one controlled Google Drive QA upload with
 independent downloaded-content SHA-256 verification now pass on the Pi. The
-original stays retained. This does not enable recurring background uploads. See
+original stays retained. That earlier one-file proof did not enable recurring
+uploads; the current approved USB staged worker does, with the native results
+linked above. See
 [the worker guide](STAGED_WORKER.md) and [Rust evidence](RUST_EVALUATION.md).
 
 Complete the Google Drive folder/test/enable wizard and persistent worker, then

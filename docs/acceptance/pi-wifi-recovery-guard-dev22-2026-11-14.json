@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "target": "Raspberry Pi Zero 2 W Rev 1.0",
+  "core_package": "0.1.0.dev22",
+  "scope": "controlled_wifi_disconnect_with_autonomous_saved_profile_recovery_and_windows_usb_google_backup",
+  "release": false,
+  "acceptance": "PASS_FOR_CONTROLLED_DISCONNECTION_AND_RECOVERY",
+  "results": {
+    "actual_wifi_specific_disconnection": "PASS",
+    "usb_and_core_services_continued": "PASS",
+    "new_windows_file_captured_and_queued_offline": "PASS",
+    "offline_local_staged_file_retained": "PASS",
+    "zero_offline_upload_attempts": "PASS",
+    "automatic_guard_reactivated_only_approved_saved_profile": "PASS",
+    "independent_emergency_fallback_not_needed": "PASS",
+    "same_pi_boot_and_core_service_processes": "PASS",
+    "private_credentials_and_profile_policy_preserved": "PASS",
+    "automatic_google_upload_and_downloaded_content_verification": "PASS",
+    "prior_verified_versions_not_reuploaded": "PASS",
+    "usb_reattached_and_loaded_after_recovery": "PASS",
+    "more_than_five_minutes_consecutive_healthy_guard_checks": "PASS",
+    "saved_profile_and_device_autoconnect_preserved": "PASS",
+    "tested_guard_timer_enabled_and_active": "PASS_ENABLEMENT_OBSERVED_NOT_SEPARATELY_REBOOT_TESTED",
+    "final_gateway_internet_dns_verified_through_wifi": "PASS",
+    "final_windows_retained_file_readback": "PASS"
+  },
+  "offline_observation": {
+    "file_bytes": 1048576,
+    "wifi_disconnected": true,
+    "local_staged_copy_retained": true,
+    "upload_attempts": 0,
+    "usb_state": "configured",
+    "core_services_active": true
+  },
+  "guard_observation": {
+    "sample_events": [
+      {
+        "status": "healthy",
+        "failures": 0,
+        "returncode": null
+      },
+      {
+        "status": "healthy",
+        "failures": 0,
+        "returncode": null
+      },
+      {
+        "status": "disconnected",
+        "failures": 1,
+        "returncode": null
+      },
+      {
+        "status": "disconnected",
+        "failures": 2,
+        "returncode": null
+      },
+      {
+        "status": "activation_requested",
+        "failures": null,
+        "returncode": 0
+      },
+      {
+        "status": "healthy",
+        "failures": 0,
+        "returncode": null
+      },
+      {
+        "status": "healthy",
+        "failures": 0,
+        "returncode": null
+      },
+      {
+        "status": "healthy",
+        "failures": 0,
+        "returncode": null
+      },
+      {
+        "status": "healthy",
+        "failures": 0,
+        "returncode": null
+      }
+    ],
+    "first_disconnected_sample_to_successful_activation_seconds": 64.168,
+    "activation_returncode": 0,
+    "approved_saved_profile_active_after": true,
+    "independent_fallback_found_profile_already_active": true,
+    "fallback_activation_requested": false,
+    "reboot_or_core_service_restart_used_for_this_guard_test": false,
+    "credentials_and_profile_policy_preserved": true
+  },
+  "google_verification": {
+    "new_file_bytes": 1048576,
+    "new_file_state": "verified",
+    "new_file_cloud_attempts": 1,
+    "staged_hash_matches_windows_readback": true,
+    "verified_remote_contents_downloaded_and_hash_checked": true,
+    "job_events": [
+      "queued",
+      "uploading",
+      "uploaded",
+      "verifying",
+      "verified"
+    ],
+    "verified_versions_total": 17,
+    "verified_bytes_total": 212866521,
+    "cloud_attempts_each_verified_version": 1,
+    "previous_16_versions_remain_verified_without_reupload": true
+  },
+  "final_storage_observation": {
+    "usb_state": "configured",
+    "backing_loaded": true,
+    "controller_phase": "host",
+    "power_status": "throttled=0x0",
+    "automatic_source_deletion": false
+  },
+  "related_records": {
+    "earlier_windows_copy_eject_google_pass": "pi-windows-mass-storage-google-dev22-2026-11-14.json",
+    "separate_owner_approved_unclean_recovery": "pi-windows-recovery-powercycle-dev22-2026-11-14.json"
+  },
+  "limits": [
+    "This controlled guard test passed without a reboot or core-service restart. The earlier fault needed a separately approved unclean power interruption; these are different events.",
+    "The original unexpected Wi-Fi failure cause is UNKNOWN. Its previous-boot journal was unavailable; successful recovery is mitigation, not proof of a root-cause repair.",
+    "This native test establishes recovery from an actual disconnection. The layer-2 FAILED-neighbour path is covered by mocked tests but was not separately fault-injected on hardware.",
+    "A clean Windows host Eject remains required for every completed USB batch. No-eject mass-storage capture remains unproven.",
+    "This does not establish arbitrary power-loss durability, every Windows host policy, or unlimited-duration stability.",
+    "Google development/testing authorization still requires review before permanent deployment.",
+    "The tested guard timer is enabled and active. Its boot enablement was observed, but no additional Pi reboot was performed to qualify this new timer after boot."
+  ],
+  "privacy": "No computer or account names, network addresses, MACs, SSIDs, saved-profile identifiers, volume GUIDs, private filenames or file hashes, boot IDs or credentials are included.",
+  "completion_observation": {
+    "consecutive_healthy_recovery_seconds": 443,
+    "same_pi_boot": true,
+    "same_core_service_processes": true,
+    "device_autoconnect_before": "yes",
+    "device_autoconnect_after": "yes",
+    "saved_profile_autoconnect_enabled": true,
+    "verified_versions_total": 17,
+    "verified_bytes_total": 212866521,
+    "independent_fallback_not_needed": true,
+    "owned_transient_acceptance_timers_stopped": true,
+    "usb_state": "configured",
+    "controller_phase": "host",
+    "power_status": "throttled=0x0"
+  },
+  "timer_installation": {
+    "tested_private_guard_timer_enabled_and_active": true,
+    "boot_enablement_observed": true,
+    "additional_pi_reboot_for_guard_timer_persistence_performed": false,
+    "post_reboot_guard_timer_acceptance": "NOT_TESTED",
+    "public_source_gate_and_example_configuration_remain_disabled": true,
+    "only_owned_guard_timer_enabled": true
+  },
+  "rollback": {
+    "scope": "Stop only this optional approved-profile retry policy; retain its private state and diagnostic evidence.",
+    "root_commands_for_owned_units": [
+      "systemctl disable --now raspi-cloud-wifi-recovery.timer",
+      "systemctl stop raspi-cloud-wifi-recovery.service",
+      "systemctl is-active raspi-cloud-wifi-recovery.timer raspi-cloud-wifi-recovery.service"
+    ],
+    "expected_final_unit_state": "Both owned units inactive before intentional Wi-Fi maintenance.",
+    "restore_if_required": "Restore the privately retained preinstallation disabled configuration and unit backups after stopping both units. Do not delete diagnostic evidence.",
+    "usb_and_unrelated_network_profiles_require_no_rollback": true
+  },
+  "final_readiness": {
+    "wifi_has_ipv4_address": true,
+    "signal_dbm": -65,
+    "frequency_mhz": 2412,
+    "all_default_routes_use_wifi": true,
+    "gateway_ping_bound_to_wifi": true,
+    "udp_dns_answer_with_socket_bound_to_wifi": true,
+    "validated_https_bound_to_wifi": true,
+    "https_probe_http_status": 204,
+    "owned_unit_states": {
+      "raspi-cloud-mass-storage-appliance.service": {
+        "ActiveState": "active",
+        "UnitFileState": "enabled"
+      },
+      "raspi-cloud-mass-storage-backup.service": {
+        "ActiveState": "active",
+        "UnitFileState": "enabled"
+      },
+      "raspi-cloud-wifi-recovery.timer": {
+        "ActiveState": "active",
+        "UnitFileState": "enabled"
+      }
+    },
+    "verified_versions_total": 17,
+    "verified_bytes_total": 212866521,
+    "verified_job_attempt_counts_unchanged": true,
+    "usb_state": "configured",
+    "controller_phase": "host",
+    "no_pi_image_loop": true,
+    "power_status": "throttled=0x0",
+    "firmware_or_os_reinstall_performed": false
+  },
+  "final_windows_retention": {
+    "disposable_usb_volume_identity_verified": true,
+    "latest_test_file_bytes": 1048576,
+    "latest_test_file_readback_matches_expected_hash": true,
+    "volume_health_reported_by_windows": "Healthy",
+    "checks_were_read_only": true
+  }
+}

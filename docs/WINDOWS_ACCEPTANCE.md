@@ -1,35 +1,61 @@
-# Final Windows hardware check
+# Windows USB-to-Google acceptance
 
-The Pi now passes the USB-to-Google workflow, real restart and real Wi-Fi outage
-tests on the available Zorin laptop. Windows-specific acceptance remains open.
-No Windows application or USB networking is required for the intended interface.
+**PASS — 14 November 2026**, on the tested Windows 11 Home computer and existing
+Raspberry Pi Zero 2 W. This is the approved 1 GiB disposable-image development
+trial, not a release or a guarantee for every Windows/managed computer.
 
-The folder **Windows-Test-Files** is already on CLOUDSTICK. It contains a small
-instruction file and a disposable 64 MiB file. Their expected hashes are retained
-privately, so no terminal commands or private documents are needed from you.
+| Real check | Result |
+| --- | --- |
+| CLOUDSTICK appears as removable storage | PASS; Windows assigned D:, using its signed Microsoft storage driver |
+| Small and larger Windows copies | PASS; 156 bytes and 64 MiB, flushed/closed and read-back SHA-256 checked |
+| Safe Windows media Eject | PASS; exclusive lock, buffer flush, locked dismount and ordinary media-eject request; no force or USB power-off |
+| Independent Pi ownership evidence | PASS; fresh configured/loaded → configured/empty LUN, unbind, exclusive read-only staging and clean release |
+| Automatic Google backup | PASS; both Windows versions uploaded once and downloaded for SHA-256 verification |
+| Drive reappearance and local retention | PASS; original/copied files still matched after reattachment |
+| Repeat identical Windows copy | PASS after management recovery; the same contents remained and no extra job/upload appeared |
+| Offline Windows batch and automatic reconnection | PASS; a further 1 MiB file queued with zero attempts while offline, then verified after the tested guard reconnected |
 
-1. When you are at the Windows computer, say **Ready for the Windows test** in
-   the active project conversation or [progress issue](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
-   Keep the cable connected for now. The engineer must first arrange normal
-   Linux Eject and a clean Pi shutdown before moving its power cable.
-2. After shutdown is confirmed, leave the SD card in the Pi and move the USB
-   cable to Windows. Use the Pi's USB **data** socket nearest the HDMI socket.
-   That same cable powers the Pi. Do not use its power-only socket for data.
-3. Wait for **CLOUDSTICK** in File Explorer. Windows assigns the drive letter;
-   it need not be Z:.
-4. Select **Windows-Test-Files**, copy it, then paste it into the same CLOUDSTICK
-   drive. Windows should create a second folder, usually with “Copy” in its name.
-5. Wait for copying to finish. Right-click **CLOUDSTICK → Eject**, and keep the
-   USB cable connected for power. Report **Windows copied and ejected**, or the
-   exact error. Do not send passwords.
+The first Windows backup pass brought history to 16 verified versions. The final
+controlled outage/reconnection test brought it to **17 versions / 212,866,521
+bytes**, each with one cloud attempt. The independent reconnect failsafe was
+available but did not need to activate. The Pi boot/core PIDs stayed the same
+through that controlled test, and follow-up health checks covered 443 seconds.
+Windows SSH was used only to automate the acceptance work. Ordinary file copying
+requires no Windows application, custom storage driver or USB networking.
 
-The engineer will check the real loaded→empty handoff, captured hashes against
-the prepared source files, automatic Google upload/download verification,
-retained originals and drive reappearance. Windows-specific results will not be
-inferred from Linux tests. GitHub replies can be read during active work; they
-are not an automatic command bridge into an inactive coding session.
+## Using the accepted first workflow
 
-The installation remains a development trial using a dedicated 1 GiB image.
-Fully automatic capture without Eject, Windows suspend/power behavior, and
-permanent Google authorization are separate acceptance limits. No main merge or
-release is authorized by this check.
+1. Keep the Pi's USB **data** socket connected to Windows with a data-capable
+   cable; the same cable supplies power. On Zero 2 W this is the socket nearest HDMI.
+2. Open **CLOUDSTICK** in File Explorer and copy files normally. Windows assigns
+   the drive letter; another computer may choose something other than D:.
+3. Finish copying, then choose **CLOUDSTICK → Eject**. Keep the cable connected
+   so the Pi stays powered. Do not unplug its power to start a backup.
+4. The Pi captures the released batch, returns the drive and uploads over Wi-Fi.
+   Files remain locally queued if the approved connection is unavailable.
+
+A copied file is not a verified cloud backup until the upload and downloaded
+contents check succeeds. Automatic capture **without Eject is not implemented**;
+a timer or unchanged file size is not sufficient proof of safe access.
+
+## Incident and remaining limits
+
+An unexpected Wi-Fi management fault occurred after the first Windows pass.
+USB file reads still worked. The owner separately approved one unclean power
+cycle after Windows-only quiescence; that was not a clean Pi shutdown. All 16
+versions survived, but the prior boot journal was unavailable, leaving the cause
+**unknown**. The subsequent focused reconnect guard passed its own controlled
+test; that does not establish the original cause or arbitrary power-loss safety.
+
+The guard timer is enabled and active; an additional reboot specifically testing
+that new timer has not been performed. Core USB/backup boot recovery had passed
+a separate earlier clean-reboot test. Before permanent office use, resolve the
+current Google External/Testing authorization's seven-day refresh-grant limit.
+Longer workloads, suspend/power behavior and other managed hosts remain open.
+Public hardware gates and configuration examples stay disabled. No main merge or
+release is authorized by this record.
+
+Evidence: [first Windows pass and fault](acceptance/pi-windows-mass-storage-google-dev22-2026-11-14.json),
+[approved power-cycle recovery and repeat check](acceptance/pi-windows-recovery-powercycle-dev22-2026-11-14.json),
+[automatic reconnect and queued backup](acceptance/pi-wifi-recovery-guard-dev22-2026-11-14.json).
+Follow the [plain-language progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).

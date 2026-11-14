@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "target": "Raspberry Pi Zero 2 W Rev 1.0",
+  "native_package": "0.1.0.dev22",
+  "release": false,
+  "overall_acceptance": "PASS_FOR_FIRST_WINDOWS_COPY_EJECT_GOOGLE_WORKFLOW",
+  "first_windows_copy_eject_google_pass": true,
+  "host": {
+    "os": "Microsoft Windows 11 Home",
+    "version": "10.0.26300",
+    "build": "26300",
+    "storage_driver_provider": "Microsoft",
+    "storage_driver_version": "10.0.26100.9974",
+    "storage_driver_signed": true,
+    "drive_letter_observed": "D",
+    "drive_letter_not_guaranteed_on_other_hosts": true,
+    "drive_type": "Removable",
+    "filesystem": "exFAT",
+    "partition_style": "MBR",
+    "disk_bytes_verified_with_get_disk": 1073741824,
+    "not_boot_or_system_disk": true,
+    "exact_volume_and_usb_identity_checked_before_writes": true
+  },
+  "first_copy": {
+    "disposable_synthetic_files": [
+      {
+        "size_bytes": 156,
+        "windows_readback_sha256_verified": true,
+        "file_flushed_and_closed": true
+      },
+      {
+        "size_bytes": 67108864,
+        "windows_readback_sha256_verified": true,
+        "file_flushed_and_closed": true
+      }
+    ],
+    "source_files_preserved": true,
+    "all_file_handles_closed": true
+  },
+  "first_host_eject": {
+    "method": "exclusive_volume_lock_then_flush_locked_dismount_and_ordinary_media_eject",
+    "identity_checked": true,
+    "exclusive_volume_lock": true,
+    "cached_data_flushed": true,
+    "dismounted_while_locked": true,
+    "ordinary_media_eject_accepted": true,
+    "force_or_usb_power_off_requested": false,
+    "windows_api_result_independently_verified_on_pi": true
+  },
+  "first_live_pi_handoff": {
+    "fresh_configured_loaded_observation": true,
+    "subsequent_configured_empty_observation": true,
+    "unbound_before_read_only_staging": true,
+    "capture_inventory_advanced": true,
+    "reattached_and_configured": true,
+    "observer_performed_hardware_mutations": false,
+    "events": [
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 0.009,
+        "phase": "host",
+        "usb_state": "configured"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": true,
+        "elapsed_seconds": 16.155,
+        "phase": "host",
+        "usb_state": "configured"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": true,
+        "elapsed_seconds": 16.476,
+        "phase": "eject_observed",
+        "usb_state": "configured"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 16.536,
+        "phase": "eject_observed",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 16.586,
+        "phase": "loop_attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 16.636,
+        "phase": "checking_image",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 16.844,
+        "phase": "mount_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 17.184,
+        "phase": "staging",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 33.268,
+        "phase": "unmount_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 33.505,
+        "phase": "loop_detach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 33.62,
+        "phase": "returnable",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 33.716,
+        "phase": "loop_attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 33.786,
+        "phase": "checking_image",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 34.023,
+        "phase": "loop_detach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 34.139,
+        "phase": "attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": false,
+        "elapsed_seconds": 34.18,
+        "phase": "attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 34.199,
+        "phase": "attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 34.225,
+        "phase": "host",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 34.378,
+        "phase": "host",
+        "usb_state": "configured"
+      }
+    ],
+    "root_pending_capture_empty_at_first_acceptance": true,
+    "image_loop_count_at_first_acceptance": 0,
+    "pi_capture_mount_present_at_first_acceptance": false
+  },
+  "google_verification": {
+    "both_windows_versions_verified": true,
+    "staged_copies_match_windows_readback_hashes": true,
+    "uploaded_remote_content_downloaded_and_sha256_verified": true,
+    "cloud_attempts_each_windows_version": 1,
+    "verified_versions_total_at_first_acceptance": 16,
+    "verified_bytes_total_at_first_acceptance": 211817945,
+    "two_additional_windows_metadata_versions_bytes": 88,
+    "earlier_12_versions_remain_verified_without_reupload": true,
+    "windows_job_events": [
+      "queued",
+      "uploading",
+      "uploaded",
+      "verifying",
+      "verified"
+    ]
+  },
+  "first_reattachment_retention": {
+    "drive_reappeared": true,
+    "original_synthetic_source_files_retained": true,
+    "windows_copied_files_retained": true,
+    "all_four_host_hash_checks_passed": true,
+    "automatic_deletion": false
+  },
+  "limits": [
+    "The first Windows copy/eject/capture/Google verification passed before the later historical Wi-Fi access fault.",
+    "The second Windows eject API success alone did not prove Pi handoff at the time. Its repeat/deduplication follow-up and later connectivity recovery are recorded separately.",
+    "A clean host Eject remains required per batch; no-eject mass-storage capture is unproven.",
+    "This records one actual Windows host and signed storage driver, not every Windows or managed-computer configuration.",
+    "Google development/testing authorization still needs review before permanent deployment."
+  ],
+  "privacy": "Computer and account names, network addresses, MACs, volume GUIDs, private file paths and names, file hashes, boot IDs and credentials are omitted.",
+  "record_scope": "First Windows workflow and the later historical Wi-Fi fault; subsequent recovery and guard acceptance are cross-referenced below.",
+  "repeat_test_and_historical_wifi_fault": {
+    "identical_156_byte_windows_copy_completed": true,
+    "repeated_file_sha256_unchanged": true,
+    "repeat_file_handles_closed": true,
+    "second_host_exclusive_lock_flush_locked_dismount_and_ordinary_eject": true,
+    "second_eject_force_or_usb_power_off_requested": false,
+    "separate_repeat_preparation_pi_observer_started": false,
+    "repeat_pi_deduplication_and_final_audit": "UNVERIFIED_WIFI_ACCESS_LOST",
+    "pi_wifi_ssh_reachable_from_either_host": false,
+    "pi_connect_management_reachable": false,
+    "usb_two_small_file_reads_still_work": true,
+    "original_and_repeated_small_file_hashes_match_after_wifi_loss": true,
+    "root_cause": "UNKNOWN",
+    "power_off_or_power_failure_inferred_from_wifi_loss": false,
+    "acceptance_at_this_historical_snapshot": "INCOMPLETE_WIFI_ACCESS_FAULT",
+    "remaining_work_at_this_historical_snapshot": "Recover Wi-Fi management, inspect Pi logs and ownership state, then independently verify repeat capture deduplication and final stability. Overall project acceptance remains incomplete."
+  },
+  "later_verified_follow_up": {
+    "wifi_access_recovered_in_separate_owner_approved_unclean_powercycle": true,
+    "windows_unchanged_repeat_without_extra_job_or_upload": "PASS_IN_RECOVERY_RECORD",
+    "automatic_saved_profile_recovery_native_test": "PASS_IN_GUARD_RECORD",
+    "latest_verified_versions_total": 17,
+    "latest_verified_bytes_total": 212866521,
+    "original_wifi_failure_cause": "UNKNOWN",
+    "recovery_record": "pi-windows-recovery-powercycle-dev22-2026-11-14.json",
+    "guard_acceptance_record": "pi-wifi-recovery-guard-dev22-2026-11-14.json",
+    "consecutive_healthy_guard_seconds": 443,
+    "tested_guard_timer_enabled_and_active": true,
+    "guard_timer_additional_reboot_acceptance": "NOT_TESTED"
+  }
+}

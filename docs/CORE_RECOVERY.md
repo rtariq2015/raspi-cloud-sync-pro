@@ -1,97 +1,127 @@
-# Core Cloud Stick recovery
+# Core Cloud Stick acceptance
 
-Updated 14 November 2026. Development only; no main merge or release.
+Updated 14 November 2026. Dev22 development trial; no main merge or release.
 
-**USB storage → safe Eject → local capture → automatic verified Google backup
-now works on the real Pi with the Zorin laptop.** Actual Wi-Fi disconnection and
-Pi reboot recovery pass. Twelve file versions are verified; local copies and
-older versions remain. Windows-specific acceptance is still outstanding.
+**The real Windows USB → safe Eject → local capture → automatic verified Google
+Drive workflow passed.** Windows copied a 156-byte file and a 64 MiB file onto
+CLOUDSTICK. The Pi captured their contents safely, returned the drive, uploaded
+them and checked downloaded Google copies. A later controlled Wi-Fi outage also
+passed automatic reconnection and backup. **17 file versions are now verified**,
+with local copies retained and one cloud attempt per version.
 
 | Requirement | Result and evidence |
 | --- | --- |
-| Genuine writable USB storage | PASS on Linux; Windows NOT TESTED independently |
-| Small, 64 MiB, nested and Unicode copies | PASS; host read-back and captured SHA-256 agree |
-| Conservative safe capture | PASS; observed loaded→empty LUN, ordinary unbind, RO loop, nonrepairing exFAT check, clean flags and RO mount |
-| Automatic capture and reattachment | PASS; uninterrupted controller hands completed batches to the restricted worker |
-| Changed/new files only | PASS; unchanged eject adds no batch/job/event; a changed file and a new file made a two-file batch |
-| Automatic Google upload | PASS; 12 verified versions, one cloud attempt each |
-| Remote integrity | PASS; actual uploaded contents downloaded and checked against SHA-256 |
-| Original/version retention | PASS; image, staged copies and older verified versions retained; no automatic deletion |
-| Actual Wi-Fi outage/reconnection | PASS; wlan0 disconnected, USB/services stayed active, new file queued with zero attempts, reconnect and Google verification passed |
-| Actual Pi restart | PASS; new boot ID, both services and USB returned; a queued 99-byte file uploaded and verified after boot |
-| Wi-Fi/SSH preserved | PASS after controlled reconnect/reboot; same approved profile; no laptop network changes |
-| Wi-Fi path/stability | PASS; bound DNS packet, gateway ICMP and validated TLS; more than 12 minutes with no unexpected NM disconnect |
-| Windows physical acceptance | NOT TESTED independently; [prepared steps](WINDOWS_ACCEPTANCE.md) |
+| USB drive functionality | PASS on the tested Windows 11 Home host; removable exFAT drive, normal drive letter and signed Microsoft storage driver |
+| Safe file capture | PASS; live configured/loaded → configured/empty observation, ordinary unbind, exclusive RO loop/mount, nonrepairing exFAT check and clean flags |
+| Google Drive automatic upload | PASS; 17 verified versions, 212,866,521 bytes, one cloud attempt each |
+| Verified backup integrity | PASS; Windows read-back hashes match staged bytes; uploaded contents downloaded and SHA-256 checked |
+| Offline recovery | PASS; a Windows 1 MiB file remained staged/queued with zero attempts while Wi-Fi was disconnected; the tested guard reconnected and backup verified |
+| Existing connectivity preserved | PASS after recovery; approved Wi-Fi/SSH and profile credentials/policy retained; earlier unexpected Wi-Fi fault is documented below |
+| Repeat-copy behavior | PASS; repeating the same Windows file retained its contents and created no additional job or upload |
+| Original/version retention | PASS; source image, local staged copies and earlier verified versions remain; no automatic deletion |
+| Drive return | PASS; Windows drive reappeared and original/copied synthetic files still matched |
+| Clean Pi restart | PASS in the earlier Linux-host test; both core services/USB returned and a queued 99-byte file verified after boot |
+| Focused reconnection guard | PASS in the real controlled outage; three failed samples, approved-profile activation, unused independent fallback, same boot/core PIDs and healthy follow-up after 443 seconds |
+| Guard startup after another reboot | NOT TESTED; tested timer is enabled/active, which is configuration evidence rather than an additional reboot test |
 | Permanent Google authorization | NOT READY; existing External/Testing setup has a seven-day refresh-grant lifetime |
 
-The dedicated 1 GiB MBR/exFAT image is a regular file on the existing Pi SD
-filesystem. These tests did not reflash, reformat or repartition the card. The
-live Linux root filesystem is not exported. Built-in Wi-Fi carries cloud traffic;
-USB Ethernet is an optional alternative, not this product's drive interface.
-A clean host Eject is required for each completed batch; keep the cable connected
-for power. A quiet period, unchanged size or concurrent RO mount is not release
-proof. Fully automatic no-eject mass storage remains unproven.
+The initial Windows pass produced 16 verified versions, including the two copied
+files and two small Windows metadata versions. The recovery trial added the
+1 MiB version, bringing the total to 17. Existing versions were not uploaded
+again. See the [Windows record](WINDOWS_ACCEPTANCE.md) and dated evidence below.
 
-The approved private dev22 build is installed with both core services enabled.
-Public hardware gates remain false. The root controller has no cloud/network
-API; only completed private batches reach the unprivileged Google worker. The
-original prepared Google configuration is preserved; a separate private writable
-copy supports token refresh. Cached uplink policy is not a kernel egress guarantee.
-The actual runtime has only Wi-Fi as its default Internet route.
+## Everyday behavior and limits
 
-Startup preparation backed up and commented the sole legacy `g_ether` loader,
-added `libcomposite`, and disabled/masked the previously inactive Pi ICS watcher.
+Copy files onto CLOUDSTICK, finish copying, choose Windows **Eject**, and keep
+the USB cable connected for power. The Pi stages only after verified host release,
+then restores the drive and backs up the completed batch over built-in Wi-Fi.
+Windows chooses the drive letter; it was D: on this tested computer.
+
+A quiet period, unchanged size or concurrent RO mount is not release proof.
+**Fully automatic capture without Eject is not implemented.** The present trial
+uses a dedicated 1 GiB MBR/exFAT backing image on the existing Pi SD filesystem.
+These tests did not reflash, reformat or repartition the card, and the live Linux
+root filesystem is not exported. USB Ethernet/Samba remains an optional
+alternative and is not used as the drive interface here.
+
+The protected, separately approved dev22 build has both core services enabled.
+Public hardware gates remain false. The root controller has no cloud/network API;
+only completed private batches reach the unprivileged Google worker. The original
+prepared Google configuration is preserved; its separate private writable copy
+supports token refresh. Cached uplink policy is not a kernel egress guarantee.
+Before permanent office use, resolve the Google development/testing limit with
+the owner. App publication/verification was not performed automatically. See
+[cloud setup](CLOUD_SETUP.md) and [Google's expiration rules](https://developers.google.com/identity/protocols/oauth2).
+Longer workloads, other/managed Windows hosts, suspend behavior and arbitrary
+power-loss durability remain outside this acceptance. Secondary features stay paused.
+
+## Unexpected Wi-Fi fault and tested mitigation
+
+After the first Windows backup pass, Pi Wi-Fi management stopped responding.
+Windows could still read the USB files and their hashes matched. The original
+cause remains **UNKNOWN**: the previous boot journal was not retained. No bad
+password, driver defect, router incompatibility or power failure is inferred.
+
+The owner explicitly approved one unclean Pi power cycle after Windows-only
+quiescence: exact identity, exclusive lock, flush and dismount while held, with
+**no media Eject**. That preparation did not establish a clean Linux shutdown.
+After the physical cycle, Wi-Fi/SSH, USB and the core services returned. All 16
+verified versions remained, and the repeated Windows copy created no extra job.
+This single recovery is not a guarantee of arbitrary power-loss safety.
+
+A separate [focused recovery operator](../tools/acceptance/wifi_recovery/README.md)
+now passes a controlled Wi-Fi-only failure trial. It retries only the explicitly
+approved saved profile after three failed samples, with a durable five-minute
+cooldown. It never changes radios, restarts all networking, reloads drivers,
+alters credentials or changes USB. Unknown/connecting/radio-off states and another
+active profile refuse activation; ISP/DNS failure alone is insufficient.
+The real timer reconnected without its independent failsafe having to activate.
+A Windows file queued offline then uploaded and passed downloaded verification.
+Follow-up checks remained healthy for 443 seconds, with the same boot/core PIDs.
+The tested timer is enabled; the public code/configuration examples stay disabled.
+This is a tested mitigation, not an established explanation or universal fix for
+the original fault. Stop the timer and active oneshot before intentional maintenance.
+
+## Earlier evidence and recovery boundaries
+
+Startup preparation backed up/commented the sole legacy `g_ether` loader, added
+`libcomposite`, and disabled/masked the previously inactive Pi ICS watcher.
 Firmware, command line, initramfs, Wi-Fi policy, SSH and accounts were preserved.
-The active initramfs contained no legacy loader; no rebuild was needed. Actual
-profile reconstruction and a clean Pi reboot then passed. Ambiguous journals,
-partial profiles, pending Root captures, dirty filesystems, power uncertainty or
-conflicting drivers still refuse startup and retain data for review.
-See [startup and rollback](MSC_BOOT.md).
+The initramfs needed no rebuild. Profile reconstruction and the earlier clean Pi
+reboot passed. Ambiguous journals, partial profiles, pending root captures, dirty
+filesystems, power uncertainty or competing drivers refuse startup and retain
+records. See [startup and rollback](MSC_BOOT.md).
 
-The earlier [USB Ethernet recovery check](acceptance/pi-usb-ethernet-module-recovery-2026-11-14.json)
-reloaded the saved `g_ether` configuration, observed a configured UDC, restored
-the Pi-side ICS service, and preserved Wi-Fi and boot files. This is a limited
-module/enumeration recovery PASS. USB-host IP addressing and SSH after that
-recovery were NOT TESTED; it is not proof of complete USB-network recovery.
-The saved recovery parameters remain private. Use the rollback prerequisites
-above before restoring them; never switch while a host owns the storage image.
+The [USB Ethernet recovery check](acceptance/pi-usb-ethernet-module-recovery-2026-11-14.json)
+proved saved `g_ether` module reload, configured UDC and restored ICS with Wi-Fi
+and boot files unchanged. USB-host IP addressing/SSH after that recovery were
+NOT TESTED. Saved recovery parameters remain private; never switch drivers while
+a host owns the storage image.
 
-Earlier acceptance needs two qualifications. The first user-confirmed copy/eject
-was attributed to Windows from conversation context; its host OS was not
-independently recorded. Its safe capture and Google verification remain valid.
-A timed observer expired, so that first handoff was explicitly operator-confirmed
-rather than claimed as automatic. Later Linux-host automation is recorded separately.
+The first user-confirmed copy/eject was attributed to Windows from conversation
+context; its host OS was not independently recorded and its timed observer expired.
+It remains an operator-confirmed historical capture, separate from the later
+independently recorded Windows acceptance. Dev20 stopped safely on exFAT inode-only
+changes between opens. Copies and journal were retained; dev21 corrected only
+cross-pass inode equality while keeping per-open identity/content checks. Its
+unchanged/delta tests passed. [Upstream exFAT inode assignment](https://github.com/torvalds/linux/blob/v6.18/fs/exfat/inode.c#L629-L669).
 
-Dev20's new cross-pass inode comparison stopped safely on actual exFAT. A fresh
-exclusive-RO diagnostic reproduced inode-only changes in three files while
-contents and other metadata matched. The complete copies and failed journal were
-retained and reviewed; no forced repair/unmount or source deletion occurred.
-Dev21 dropped only cross-pass inode equality, retaining per-open identity, path,
-size, timestamps and payload-hash checks. Its native unchanged/delta/retention
-tests passed. [Upstream exFAT inode assignment](https://github.com/torvalds/linux/blob/v6.18/fs/exfat/inode.c#L629-L669).
-
-The first short radio-outage window restored Wi-Fi and kept USB working but ended
-before capture reached the queue; it is not counted as an offline-queue pass.
-The longer timed test directly observed a disconnected radio and a retained,
-zero-attempt queued file, followed by automatic reconnection and verification.
-A separate HTTPS connectivity probe received HTTP 403 with a valid TLS session;
-that proves transport, not website-content access. Actual Google transfers passed.
-
-Before permanent workplace use, resolve the Google development/testing limit
-with the owner. External/Testing Drive refresh grants expire after seven days;
-app publication/verification was not performed automatically. See [cloud setup](CLOUD_SETUP.md)
-and [Google's expiration rules](https://developers.google.com/identity/protocols/oauth2).
-Windows host eject, remount, policy and power/suspend behavior still require
-physical acceptance. Dashboards and additional providers remain deferred.
+The first short Linux radio-outage window ended before queue observation and is
+not counted as an offline-queue pass. The longer test observed the actual offline
+queue and recovery. An earlier HTTPS probe returned HTTP 403 with validated TLS;
+that proves transport only. Actual Google upload/download checks passed.
 
 Sanitized evidence:
 
+- [Windows copy/eject/capture/Google, with the later fault recorded](acceptance/pi-windows-mass-storage-google-dev22-2026-11-14.json)
+- [Explicitly approved unclean power-cycle recovery and repeat check](acceptance/pi-windows-recovery-powercycle-dev22-2026-11-14.json)
+- [Controlled automatic Wi-Fi recovery and queued Windows backup](acceptance/pi-wifi-recovery-guard-dev22-2026-11-14.json)
 - [Limited USB Ethernet module recovery](acceptance/pi-usb-ethernet-module-recovery-2026-11-14.json)
 - [Initial file](acceptance/pi-mass-storage-google-first-file-2026-11-14.json)
 - [Automatic Linux USB](acceptance/pi-mass-storage-auto-linux-2026-11-14.json)
 - [Isolated offline worker](acceptance/pi-core-offline-worker-2026-11-14.json)
 - [Dev21 changed versions](acceptance/pi-mass-storage-delta-dev21-2026-11-14.json)
-- [Real dev22 reboot](acceptance/pi-mass-storage-reboot-dev22-2026-11-14.json)
-- [Actual dev22 radio outage](acceptance/pi-actual-wifi-outage-dev22-2026-11-14.json)
+- [Earlier clean dev22 reboot](acceptance/pi-mass-storage-reboot-dev22-2026-11-14.json)
+- [Earlier actual radio outage](acceptance/pi-actual-wifi-outage-dev22-2026-11-14.json)
 
 [Plain-language updates and owner questions](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).

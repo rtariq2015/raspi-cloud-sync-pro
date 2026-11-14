@@ -16,11 +16,13 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 
 </div>
 
-> **Core Linux-host tests passed — 14 November 2026.** USB copy, safe Eject,
-> automatic Google backup, changed-version retention, actual Wi-Fi outage and a
-> real Pi restart now pass. Twelve versions are verified. Windows acceptance and
-> permanent Google authorization remain. [Exact results](docs/CORE_RECOVERY.md) ·
-> [Phone updates and questions](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
+> **The Windows USB-to-Google workflow passed — 14 November 2026.** Copy to
+> CLOUDSTICK, choose Eject, and keep the cable connected: the Pi captures, uploads
+> over Wi-Fi and verifies the backup. **17 file versions checked; local copies kept.**
+> A controlled outage also passed automatic reconnection. This remains a 1 GiB
+> development trial; no-eject capture and permanent Google authorization are not
+> complete. [Evidence and limits](docs/CORE_RECOVERY.md) ·
+> [Phone updates](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 
 ## The core product comes first
 
@@ -30,12 +32,18 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 4. Upload over the Pi's built-in Wi-Fi into the selected Google Drive folder.
 5. Verify uploaded contents, retry failures and avoid repeating verified versions.
 
-The writable-drive/capture/upload test now passes automatically after safe eject
-on a real Linux USB host. Windows-specific acceptance remains outstanding.
-A quiet period cannot prove host caches are flushed or
-files are complete. Classic mass storage currently requires a clean host eject
-before Pi-side staging. Eliminating that requirement is a research target, not
-an implemented guarantee. The OS and existing files are being preserved.
+Windows copied small and 64 MiB test files; safe Eject automatically triggered
+capture, drive return, Google upload and downloaded-content verification. A
+repeat of the same file created no additional upload. The files remain locally.
+A quiet period cannot prove caches are flushed or files are complete: **this
+first workflow requires Eject after each batch**. No-eject capture is not
+implemented. The existing OS and stored files are preserved.
+
+An unexpected Wi-Fi management fault required a separately approved unclean
+power cycle; its cause remains unknown. A focused saved-profile reconnect guard
+then passed a controlled outage with an offline queued file. This is a tested
+mitigation, not a guarantee that every Wi-Fi fault is fixed. See the
+[Windows acceptance record](docs/WINDOWS_ACCEPTANCE.md).
 
 The Zero 2 W's single USB OTG controller serves the Windows connection in gadget
 mode; a conventional USB Wi-Fi adapter cannot use that same controller as a host
@@ -56,7 +64,7 @@ address is replaced with a generic label. No cloud backup is claimed in this vie
 **Plug in.** The intended everyday mode uses one USB data cable for power and
 genuine mass storage. USB Ethernet/Samba remains an optional alternative; it does
 not satisfy the requested flash-drive interface. The first disposable-image
-mass-storage trial has accepted real host copies, including an automatic Linux-host test.
+mass-storage trial now passes real Windows copies and automatic post-Eject backup.
 
 **Keep a local copy.** Completed files stay on the Pi when an approved Internet
 connection is unavailable. The backup engine queues jobs and retries; it never
@@ -64,11 +72,12 @@ automatically deletes originals or staged files.
 
 **Back up with evidence.** Koofr WebDAV, Google Drive and Dropbox use rclone adapters with
 separate jobs per destination. “Verified” means remote contents were downloaded
-and checked against SHA-256. Real Google browser authorization and one controlled
-QA-file backup have passed on the Pi. Koofr and Dropbox real-account tests remain.
-The web folder/test/enable workflow is unfinished. Separately, the approved USB
-trial now runs a persistent Google worker for completed local batches; its first
-real USB files passed upload and downloaded-content verification.
+and checked against SHA-256. The approved USB trial now has **17 Google-verified
+file versions**, including real Windows copies and an offline-queued recovery
+file. The persistent worker retains local copies and earlier versions. Permanent
+Google authorization still needs the owner to resolve the current testing limit.
+Koofr/Dropbox real-account tests and the separate web folder/test/enable workflow
+remain deferred.
 
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
@@ -86,17 +95,17 @@ See [remote access](docs/REMOTE_ACCESS.md).
 
 | Working and tested | Next acceptance step |
 | --- | --- |
-| Home Wi-Fi and SSH after actual reconnect/reboot; 12-minute connection check | Longer workplace stability and suspend testing |
+| Approved Wi-Fi recovery, queued backup and healthy follow-up after 443 seconds | Original fault cause, longer workplace stability and guard startup after another reboot |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated HTTPS preview; fixed-address login page and enabled services | Dashboard/tunnel reboot recovery, off-LAN phone and Android web-app installation |
-| Linux USB copy/eject, version retention, actual Wi-Fi outage and reboot recovery | Physical Windows acceptance and permanent Google authorization |
-| Fresh owner-requested Google preparation through the persistent watcher | Live Test/Enable and recurring backup acceptance |
+| Windows USB copy/Eject, retained versions and verified Google backup; earlier clean Pi reboot | Permanent Google authorization and longer workloads |
+| Optional web Google preparation through its persistent watcher | Separate web Test/Enable and recurring web backup acceptance |
 | Boot-enabled USB Google worker; separate optional web worker and Rust scheduler | Guided web enablement and sustained-load acceptance |
-| Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
+| Guarded USB controller; optional Samba reader also tested separately | Other managed hosts, suspend/power-loss behavior and Windows Samba mapping |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**841 core Python tests and 28 hardware-free USB operator tests pass locally.**
+**841 core Python tests, 28 USB operator tests and 26 Wi-Fi recovery tests pass locally.**
 The existing Rust suite has 11 tests; Rust source is unchanged. Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
@@ -137,10 +146,11 @@ the Samba-to-dashboard bridge and dashboard status for the USB worker remain in 
 ## USB storage first; network sharing remains optional
 
 **What appears on the computer today?** The approved Pi trial presents a genuine
-writable USB mass-storage disk labelled CLOUDSTICK. Automatic copying/eject
-acceptance passes on Zorin Linux. Earlier Windows attribution relied on context
-and is not independently verified. The [core acceptance record](docs/CORE_RECOVERY.md)
-separates that test from earlier dashboard and Samba work.
+writable USB mass-storage disk labelled CLOUDSTICK. The actual Windows 11 Home
+copy/Eject/capture/Google check now passes, including downloaded-content hashes
+and retained local files. The [core acceptance record](docs/CORE_RECOVERY.md)
+separates that result, the later Wi-Fi incident and its controlled recovery test
+from earlier dashboard and Samba work.
 
 **USB mass storage — primary product mode.** The computer sees a traditional
 flash drive. New-file staging waits for a coordinated flush/eject and verified
@@ -184,6 +194,7 @@ this is not a whole-appliance memory guarantee.
 python3 -m venv .venv
 .venv/bin/python -m pip install '.[dashboard]'
 .venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python -m unittest discover -s tools/acceptance/wifi_recovery -p 'test_*.py' -v
 .venv/bin/raspi-cloud-sync-pro status
 .venv/bin/raspi-cloud-sync-pro network-status
 ```

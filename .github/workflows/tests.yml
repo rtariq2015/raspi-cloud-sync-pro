@@ -77,6 +77,12 @@ jobs:
           PY
       - name: Run hardware-free regression tests
         run: python -m unittest discover -s tests -v
+      - name: Run guarded USB and Wi-Fi operator tests
+        env:
+          PYTHONPATH: src
+        run: |
+          python -W error::ResourceWarning -m unittest discover -s tools/acceptance/mass_storage -p 'test_*.py' -v
+          python -W error::ResourceWarning -m unittest discover -s tools/acceptance/wifi_recovery -p 'test_*.py' -v
       - name: Check CLI and example configuration
         run: |
           raspi-cloud-sync-pro status

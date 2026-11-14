@@ -2,33 +2,52 @@
 
 **Updated: 14 November 2026. Dev22 development trial; no main merge or release.**
 
-**The basic workflow is working on the Pi with the Zorin laptop:** normal USB
-storage, safe Eject, automatic Google upload, downloaded-content verification,
-retained old versions, actual Wi-Fi outage recovery and a real Pi restart.
-**12 file versions are verified.** Unchanged files create no new capture or upload.
-A file queued before the restart uploaded automatically after boot.
+**The basic Windows USB-to-Google workflow passed.** CLOUDSTICK appeared as a
+normal removable drive on the tested Windows computer. Small and 64 MiB files
+copied successfully. After safe Eject, the Pi automatically captured them,
+returned the drive, uploaded to Google Drive and checked downloaded contents.
+Local copies stayed on the Pi. Repeating the same file caused no extra upload.
 
-**Remaining physical step:** a Windows copy/eject test. The disposable
-**Windows-Test-Files** folder is already on the drive; no terminal or private test
-files are needed. [Short Windows steps](WINDOWS_ACCEPTANCE.md).
-Do not move the power cable until a clean Pi shutdown has been arranged.
+**17 file versions are now verified**, with one cloud attempt each. A later
+Windows 1 MiB file stayed queued with zero attempts while Wi-Fi was disconnected.
+The tested reconnect timer restored the approved saved connection after three
+failed samples; the independent failsafe did not need to activate. That file then
+uploaded and verified. Follow-up checks covered 443 healthy seconds with the same
+Pi boot and core process IDs. [Windows results](WINDOWS_ACCEPTANCE.md) ·
+[Full evidence and limits](CORE_RECOVERY.md).
 
-**Before permanent office use:** review the current Google External/Testing
-sign-in limit. Its Drive refresh grant lasts seven days; production authorization
-needs the owner's approval. Nothing has been published automatically.
+**One fault remains unexplained:** after the first Windows pass, Wi-Fi management
+stopped responding. The owner approved an unclean power cycle after Windows-only
+quiescence. USB data and all 16 then-verified versions survived, but the previous
+boot journal was unavailable, so the cause is unknown. The reconnect timer is a
+tested mitigation; it is not proof that every driver, router or power fault is
+fixed. The timer is enabled/active, but an additional reboot specifically testing
+its startup has not been performed. Earlier clean reboot recovery of the core
+USB/backup services passed separately.
+
+**What remains before permanent office use:** resolve the current Google
+External/Testing sign-in limit, which gives Drive refresh grants seven days.
+Longer real workloads, other managed Windows hosts and suspend/power behavior
+also need acceptance. The present installation uses a disposable 1 GiB image.
+**It requires Eject after copying each batch; no-eject capture is not implemented.**
+Website, extra providers and other secondary work remain paused.
+
+**841 core Python tests, 28 USB operator tests and 26 Wi-Fi recovery tests pass.**
+Public hardware gates/configuration examples remain disabled. The Pi runs
+separately approved protected builds, with source data, older versions and
+rollback evidence retained. No SD reflash or real-disk formatting occurred.
 
 **Phone updates:** [follow this progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
-A manually triggered GitHub workflow posts owner mentions as the GitHub Actions
-bot. A real unread mention was confirmed in the owner's GitHub inbox. Email and
-phone push depend on account settings; no SMS service or MeerkatIO is used.
-Replies can be read during active work, but do not automatically resume an
-inactive coding session.
+The GitHub Actions bot posts owner mentions. Inbox delivery was verified; email
+and phone push depend on account settings. Replies can be read during active
+work, but do not automatically resume an inactive coding session.
 
-**841 main Python tests and 28 USB operator tests pass.** Runtime source remains
-hardware-disabled publicly; this Pi uses a separately approved, protected test
-build. Wi-Fi/SSH returned unchanged after reconnect and reboot. Original files,
-failed-test evidence and rollback backups remain. No SD reflash or real-disk
-formatting occurred. See [the evidence and limits](CORE_RECOVERY.md).
+Current source: [development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development).
+Remote checks: [GitHub Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions).
+This page records tested behavior rather than a percentage estimate.
+
+<details>
+<summary>Earlier supporting work and historical snapshots</summary>
 
 The entries below are historical supporting-work records for earlier builds.
 They are not claims that the current USB worker is disabled. Further dashboard,
@@ -39,10 +58,10 @@ This page records evidence, not a percentage estimate. Follow the
 for the current source and [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
 for remote automated checks.
 
-The following supporting-work entries describe the earlier web coordinator,
-whose Test/Enable flow remains disabled. They do not disable the separate,
-operator-authorized USB Google worker, now running and boot-enabled after its
-first verified file and process-restart test. A physical reboot remains untested.
+The following entries describe earlier web-coordinator snapshots. At that time,
+the separate operator-authorized USB worker had passed its first file/process
+restart test, while a physical reboot was still untested. Current core results
+above supersede those historical acceptance limits.
 
 **Earlier supporting work:** 769 Python tests passed, including real rclone against
 temporary local storage. Dev18 connects one selected completed web-file transfer
@@ -366,3 +385,5 @@ changed no USB profile; stable USB addressing is an outstanding acceptance item.
 Dev6 also refuses CLI password entry when no secure terminal is available.
 The private PTY path and no-terminal refusal both passed on the Pi. GitHub
 checks now include ARM64 cross-builds and an isolated real Samba protocol job.
+
+</details>
