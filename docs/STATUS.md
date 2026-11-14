@@ -2,14 +2,29 @@
 
 **Updated: 14 November 2026. Dev22 development trial; no main merge or release.**
 
+**Latest acceptance — 6:36 PM EST: PASS.** The owner accepted safe Windows Eject
+for the first version. One fresh 1 MiB Windows file was copied, flushed and
+read-back checked. After ordinary safe Eject, an independent observer recorded
+release, detached read-only capture and automatic drive return. The existing
+worker uploaded and completed its download-based verification in one attempt.
+Windows and the staged file hashes match. **18 versions are now verified**;
+all previous 17 job records are unchanged, and no jobs are pending or failed.
+Wi-Fi and all three core/recovery units were active at completion, with the
+same Pi boot. No application, service, network or credential settings changed;
+no reboot occurred.
+[Fresh physical evidence](acceptance/pi-windows-safe-eject-repeat-2026-11-14.json).
+This single repeat does not resolve the earlier connectivity fault or establish
+endurance. The approved test is complete; secondary work remains paused.
+
 **The basic Windows USB-to-Google workflow passed.** CLOUDSTICK appeared as a
 normal removable drive on the tested Windows computer. Small and 64 MiB files
 copied successfully. After safe Eject, the Pi automatically captured them,
 returned the drive, uploaded to Google Drive and checked downloaded contents.
 Local copies stayed on the Pi. Repeating the same file caused no extra upload.
 
-**17 file versions are now verified**, with one cloud attempt each. A later
-Windows 1 MiB file stayed queued with zero attempts while Wi-Fi was disconnected.
+At the earlier outage milestone, **17 file versions were verified**, with one
+cloud attempt each. A Windows 1 MiB file stayed queued with zero attempts while
+Wi-Fi was disconnected.
 The tested reconnect timer restored the approved saved connection after three
 failed samples; the independent failsafe did not need to activate. That file then
 uploaded and verified. Follow-up checks covered 443 healthy seconds with the same
