@@ -52,6 +52,38 @@ def main(argv: Optional[List[str]] = None) -> int:
     setup_import.add_argument("--folder-name", required=True)
     setup_broker = commands.add_parser("google-setup-broker", help="gated Pi-only preparation broker; no network or upload actions")
     setup_broker.add_argument("--config", type=Path, required=True)
+    for command, help_text in (
+        ("google-control-status", "read conservative source control status; never inspect a running worker"),
+        ("google-control-export", "privately export an existing owner control intent; never create one"),
+        ("google-control-record", "record a private coordinator receipt for an existing owner intent"),
+        ("google-control-admission", "privately export one fresh admission decision; never start a worker"),
+    ):
+        control = commands.add_parser(command, help=help_text)
+        control.add_argument("--state", type=Path, required=True)
+        control.add_argument("--public-origin", required=True)
+        if command in ("google-control-export", "google-control-record"):
+            control.add_argument("--request-id", required=True)
+        if command in ("google-control-export", "google-control-admission"):
+            control.add_argument("--output-fd", type=int, required=True)
+        elif command == "google-control-record":
+            control.add_argument("--receipt-fd", type=int, required=True)
+    for command, help_text in (
+        ("web-batch-describe", "send selected completed-batch metadata only over a private inherited descriptor"),
+        ("web-batch-export", "stream one selected completed web batch over a private inherited descriptor"),
+        ("web-batch-import", "verify and stage one selected private batch without replacement or cloud upload"),
+    ):
+        batch = commands.add_parser(command, help=help_text)
+        batch.add_argument("--state", type=Path, required=True, help="private web-inbox or backup staging root")
+        batch.add_argument("--batch-id", required=True)
+        batch.add_argument("--root-fd", type=int, required=True)
+        batch.add_argument("--timeout", type=float, default=300.0, help="one bounded transfer deadline in seconds")
+        if command == "web-batch-import":
+            batch.add_argument("--input-fd", type=int, required=True)
+        else:
+            batch.add_argument("--output-fd", type=int, required=True)
+        if command != "web-batch-describe":
+            batch.add_argument("--expected-manifest-sha256", required=True,
+                               help="private canonical manifest binding independently obtained by the coordinator")
     wifi = commands.add_parser("wifi-plan", help="validate a non-secret Wi-Fi profile and show its NM mapping")
     wifi.add_argument("config", type=Path)
     account = commands.add_parser("dashboard-init", help="create a dashboard account with a private password prompt")
@@ -97,6 +129,54 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
     args = parser.parse_args(argv)
+    if args.command in ("google-control-status", "google-control-export", "google-control-record",
+                        "google-control-admission"):
+        try:
+            from . import google_control
+            if args.command == "google-control-status":
+                report = google_control.google_control_status(args.state, args.public_origin)
+            elif args.command == "google-control-export":
+                report = google_control.export_requested_google_control(
+                    args.state, args.public_origin, args.request_id, args.output_fd)
+            elif args.command == "google-control-record":
+                report = google_control.record_google_control_receipt(
+                    args.state, args.public_origin, args.request_id, args.receipt_fd)
+            else:
+                report = google_control.export_google_control_admission(args.state, args.public_origin, args.output_fd)
+            print(json.dumps(report, indent=2))
+            return 2 if report.get("control_state") in ("invalid", "unavailable") else 0
+        except (BackupError, OSError, ValueError, TypeError):
+            print("Private Google control operation unavailable; no private details were printed.", file=sys.stderr)
+            return 2
+    if args.command in ("web-batch-describe", "web-batch-export", "web-batch-import"):
+        try:
+            from . import batch_transfer
+            if args.command == "web-batch-describe":
+                from . import google_destination
+                # Describe returns PRIVATE metadata. Accept/consume the output
+                # channel first; the API independently accepts/consumes its root
+                # anchor. No batch identity or hash is ever printed to stdout.
+                with google_destination._channel(args.output_fd, writing=True) as channel:
+                    deadline = batch_transfer._deadline(args.timeout)
+                    metadata = batch_transfer.describe_web_batch(args.state, args.batch_id, args.root_fd,
+                                                                 timeout=args.timeout)
+                    google_destination._write_frame(channel, google_destination._canonical(metadata), deadline)
+                report = {"schema_version": 1, "transfer_state": "described", "already_present": False,
+                          "uploads_enabled": False, "automatic_deletion": False}
+            elif args.command == "web-batch-export":
+                report = batch_transfer.export_web_batch(
+                    args.state, args.batch_id, args.root_fd, args.output_fd,
+                    args.expected_manifest_sha256, timeout=args.timeout)
+            else:
+                report = batch_transfer.import_web_batch(
+                    args.state, args.batch_id, args.root_fd, args.input_fd,
+                    args.expected_manifest_sha256, timeout=args.timeout)
+            print(json.dumps(report, indent=2))
+            return 0
+        except (BackupError, OSError, ValueError, TypeError):
+            print("Private batch transfer unavailable; no cloud operation was started and no private details were printed.",
+                  file=sys.stderr)
+            return 2
     if args.command in ("google-setup-export", "google-setup-record", "google-setup-receipt",
                         "google-setup-import", "google-setup-broker"):
         try:

@@ -38,5 +38,12 @@ and Koseng attribution remain unchanged.
 Samba, NetworkManager, dnsmasq and the Linux kernel remain independently licensed
 system dependencies. No Microsoft driver binaries are redistributed here.
 
+Remote-access trials use separately installed [cloudflared](https://github.com/cloudflare/cloudflared)
+or the [ngrok agent and service](https://ngrok.com/docs/agent/). Neither connector
+binary, account token nor device-specific tunnel configuration is bundled in
+this repository. Their vendor licenses and service terms are separate from this
+project's GPL license; an eventual appliance image must account for each included
+component.
+
 [Cloud Stick Pro](https://github.com/rtariq2015/cloud-stick-pro) remains a separate,
 unchanged feature/design reference; no code or assets were imported from it.

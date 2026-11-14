@@ -67,5 +67,16 @@
     "account_identifiers",
     "invocation_identifiers",
     "private_backup_paths"
-  ]
+  ],
+  "resource_observation": {
+    "workload": "Development preview idle; one observation, not a load test",
+    "dashboard_rss_kib": 38712,
+    "dashboard_threads": 3,
+    "connector_rss_kib": 27996,
+    "connector_threads": 9,
+    "pi_memory_available_kib": 168364,
+    "memory_limit_enforcement_verified": false,
+    "memory_current_reported": "not set",
+    "boot_or_controller_changes_performed": false
+  }
 }

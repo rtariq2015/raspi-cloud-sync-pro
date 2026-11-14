@@ -653,3 +653,19 @@ Changed Python files pass Ruff F/E9 and Python 3.9 grammar checks. These compone
 make no cloud or service calls and are not wired into the live dashboard or
 executor. They do not establish actual Google refresh, automatic backup, Wi-Fi
 egress enforcement or USB/Samba acceptance. See [the contracts](GOOGLE_CONTROLS.md).
+
+
+## Private operator CLI integration
+
+**417 Python tests pass locally**, including real rclone against temporary local
+storage. Fifteen new CLI tests exercise existing Google intent export, receipt
+ingestion and default-denied per-batch admission through real private pipes,
+plus completed web-batch describe/export/import, independent bytes and hashes,
+no-replace reuse, invalid-receipt privacy, broken-pipe cleanup and accepted
+descriptor closure. All 34 CLI tests pass. Normal stdout omits private batch
+metadata; describe uses a separate framed inherited output descriptor.
+
+The CLI cannot mint owner/session proof or Test/Enable/Disable requests and
+starts no network process, service or cloud worker. These commands are not yet
+installed in the current protected dev10 Pi runtime. Independent review, Ruff
+F/E9, Python 3.9 grammar and diff checks pass.

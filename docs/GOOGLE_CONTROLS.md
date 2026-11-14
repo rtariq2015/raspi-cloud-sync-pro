@@ -60,7 +60,17 @@ internal transfer bounds are not evidence of large-file Pi acceptance.
 
 ## Remaining integration
 
-1. Wire owner forms and private operator commands into these APIs.
+Private operator CLI commands now expose `google-control-status`,
+`google-control-export`, `google-control-record` and `google-control-admission`
+for existing owner intents. They cannot create an owner request or start a
+worker. `web-batch-describe`, `web-batch-export` and `web-batch-import` require
+inherited private descriptors; describe sends identifiers and manifest hashes
+only through its framed output descriptor. Normal stdout contains a fixed
+disabled summary. These are coordinator interfaces, not browser endpoints or
+general file-copy commands. They are source-tested and have not been deployed
+to the current dev10 Pi runtime.
+
+1. Wire owner forms and the restricted coordinator into these APIs and commands.
 2. Implement and accept the real Google tester, including forced token refresh
    and independent downloaded-content verification in a new app-owned folder.
 3. Enforce approved Wi-Fi egress independently of a working USB Internet route.
