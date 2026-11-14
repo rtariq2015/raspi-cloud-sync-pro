@@ -11,8 +11,13 @@ for remote automated checks.
 100 MiB. This was reproduced: a 32 KiB multipart parser buffer cap rejected
 normal file chunks before staging. Development now uses a bounded 128 KiB
 parser cap, retaining the 100 MiB file and 102 MiB request limits. Real HTTP
-regressions pass through exactly 100 MiB. The protected Pi update and native
-verification are being prepared; this repair is not yet accepted on the live site.
+regressions pass through exactly 100 MiB. The protected dev11 update is now live.
+Isolated authenticated Waitress tests on the Pi accepted 122,700-byte,
+125,645-byte and 1 MiB files with matching downloaded bytes/SHA-256. Parser field
+and part limits still reject oversized requests. Only the dashboard restarted;
+accounts, existing files, connector and network settings were preserved. Users
+need to sign in again. The owner's own retry remains to be observed.
+[Native acceptance](acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
 
 **Latest access update:** a Pi reboot removed the transient preview services and
 the old Quick Tunnel returned error 1033. The protected dev10 dashboard has been
@@ -34,7 +39,7 @@ and [remote access guide](REMOTE_ACCESS.md).
   stable USB addressing remains an outstanding acceptance item.
 - Dashboard login with owner/viewer accounts, phone-friendly screens, QA-file
   upload, bounded text preview and downloads with byte/SHA-256 checks.
-- Restricted dev10 dashboard service candidate with NoNewPrivileges and home/system
+- Restricted dev11 dashboard service candidate with NoNewPrivileges and home/system
   filesystem restrictions. The upgraded service passed process/HTTP health checks
   and public HTTPS access checks; dev8 is retained for rollback. Login and authenticated file access also passed through
   a temporary public HTTPS tunnel; no router ports or VPN app were needed.
@@ -152,8 +157,10 @@ and [remote access guide](REMOTE_ACCESS.md).
 - Five-minute Pi retention trial: ten more files, twenty more verified local
   copies, 20/20 Wi-Fi gateway probes and no reported power throttling.
 
-The root-terminal authentication was restored and the protected-service upgrade
-has completed. No account passwords, USB/Wi-Fi settings or boot enablement changed.
+The protected dev11 dashboard upgrade has completed. Google request flags and
+automatic uploads remain off. No account passwords, USB/Wi-Fi settings or boot
+enablement changed. USB currently presents Ethernet; a working mapped Samba
+drive and classic mass-storage mode have not been accepted on the host.
 
 ## Being worked on
 

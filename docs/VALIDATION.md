@@ -846,8 +846,9 @@ an active/exited unit property cannot authorize a future run.
 **571 Python tests pass locally**, including actual rclone against temporary local
 storage. The new coordinator, bootstrap and read-only policy inspector add 94
 tests: 40 coordinator, 24 bootstrap and 30 kernel-inspector tests. Source version
-is now `0.1.0.dev11` for a new protected installation; the running Pi dashboard
-remains dev10. No old release is overwritten by this version change.
+was set to `0.1.0.dev11` for a new protected installation; the Pi dashboard still
+ran dev10 at this source milestone. Its later deployment is recorded below.
+No old release was overwritten by this version change.
 
 The inspector tests cover root/native-64-bit/aarch64 gates, exact current
 interface and cgroup identity, ingress/egress program/map ABI, shared allowlist
@@ -905,4 +906,40 @@ requests/text fields, the eight/nine-part boundary, CSRF and viewer denial.
 The oversized-file partial remains retained and is never published ready.
 ResourceWarnings-as-errors, independent review, Ruff, Python 3.9 grammar and
 JavaScript syntax checks pass. These are source/local HTTP results; native
-deployment and the actual owner's retry remain separate acceptance steps.
+deployment and the actual owner's retry are recorded separately below.
+
+## Protected dev11 dashboard deployment — 14 November 2026
+
+The fixed wheel (`2060882b…`) was installed into a new root-owned dev11 prefix,
+preserving dev10. Exact wheel modules, dependency identities, copied interpreter
+and imports/console execution as both ordinary service identities passed. The
+inactive installer changed no existing service, account, credential or network
+configuration. Its private helper passed 21 local tests.
+
+A separate, reviewed dashboard upgrade helper passed 25 local tests, including
+real Waitress multipart requests and guarded unit-only rollback cases. On the
+Pi it started an isolated loopback Waitress instance as the dashboard identity
+with synthetic private accounts/state. Authenticated 122,700-byte, 125,645-byte
+and 1 MiB uploads returned HTTP 201; downloads matched bytes and SHA-256.
+Oversized text fields and a ninth multipart part returned HTTP 413. Both Google
+request routes remained disabled. The temporary unit stopped; test data is retained.
+
+After native QA, a durable private backup and standalone rollback were saved.
+Only the persistent dashboard unit's interpreter path and description changed.
+The dashboard restarted into dev11; its fixed public HTTPS and local login pages
+passed. The connector retained its process/invocation, and account/upload/private
+configuration metadata, Wi-Fi/default routes, USB addressing/carrier, boot
+enablement and healthy power status were preserved. The old prefix is retained.
+Rollback restores the service definition, never old account or file contents.
+
+The earlier installation transport failed before creating a prefix or backup.
+Read-only reconciliation verified no installer remained before a guarded retry;
+both existing service invocations and Pi uptime were unchanged. No reboot or
+network reset was used, and the interruption's cause was not established.
+
+Post-upgrade read-only checks confirmed the new process, stopped QA unit, rollback
+files, unchanged connector and power status. The owner's password was not used
+for these checks, and their actual file retry remains unobserved. The exactly
+100 MiB boundary was tested locally, not on the physical Pi. No cloud backup,
+Windows share or USB mass-storage acceptance is implied by these upload checks.
+[Sanitized native evidence](acceptance/pi-dashboard-upload-dev11-2026-11-14.json).

@@ -16,8 +16,8 @@ Local storage · Verified cloud backups · Desktop and phone dashboard
 
 </div>
 
-> **Development preview — 13 November 2026.** The dashboard runs on a real Pi,
-> and authenticated access through a temporary HTTPS tunnel has passed testing.
+> **Development preview — 14 November 2026.** The dashboard runs on a real Pi,
+> with a fixed HTTPS preview address and persistent services.
 > The first controlled Google Drive QA backup passed upload and independent
 > read-back verification. Automatic cloud setup, Windows/USB share acceptance and
 > a ready-to-flash image remain unfinished. No production release has been published.
@@ -81,8 +81,8 @@ physical Pi checks and real cloud tests are recorded separately in the
 
 Dev10 adds an [owner-requested Google preparation workflow](docs/GOOGLE_HANDOFF.md),
 with separate dashboard and backup identities, private credential transfer, and
-recovery checks. The protected dev10 dashboard now runs on the Pi. Its actual
-owner HTTPS form and systemd service prepared the private Google configuration
+recovery checks. The dev10 dashboard's actual owner HTTPS form and systemd
+service prepared the private Google configuration
 successfully; uploads remain disabled and require the separate Test/Enable
 workflow. [Live acceptance evidence](docs/acceptance/pi-google-setup-live-dev10-2026-11-13.json).
 After the preview-hostname change, the Google callback and Pi client origin have
@@ -102,12 +102,15 @@ acceptance remain integration work.
 
 Dev11 adds the supervised Test coordinator and worker, including fresh kernel
 network checks and a completion handshake. They remain disabled. The live Pi
-still runs dev10; native source integration and real Google acceptance come next.
+dashboard now runs dev11; native worker integration and real Google acceptance
+come next.
 
 A confirmed small-upload bug is fixed in development: the multipart parser's
 32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the
-100 MiB file limit and accepts the reported 122.7 KB file size. Pi deployment is
-being prepared; [the status page](docs/STATUS.md) records its acceptance.
+100 MiB file limit. The fix is deployed on the Pi: isolated authenticated
+Waitress tests accepted 122,700-byte, 125,645-byte and 1 MiB files and downloaded
+identical copies. Existing accounts/files were preserved; sign in again after
+the dashboard restart. [Native acceptance](docs/acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
 
 The dashboard currently lists completed **web uploads**. It does not yet browse
 all Pi folders or start cloud backup automatically. The Rust trial measured
@@ -115,6 +118,10 @@ all Pi folders or start cloud backup automatically. The Rust trial measured
 memory guarantee. See [the measurements and language decision](docs/RUST_EVALUATION.md).
 
 ## Two USB modes, one clear ownership rule
+
+**What appears on the computer today?** The connected Pi presents a USB Ethernet
+adapter. A flash-drive entry in Explorer is not expected in this mode. Mapping
+the planned Samba share as a drive still needs Windows/USB acceptance.
 
 **USB Ethernet + Samba — preferred for continuous backups.** Linux owns the
 filesystem. Network file operations allow controlled staging without sharing a
