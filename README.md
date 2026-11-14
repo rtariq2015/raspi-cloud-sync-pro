@@ -52,8 +52,9 @@ being completed; automatic uploads remain disabled.
 **Open it from your phone.** The same dashboard adapts to a small screen. Remote
 browser access uses HTTPS and login; your manager will not need Tailscale. The
 preview now has a fixed free tunnel address; its login page passes public HTTP
-and browser checks. Startup after reboot, off-LAN phone use and physical Android
-installation remain to be accepted. See [remote access](docs/REMOTE_ACCESS.md).
+and browser checks. Persistent services are installed and enabled; a real reboot,
+off-LAN phone use and physical Android installation remain to be accepted.
+See [remote access](docs/REMOTE_ACCESS.md).
 
 <p align="center">
   <img src="docs/images/dashboard-mobile.png" alt="Actual Pi dashboard at phone width" width="320">
@@ -65,7 +66,7 @@ installation remain to be accepted. See [remote access](docs/REMOTE_ACCESS.md).
 | --- | --- |
 | Home Wi-Fi and authenticated SSH | Stable USB addressing, reboot and long-duration checks |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
-| Authenticated HTTPS preview; fixed-address login page restored after reboot | Persistent startup, off-LAN phone and Android web-app installation |
+| Authenticated HTTPS preview; fixed-address login page and enabled persistent services | Actual reboot, off-LAN phone and Android web-app installation |
 | First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
 | Historical owner-requested Google preparation on the Pi | Reconcile the changed OAuth origin, then complete live Test/Enable |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |

@@ -78,7 +78,8 @@ The new [control and transfer libraries](GOOGLE_CONTROLS.md) implement durable
 owner Test/Enable/Disable intents and completed web-batch streaming between
 identities. Their local tests pass; dashboard/operator integration and the real
 cloud executor remain next. After a reboot removed the transient preview, a
-fixed free HTTPS address restored the login page. Persistent startup and OAuth
+fixed free HTTPS address restored the login page. Persistent services now pass
+native health and enablement checks; actual reboot acceptance remains. OAuth
 callback migration must pass before restoring live setup requests.
 
 Dev10 adds durable owner requests, private source/configuration bindings, a

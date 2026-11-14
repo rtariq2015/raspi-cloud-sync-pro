@@ -49,7 +49,8 @@
     "oauth_origin_reconciled": false,
     "automatic_cloud_uploads_enabled": false,
     "persistent_boot_startup_accepted": false,
-    "off_lan_phone_accepted": false
+    "off_lan_phone_accepted": false,
+    "persistent_startup_configured": true
   },
   "preservation": {
     "wifi_and_default_routes_preserved": true,
@@ -78,5 +79,33 @@
     "memory_limit_enforcement_verified": false,
     "memory_current_reported": "not set",
     "boot_or_controller_changes_performed": false
+  },
+  "persistent_services": {
+    "installed_unit_names": [
+      "raspi-cloud-dashboard.service",
+      "raspi-cloud-remote-access.service"
+    ],
+    "only_these_two_units_enabled": true,
+    "root_owned_unit_files_verified": true,
+    "native_systemd_analyze_verify_passed": true,
+    "existing_unit_and_credential_files_reused_without_overwrite": true,
+    "actual_process_identity_arguments_and_sandbox_verified": true,
+    "local_and_public_login_passed_before_and_after_enable": true,
+    "wanted_symlinks_disk_enablement_and_loaded_manager_state_verified": true,
+    "same_runtime_proof_before_and_after_enable": true,
+    "restart_policy": {
+      "on_failure": true,
+      "restart_seconds": 30,
+      "start_limit_interval_seconds": 60,
+      "start_limit_burst": 4
+    },
+    "setup_requests_enabled": false,
+    "root_private_standalone_rollback_saved_before_transition": true,
+    "failed_enable_validation_attempts_rolled_back_to_working_transients": 2,
+    "active_manager_disabled_state_observed_despite_correct_wanted_link": true,
+    "reload_before_loaded_state_check_passed": true,
+    "private_successor_installer_tests": 22,
+    "physical_reboot_test_performed": false,
+    "off_lan_phone_or_fresh_owner_login_accepted": false
   }
 }

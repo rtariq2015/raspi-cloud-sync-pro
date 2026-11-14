@@ -31,6 +31,19 @@ and [error 1033](https://developers.cloudflare.com/support/troubleshooting/http-
 
 ## Appliance deployment requirements
 
+The 2026-11-13 dev10 trial now has persistent dashboard and connector services
+installed and enabled. Native unit verification, process/sandbox checks, public
+login health, exact startup symlinks, disk enablement and loaded manager state
+pass. The same fixed address survived connector replacements. Two failed
+enablement-validation attempts restored the working transient services through
+the saved standalone rollback. The final attempt reloads systemd after enabling
+before checking its loaded state. No physical reboot has been performed.
+[Sanitized evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json).
+
+These reviewed device-specific services are separate from the inactive public
+deployment templates. General unattended installation on another Pi remains
+[replication work](REPLICATION.md).
+
 Keep the dashboard bound to loopback, running as its restricted service identity,
 with the exact reviewed public HTTPS origin. Keep the connector separate, with
 no capabilities, protected system/home mounts and only its private credential

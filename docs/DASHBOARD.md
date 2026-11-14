@@ -4,6 +4,13 @@ Development version `0.1.0.dev3` adds an optional Flask/Waitress dashboard. USB
 controller and Samba hardware gates remain disabled. Opening the dashboard does
 not enable a cloud worker, change a network, expose a disk image or start Samba.
 
+The current protected dev10 Pi trial now uses persistent
+`raspi-cloud-dashboard.service` and `raspi-cloud-remote-access.service` units,
+with a fixed free ngrok address. Both are running and enabled after native
+health checks; actual reboot and off-LAN phone acceptance remain outstanding.
+The historical transient trials below describe earlier deployments.
+[Current recovery/startup evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json).
+
 ## Run in an isolated environment
 
 Use a private state directory, outside every share and source tree. Run as an

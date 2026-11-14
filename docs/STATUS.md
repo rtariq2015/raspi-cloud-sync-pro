@@ -11,7 +11,9 @@ for remote automated checks.
 the old Quick Tunnel returned error 1033. The protected dev10 dashboard has been
 restored behind a fixed free ngrok address. Local/public login HTTP checks and
 the actual Chrome login form pass; stored credentials and uploads were preserved.
-Persistent startup is being prepared and has not passed reboot acceptance.
+The dashboard and connector now run as persistent, enabled system services;
+unit syntax, runtime health and disk/manager enablement checks pass. A physical
+reboot has not been performed or accepted.
 Google setup requests are disabled until the changed OAuth origin is reconciled;
 previous preparation remains historical. [Recovery evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json)
 and [remote access guide](REMOTE_ACCESS.md).

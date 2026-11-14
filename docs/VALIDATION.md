@@ -669,3 +669,52 @@ The CLI cannot mint owner/session proof or Test/Enable/Disable requests and
 starts no network process, service or cloud worker. These commands are not yet
 installed in the current protected dev10 Pi runtime. Independent review, Ruff
 F/E9, Python 3.9 grammar and diff checks pass.
+
+
+## Fixed HTTPS recovery and persistent services on the Pi
+
+A read-only inspection established that the Pi had rebooted, the transient
+project services were gone and the old Quick Tunnel returned Cloudflare error
+1033. The cause of the reboot was not established. Project releases, accounts,
+private Google state and QA uploads remained present.
+
+The official ngrok ARM64 agent 3.39.13 was verified against its publisher's
+manifest and copied into protected versioned storage. A private browser copy
+interceptor transferred the account token directly into the reviewed SSH
+installer without writing the laptop clipboard or putting the token in command
+arguments. A root600 file and systemd LoadCredential supply it to a separate
+DynamicUser process; inspection and agent stdout/stderr are disabled.
+
+The initial transient service passed a literal credential-path specifier instead
+of its resolved path. The protected configuration passed a direct native check;
+using the explicit runtime credential path fixed startup. The agent then passed
+actual process, capabilities, namespace, seccomp and exact-owned-loopback API
+checks. The restored protected dev10 dashboard passed local/public HTTP login
+checks; actual Chrome passed the provider warning and reached the CSRF login
+form. This does not establish fresh owner login or off-LAN phone acceptance.
+
+The persistent unit transition passed native systemd-analyze verification and
+process/public-health checks. Two attempts rolled back during enablement
+validation. The instrumented repetition showed that the loaded manager still
+reported disabled after the correct root-owned startup links were created.
+Both automatic rollbacks stopped/disabled only the owned new services, restored
+the previous transient commands, and retained every file. Separate inactive-unit
+probes passed enablement, so the final continuation instrumented each active-unit
+check rather than assuming the initial cause. Its trace recorded the exact
+startup link together with the stale loaded disabled state.
+
+The reviewed successor reloads the manager after enablement. It then passed exact
+link checks, independent is-enabled checks, loaded enabled state, unchanged
+before/after runtime proof and repeated local/public health. Only the dashboard
+and connector units are enabled. Native preservation checks passed for Wi-Fi and
+default routes, USB carrier, power, account/credential metadata, preparations and
+uploads. Root-private backups and a standalone guarded rollback precede changes.
+Twenty-two private successor-installer tests and independent review pass. These
+are separate from the 417 repository tests. No reboot, OS/USB/network change or
+cloud activation was performed.
+
+Persistent startup is configured; actual reboot, prolonged outage and physical
+off-LAN phone tests remain. Google setup requests stay disabled while the new
+OAuth callback origin is reconciled. The public address, tokens, account details
+and private backup paths are omitted from the
+[acceptance record](acceptance/pi-fixed-https-recovery-2026-11-13.json).
