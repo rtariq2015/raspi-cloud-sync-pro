@@ -8,12 +8,14 @@ authorization, accounts and preparations were preserved. This migration made no
 cloud request or service restart and did not verify the saved authorization.
 
 The preparation broker has now been reconciled and installed with a persistent
-watcher, and the live dev11 dashboard permits Prepare requests. A fresh sign-in
-and owner request remain necessary. Previous proof and configuration are retained;
+watcher, and the live dev11 dashboard permits Prepare requests. A fresh owner
+sign-in and actual form request now pass, with source/backup identities and
+configuration bindings independently verified offline. Previous proof and configuration are retained;
 the old preparation is historical and does not match the new source origin.
 The source-tested [Test/Enable controls and tester](GOOGLE_CONTROLS.md) are a
 separate integration, not live upload controls. Automatic backups remain off.
 [Restoration evidence](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
+[Fresh owner-flow evidence](acceptance/pi-google-prepare-fresh-dev14-2026-11-14.json).
 
 The dev9 source can transfer an existing Google browser authorization between
 separate ordinary service identities and prepare a disabled private rclone

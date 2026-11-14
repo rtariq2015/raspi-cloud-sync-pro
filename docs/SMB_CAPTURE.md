@@ -100,6 +100,34 @@ behavior, live USB sharing and production activation remain separate work.
 The earlier Pi acceptance covered an isolated encrypted loopback Samba fixture;
 this new runtime has local tests, not live USB or Windows acceptance.
 
+## Actual reader and staging qualification on the Pi
+
+The protected dev14 core now passes a separate trial using the actual
+`LocalSambaReader`, `stage_smb_version`, Samba 4.22.11 and smbprotocol 1.17.0 on
+Trixie/aarch64 with CPython 3.13.5. An encrypted SMB 3.1.1 loopback session deferred
+an active writer, denied new write/delete opens during capture, refused backup
+account writes, and preserved two independently checked snapshots plus one
+incomplete interrupted copy. Byte/SHA-256 checks, native SDK imports, dependency
+licenses and exact owned-server cleanup passed. A separate read-only check
+verified 332 installed wheel files, the fixture bytes, stopped server/cgroup and
+preserved live data, accounts and network observations.
+[Sanitized evidence](acceptance/pi-smb-sdk17-core-dev14-2026-11-14.json).
+
+This used a new isolated QA environment and disposable local files. The original
+protected application prefix and global packages were preserved. The production
+capture environment still needs its own SDK installation and service acceptance.
+The [exact optional SDK lock](../deploy/requirements/smb-capture-py313-aarch64.lock)
+records the five qualified PyPI wheels for this target; it is not a general
+Python/platform lock or an installer. The selected native wheel requires glibc
+2.34 or later. Runtime copies retain each dependency's applicable license.
+
+The test server listened only on 127.0.0.1:445 and was stopped afterward. A fresh,
+expiring Root approval guarded each actual reader open in this transport-only
+fixture; the full capture guard was neither invoked nor bypassed. The current
+active USB auto-switcher and unapproved USB profile still block that runtime.
+Windows transfers, USB-only listener/firewall policy, real writer leases/reopens,
+dashboard file projection and cloud admission remain separate acceptance work.
+
 ## One-scan operator command and uninstalled examples
 
 `raspi-cloud-sync-pro smb-capture --config /etc/raspi-cloud-sync-pro-smb/capture.json`

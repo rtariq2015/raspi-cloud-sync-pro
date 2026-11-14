@@ -83,8 +83,11 @@ worker bootstrap, fresh kernel-policy inspection and a live completion barrier;
 all remain disabled until native integration passes. After a reboot removed the transient preview, a
 fixed free HTTPS address restored the login page. Persistent services now pass
 native health and enablement checks; actual reboot acceptance remains. OAuth
-callback and Pi client origin have now been migrated with backups; restore the
-broker and require fresh owner preparation before restoring live setup requests.
+callback and Pi client origin have now been migrated with backups. The preparation
+broker is restored with a persistent watcher and the live dev11 Prepare flag;
+fresh owner sign-in/preparation and independent offline configuration checks now
+pass. Actual reboot acceptance remains necessary.
+Test/Enable controls and automatic uploads remain off.
 
 Dev12 supplies the one-shot coordinator CLI and disabled examples. Its first
 native source trial exposed systemd's omission of empty properties; source
@@ -100,8 +103,15 @@ Google batch-upload API. Claims are limited to the selected canonical batch;
 previously verified content is historical reuse, and old pending duplicates
 retain their original roots. The coordinator's strict executable preflight also
 uses Debian's canonical `ip` path after a failed isolated native startup trial.
-Qualify the corrected build, restore preparation, then connect live admission,
-stream transfer, worker confinement and completion before enabling uploads.
+The protected dev14 build is installed, preparation is restored and the corrected
+idle command produced its expected response. The full coordinator service trial
+remains unaccepted. Connect live admission, stream transfer, worker confinement
+and completion before enabling uploads. Dev15 adds the private selected-batch
+upload command and bounded receipt channels; it is source-tested and not deployed.
+Dev16 adds its ordinary-identity bootstrap and receipt-completion barrier. A
+request-ID mismatch is refused before the upload API; valid retry/failure
+receipts still require live completion. The root batch dispatcher, fresh source
+admission, selected-batch transfer and native/cloud acceptance remain next.
 
 Dev10 adds durable owner requests, private source/configuration bindings, a
 gated root coordinator, and historical dashboard receipts. Its native synthetic

@@ -20,8 +20,8 @@ need to sign in again. The owner's own retry remains to be observed.
 [Native acceptance](acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
 
 **Latest access update:** a Pi reboot removed the transient preview services and
-the old Quick Tunnel returned error 1033. The protected dev10 dashboard has been
-restored behind a fixed free ngrok address. Local/public login HTTP checks and
+the old Quick Tunnel returned error 1033. The preview was restored behind a fixed
+free ngrok address and subsequently upgraded to dev11. Local/public login HTTP checks and
 the actual Chrome login form pass; stored credentials and uploads were preserved.
 The dashboard and connector now run as persistent, enabled system services;
 unit syntax, runtime health and disk/manager enablement checks pass. A physical
@@ -29,9 +29,11 @@ reboot has not been performed or accepted.
 The changed Google callback and Pi client origin are now reconciled, preserving
 credentials and retaining private backups/rollback. Preparation is now restored
 with persistent units, a protected dev14 broker and the live dev11 Prepare flag.
-Fresh owner sign-in and preparation remain necessary; previous preparation stays
-historical. Test/Enable controls and uploads remain off.
+Fresh owner sign-in and actual preparation now pass, including the HTTPS form,
+persistent broker and independent offline source/backup configuration bindings.
+Previous preparation stays historical. Test/Enable controls and uploads remain off.
 [Preparation restoration](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json),
+[fresh owner flow](acceptance/pi-google-prepare-fresh-dev14-2026-11-14.json),
 [recovery evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json)
 and [remote access guide](REMOTE_ACCESS.md).
 
@@ -82,7 +84,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **680 Python tests and 11 Rust tests pass locally.** Python includes real rclone
+- **696 Python tests and 11 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.
@@ -113,8 +115,8 @@ and [remote access guide](REMOTE_ACCESS.md).
   preparation nor its status enables automatic backups.
   [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
   The original watcher disappeared on reboot. Its replacement is now persistent,
-  with fresh disk/manager enablement and preservation checks; a new actual owner
-  preparation and reboot acceptance remain, as recorded above.
+  with fresh disk/manager enablement and preservation checks. A new actual owner
+  preparation and independent offline checks now pass; reboot acceptance remains.
 - The dev10 synthetic Pi trial now passes owner HTTP-handler requests, the actual
   root broker, separate ordinary service identities, historical status and
   recovery from a prepared destination whose receipt was not recorded. Existing
@@ -233,12 +235,27 @@ acceptance. The owned test service stopped and existing access was preserved.
 Dev15 connects the private batch-upload API to a strict operator CLI. Fifteen
 new tests cover channel ownership/aliases, malformed frames, default refusal,
 private receipts, result bindings and sanitized output. It is source-only;
-the upload bootstrap and per-batch dispatcher are still being implemented.
+the per-batch dispatcher is still being implemented. Dev16 adds the ordinary
+upload bootstrap: matching owner-request IDs precede API work, and valid retry
+or failure receipts require the same live completion barrier as success. Sixteen
+new tests pass with explicit fake native activation/canaries and a stub provider;
+they do not establish Pi confinement or a live upload service.
 
 The current USB auto-switcher is active and enabled, and its profile does not
 meet the capture runtime's manual local-network contract. The protected dev14
 prefix also lacks the optional SMB client. These read-only findings leave
 capture gated; no USB or network setting was changed to force a test through.
+
+A separate QA environment now qualifies the actual dev14 reader/stager with
+smbprotocol 1.17.0 and encrypted SMB 3.1.1 on this Pi. The old production prefix
+and global packages stayed unchanged. Active writers deferred capture, snapshot
+handles blocked new writes/deletes, the read-only backup account could not write,
+and changed/interrupted copies retained two verified snapshots plus one incomplete.
+The server was stopped afterward. Independent read-only checks verified the
+installed bytes, fixture data, empty/absent service cgroup and preserved live
+data/accounts/network. This does not activate the full capture runtime or accept
+Windows USB drive mapping.
+[Current reader evidence](acceptance/pi-smb-sdk17-core-dev14-2026-11-14.json).
 
 ## Being worked on
 

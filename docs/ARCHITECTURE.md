@@ -30,6 +30,7 @@ quarantine. New code does not import those service loops.
 | `google_test_broker.py` | Opt-in protected root Test coordinator with fresh source/network/kernel authority, private channels, scoped cleanup and historical receipts; not deployed |
 | `google_test_executor.py` | Ordinary backup-UID bootstrap, credential-free canaries, same-PID Test CLI and live completion barrier; not deployed |
 | `google_upload.py` | Default-denied selected-batch upload API; fresh owner admission, separate root release, generation-scoped jobs and downloaded-content verification; not deployed |
+| `google_upload_executor.py` | Ordinary backup-UID upload bootstrap; authenticated inherited channels, credential-free canaries, request binding and a live receipt-completion barrier; not deployed |
 | `wifi_confinement.py` | Read-only held inspection of current systemd RNI ingress/egress attachments and exact shared allowlist maps; no credential authority |
 | `batch_transfer.py` | Private descriptor-based streaming of selected completed web batches between service identities; hashes, completion framing and retained partials |
 | `dashboard.py`, `templates/`, `static/` | Optional authenticated Flask/Waitress UI and PWA foundation, owner/viewer roles, bounded file access; no network/gadget mutation endpoints |
@@ -151,10 +152,12 @@ real owner HTTPS form prepared a private configuration across these identities,
 with uploads disabled and a cloud test still required. The watcher was transient
 and disappeared on reboot. The replacement preparation watcher is now persistent
 and uses the protected dev14 broker at the current fixed origin. The live dev11
-dashboard permits Prepare requests; fresh owner sign-in/preparation remains.
+dashboard permits Prepare requests. A fresh owner form request now passes,
+with independent offline source/configuration checks across both identities.
 Control requests and automatic uploads remain disabled. Existing authorization
 and historical configurations are retained.
 [Restoration](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
+[Fresh preparation](acceptance/pi-google-prepare-fresh-dev14-2026-11-14.json).
 [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
 The owner-intent and broker boundary follows. Its
 native synthetic HTTP-handler/root-broker and recovery trial now passes on the

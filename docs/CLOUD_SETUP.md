@@ -14,12 +14,14 @@ authorization is already saved, enter the intended app-folder label and choose
 first. Never enter a Google password into the device's dashboard login form.
 
 The preparation watcher is now persistent and the live dashboard permits this
-request. A fresh owner action after restoration is still awaiting acceptance.
+request. A fresh owner action after restoration now passes the actual HTTPS
+form, persistent broker and independent offline source/configuration checks.
 `Configuration prepared · Test required` means a disabled local configuration
 was prepared; it does not mean a cloud folder exists or files were backed up.
 The live Test/Enable controls and automatic worker remain off while their
 integration is completed. Existing files stay retained.
 [Restoration and limits](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
+[Fresh owner-flow evidence](acceptance/pi-google-prepare-fresh-dev14-2026-11-14.json).
 
 ## Prepare privately
 
@@ -74,8 +76,8 @@ See [the exact commands and handoff contract](GOOGLE_HANDOFF.md) before using it
 The synthetic two-identity CLI trial passed on the Pi; it did not import real
 credentials or connect the live dashboard to a production backup identity.
 Owner-requested preparation subsequently passed on dev10 and has now been
-restored with a persistent dev14 broker. The fresh owner flow, live Test/Enable
-and recurring production worker remain unfinished.
+restored with a persistent dev14 broker. The fresh owner preparation now passes;
+live Test/Enable and the recurring production worker remain unfinished.
 [Historical handoff evidence](acceptance/pi-google-handoff-dev9-2026-11-13.json).
 
 | Destination | Account connection | Current acceptance |

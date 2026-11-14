@@ -1205,7 +1205,8 @@ watcher, inactive broker, unchanged connector and healthy USB/Wi-Fi/power.
 
 The actual Chrome page loaded the new sign-in form. An API request with the old
 session returned the expected 401 after restart; no saved autofill was available. A
-fresh owner sign-in and preparation request remain unobserved. There was no
+fresh owner sign-in and preparation request were unobserved at that check;
+the later owner flow is recorded below. There was no
 reboot, password reset, old-auth restoration, cloud request, token refresh,
 Test/Enable activation or automatic upload. The repair does not prove a new
 kernel-worker sandbox. One-shot inactivity also does not prove that no brief
@@ -1217,3 +1218,65 @@ active/enabled and a profile outside the capture runtime's manual local-only
 contract. Loopback TCP445 was free; the protected dev14 environment has no
 optional SMB client installed. These findings leave capture gated. No USB,
 NetworkManager, firewall or host networking change was made to bypass them.
+
+## Upload bootstrap and current Pi checks — development 0.1.0.dev16
+
+The combined source suite passes **696 Python tests** in 32.805 seconds,
+including actual rclone against temporary local storage. Sixteen new behavior
+tests use real Unix streams and the actual private CLI, with explicit fake
+activation, sandbox, canaries and upload API. They cover all four receipt states,
+matching owner control IDs before API/gate work, exact upload completion/EOF,
+closed and reused descriptors, write failures and sanitized diagnostics. Ruff
+and Python 3.9 grammar checks pass. The accepted Test executor is byte-identical.
+No native upload bootstrap, dispatcher, cloud account or recurring worker was
+accepted by these source tests.
+
+The exact target SDK was installed offline into a new isolated QA prefix on the
+Pi: smbprotocol 1.17.0, pyspnego 0.12.4, cryptography 50.0.2, cffi 2.1.1 and
+pycparser 3.12. The copied CPython 3.13.5 interpreter, native extensions, glibc
+2.41, module identities and native encryption operation passed ordinary-reader
+checks. The five official PyPI wheels, dependency closure, licenses and hashes
+were retained. Four retained pinned Debian Samba archives were extracted without
+maintainer scripts or global package changes. The immutable dev14 application
+and original environment were preserved.
+
+The actual `LocalSambaReader` and `stage_smb_version` passed against Samba
+4.22.11 on the sole verified 127.0.0.1:445 listener, negotiating encrypted SMB
+3.1.1. An open writer deferred capture before batch creation; a held snapshot
+handle denied new write/delete opens; the backup account could not write.
+Completed bytes and SHA-256 matched, an injected read failure retained an
+incomplete copy, and changing a file retained the earlier snapshot. A fresh
+Root-owned, expiring fixture approval guarded every real reader open. The full
+capture guard stayed unmodified and was not exercised by this core trial.
+
+Twenty-one installer/fixture tests and independent review passed before the
+bounded native run. The exact owned transient server was stopped, its cgroup was
+empty or absent, and all installer children were reaped. A separately reviewed
+read-only verifier, with seven local tests, then checked 332 installed wheel
+files, the copied interpreter, licenses, source fixture bytes, two ready snapshots
+and one 8,192-byte incomplete copy. Live invocations, private metadata, OS
+accounts, package database, USB/Wi-Fi observations and healthy power were
+preserved. This does not qualify Windows, the current USB profile, the full
+capture service, the dashboard bridge or any cloud worker.
+[Native SDK/core evidence](acceptance/pi-smb-sdk17-core-dev14-2026-11-14.json).
+
+After the owner signed in privately, the actual HTTPS Backups form submitted one
+Prepare request using its unchanged default folder label. HTTP 202, requested
+then prepared status, and the eventual **Configuration prepared · Test required**
+label were observed. The enabled persistent watcher and protected dev14 broker
+processed the request while the dev11 dashboard stayed running. The control
+form remained absent and automatic uploads stayed off.
+
+A separate verifier checked the current owner/source bindings twice as the
+ordinary source identity, with an ordinary backup receipt export between them.
+The actual prepared configuration bytes matched the source's expected digest,
+the stored receipt and the new request. Private frames required EOF and zero
+child exits; only metadata reached Root. The first verifier refused the
+8,773-byte restoration metadata file under an 8,192-byte bound. Its retained,
+reviewed successor changed only that fixed snapshot's bound to 16,384 bytes,
+with identity and unique-JSON validation unchanged and eleven tests passing.
+The successor passed without another owner request or any state rewrite.
+Persistent watcher status, unchanged live invocations and the broker's last
+zero exit were verified. This is offline preparation proof, without a provider
+request, token refresh, current cloud worker, Test/Enable or reboot acceptance.
+[Fresh owner preparation evidence](acceptance/pi-google-prepare-fresh-dev14-2026-11-14.json).

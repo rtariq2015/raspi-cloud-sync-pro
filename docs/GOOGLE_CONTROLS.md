@@ -2,8 +2,9 @@
 
 These are development components, tested with synthetic private state and
 temporary files. The current dev11 Pi dashboard permits Google Prepare requests
-through the restored persistent dev14 broker. A fresh owner request remains
-unobserved. The control-request flag and automatic backups remain off. The
+through the restored persistent dev14 broker. A fresh actual owner request and
+independent offline source/configuration checks now pass. The control-request
+flag and automatic backups remain off. The
 accepted dev11 wheel contains guarded worker components; the protected dev13
 bootstrap/invalid-gate trial passed separately. The coordinator command and
 service example below are not connected to the live dashboard.
@@ -342,8 +343,54 @@ must distinguish these cases and require validated receipt delivery plus live
 completion proof for both exit outcomes. Exit zero alone is not acceptance.
 
 Fifteen new transport tests use a stub worker and no provider/network release.
-The confined upload bootstrap, root per-batch dispatcher, live source admission,
-real account tests and automatic scheduling remain separate integration work.
+The confined upload bootstrap is added in dev16 below. The root per-batch
+dispatcher, live source admission, real account tests and automatic scheduling
+remain separate integration work.
+
+## Private upload bootstrap
+
+Dev16 adds `python -I -B -m raspi_cloud_sync_pro.google_upload_executor` for a
+future trusted root dispatcher. It is source-only and starts no service. Without
+the existing authenticated four-channel activation, it refuses before sandbox
+checks, state reads or provider operations. Its fixed arguments select protected
+preparation/operational/staging paths, one batch and canonical manifest digest,
+the owner control-request ID, and a pinned rclone executable/digest.
+
+The bootstrap reuses the Test worker's activation, sandbox and credential-free
+canary helpers. It consumes activation before clearing the ambient environment,
+requires READY/GO/REPORT/ACK plus EOF, and checks the GO request ID against its
+fixed control ID. The private CLI then checks that same ID against the decoded
+admission before reading the release gate or calling the upload API. The API
+still independently validates the root peer and its distinct upload-purpose,
+PID, batch, manifest and exact admission-digest release. A unit name or an old
+successful Test does not authorize credential use.
+
+After a valid receipt has been written, every outcome holds the same live
+completion barrier: verified/historical exits zero, pending/failed exits two.
+Exceptions and receipt-write failures do not enter accepted completion. The
+bootstrap closes the original channels, retains one CLOEXEC completion stream,
+rechecks its sandbox and inherited descriptors, then shuts down its write side.
+It requires the exact `upload_complete` acknowledgement, bound to the worker,
+control ID, batch, manifest and canary nonce, followed by EOF within 15 seconds.
+An old Test completion acknowledgement is refused. After acknowledgement it
+only closes descriptors and returns the already determined exit status.
+
+The dispatcher must independently validate the private receipt against its
+fresh admission, then verify the still-live process, held Wi-Fi policy and
+read-only staging mount before sending that acknowledgement. It must account
+for a valid exit-two receipt; exit status alone cannot distinguish an upload
+retry from a transport failure. Fresh admission exports have different
+`checked_at` values: compare stable authority, then bind the exact latest frame
+in the root release. Transfer framing/EOF and both source/importer exits must
+already have passed before selecting that batch.
+
+The first integration retains the private Test-unit namespace required by the
+existing inspector helpers; an upload-specific exact argv, description and gate
+purpose remain required. This is not a composite USB mode or authority to start
+an arbitrary service. Sixteen new local behavior tests use real Unix streams
+and the actual private CLI with explicit fake activation, sandbox, canaries and
+upload API. They verify protocol and failure handling, not native confinement,
+provider access or a recurring worker. Native deployment remains pending.
 
 ## Remaining integration
 
@@ -374,9 +421,9 @@ disabled summary. These are coordinator interfaces, not browser endpoints or
 general file-copy commands. They are source-tested interfaces in the dev11
 package, not activated dashboard or recurring-backup services.
 
-1. Observe a fresh owner Prepare request through the restored broker for the
-   current HTTPS origin, then deploy the source-tested owner controls with the
-   separately reviewed coordinator.
+1. Deploy the source-tested owner controls with the separately reviewed
+   coordinator. Fresh owner preparation for the current origin has passed;
+   it does not replace the native Test/Enable acceptance below.
 2. Accept the Google tester on the Pi, including forced token refresh and
    independent downloaded-content verification in a new app-owned folder.
 3. Prove approved Wi-Fi egress independently of a working USB Internet route,

@@ -68,84 +68,43 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated HTTPS preview; fixed-address login page and enabled persistent services | Actual reboot, off-LAN phone and Android web-app installation |
 | First real Google Drive QA backup with independent read-back verification | Google refresh/outage/large-file trials; Koofr and Dropbox accounts |
-| Owner-requested Google preparation; persistent watcher restored at the current HTTPS origin | Fresh preparation and live Test/Enable acceptance |
+| Fresh owner-requested Google preparation through the persistent watcher | Live Test/Enable and recurring backup acceptance |
 | Opt-in completed-batch worker and small Rust scheduler | Guided cloud enablement, persistent worker and sustained-load acceptance |
 | Guarded USB controller; actual Samba locking on the Pi | Windows/USB host transfers, host behavior and power-loss tests |
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**680 Python tests and 11 Rust tests pass locally.** Python tests include actual
+**696 Python tests and 11 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).
 
-Dev10 adds an [owner-requested Google preparation workflow](docs/GOOGLE_HANDOFF.md),
-with separate dashboard and backup identities, private credential transfer, and
-recovery checks. The dev10 dashboard's actual owner HTTPS form and systemd
-service prepared the private Google configuration
-successfully; uploads remain disabled and require the separate Test/Enable
-workflow. [Live acceptance evidence](docs/acceptance/pi-google-setup-live-dev10-2026-11-13.json).
-After the preview-hostname change, the Google callback and Pi client origin have
-been reconciled with backups. Preparation is now restored through a persistent
-watcher and the protected dev14 broker. The live dev11 dashboard's Prepare button
-is enabled; fresh sign-in and a new owner request remain necessary. Existing
-credentials and files are preserved; Test/Enable and automatic uploads stay off.
-[Restoration evidence](docs/acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json).
+The current preview supports Google sign-in and owner-requested preparation
+through a persistent setup service. The fresh request after restoring the fixed
+website address now reaches **Configuration prepared · Test required**. This
+creates a disabled local configuration; a cloud test and explicit enablement
+still follow. Existing accounts and files stay preserved.
+[Google setup](docs/CLOUD_SETUP.md).
 
-The next backup-engine foundation creates separate private operational config
-generations so future token refresh cannot overwrite immutable preparation proof.
-It is tested locally and remains unconnected to the live dashboard or worker.
+The actual Samba reader and safe version staging now pass an encrypted SMB 3.1.1
+trial on the Pi, including busy writers, interrupted copies and retained older
+versions. This qualifies the local reader, with Windows drive mapping still
+pending. [Pi trial evidence](docs/acceptance/pi-smb-sdk17-core-dev14-2026-11-14.json).
 
-New [Google controls and completed-file transfers](docs/GOOGLE_CONTROLS.md) add
-tested owner buttons, Test/Enable/Disable intent records, a default-denied Google
-tester, and private streaming between dashboard and backup identities. These
-changes are source-tested; deployment, Wi-Fi confinement and live cloud/worker
-acceptance remain integration work.
+Development also contains the guarded cloud worker, retries, independent
+read-back verification and the private upload bootstrap. The next integration
+connects selected completed files, current owner approval and the confined worker
+before automatic uploads can be enabled. Follow [Project progress](docs/STATUS.md)
+for the current deployment and [the implementation guide](docs/GOOGLE_CONTROLS.md)
+for the developer details.
 
-Dev11 adds the supervised Test coordinator and worker, including fresh kernel
-network checks and a completion handshake. They remain disabled. The live Pi
-dashboard now runs dev11; native worker integration and real Google acceptance
-come next.
+The reported small-file upload error is fixed on the Pi. Isolated authenticated
+tests accepted 122,700-byte, 125,645-byte and 1 MiB files with identical downloaded
+copies; the file limit remains 100 MiB.
+[Upload repair evidence](docs/acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
 
-Dev12 development adds a private one-shot coordinator command and an offline
-[SMB capture queue](docs/SMB_CAPTURE.md), without requiring a cloud account to
-capture completed files. The first native worker trial found a systemd-property
-startup bug; its source repair and conservative cleanup have regression tests.
-Dev13 is installed in an inactive protected prefix. Its isolated source-worker
-check now passes on the Pi: private channels, the Wi-Fi-only kernel policy,
-DNS/HTTPS probes and invalid-gate refusal. It used no cloud credentials and
-enabled neither uploads nor USB sharing. The live dashboard remains dev11.
-[Native worker evidence](docs/acceptance/pi-google-test-source-dev13-2026-11-14.json).
-
-Dev14 adds a one-scan SMB capture command and disabled service/timer examples,
-plus a private Google batch-upload API that binds each attempt to an owner
-admission and independently verified batch. Enable/Disable decisions now have
-a coordinator application path. Dev14 is installed in a protected inactive
-prefix; these paths are not connected to the live dashboard or automatic worker.
-A separate coordinator startup trial caught Debian's linked legacy
-`ip` path; the source now uses the canonical executable and still refuses
-symlinks. [Startup finding](docs/acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
-The corrected build returned the expected idle response on the Pi. Independent
-checks confirmed no test processes remained after systemd cleared the terminal
-invocation ID; the full service trial remains unaccepted.
-[Dev14 observations](docs/acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).
-
-Dev15 adds the private upload command that connects the admitted batch API to
-separate bounded input, release and receipt channels. It remains source-only;
-the confined bootstrap, one-batch dispatcher and real account acceptance come
-next. Its presence does not activate an automatic backup service.
-
-A confirmed small-upload bug is fixed in development: the multipart parser's
-32 KiB buffer cap rejected files well below 100 MiB. The tested fix keeps the
-100 MiB file limit. The fix is deployed on the Pi: isolated authenticated
-Waitress tests accepted 122,700-byte, 125,645-byte and 1 MiB files and downloaded
-identical copies. Existing accounts/files were preserved; sign in again after
-the dashboard restart. [Native acceptance](docs/acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
-
-The dashboard currently lists completed **web uploads**. It does not yet browse
-all Pi folders or start cloud backup automatically. The Rust trial measured
-1,796 KiB idle parent RSS with a fixture runner; it is not a whole-appliance
-memory guarantee. See [the measurements and language decision](docs/RUST_EVALUATION.md).
+The dashboard currently lists completed **web uploads**. Broader file browsing,
+the Samba-to-dashboard bridge and automatic cloud backups remain in development.
 
 ## Two USB modes, one clear ownership rule
 
@@ -188,6 +147,8 @@ a working network configuration.
 
 Use Python 3.9+ and a virtual environment. Optional SMB support requires Python
 3.10+. Rust tooling is isolated in the [documented build container](docs/RUST_EVALUATION.md).
+The small Rust watcher measured 1,796 KiB idle parent RSS with a fixture runner;
+this is not a whole-appliance memory guarantee.
 
 ```sh
 python3 -m venv .venv

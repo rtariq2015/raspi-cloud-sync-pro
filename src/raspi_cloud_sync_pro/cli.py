@@ -135,7 +135,7 @@ def _run_private_google_test(args):
                 "account_verified": False, "automatic_deletion": False}
 
 
-def _run_private_google_upload(args):
+def _run_private_google_upload(args, *, expected_control_request_id=None):
     """Consume private channels; only the upload API authenticates root release."""
     from . import google_destination as destination
     from . import google_upload
@@ -156,6 +156,8 @@ def _run_private_google_upload(args):
         identities = [destination._descriptor_identity(fd) for fd in channels.values()]
         if invalid or len(channels) != 3 or len(set(identities)) != 3:
             raise BackupError("google_upload_channel_invalid")
+        if expected_control_request_id is not None and not google_upload.control._id(expected_control_request_id):
+            raise BackupError("google_upload_arguments_invalid")
         if (not math.isfinite(args.timeout) or not 0 < args.timeout <= 300
                 or not google_upload.control._id(args.batch_id)
                 or not google_upload.control._hash(args.manifest_sha256)
@@ -165,6 +167,8 @@ def _run_private_google_upload(args):
             raise BackupError("google_upload_arguments_invalid")
         admission = destination._read_frame(channels["admission"], destination._deadline(5))
         if not isinstance(admission, dict) or len(destination._canonical(admission)) > 16384:
+            raise BackupError("google_upload_admission_invalid")
+        if expected_control_request_id is not None and admission.get("control_request_id") != expected_control_request_id:
             raise BackupError("google_upload_admission_invalid")
         gate_identity = destination._descriptor_identity(channels["gate"])
         private_gate = fcntl.fcntl(channels["gate"], fcntl.F_DUPFD_CLOEXEC, 3)
