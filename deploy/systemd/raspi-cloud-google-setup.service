@@ -1,18 +1,22 @@
 [Unit]
 Description=Raspi Cloud Sync Pro private disabled Google preparation
 ConditionPathExists=/etc/raspi-cloud-sync-pro/GOOGLE_SETUP_APPROVED
-StartLimitIntervalSec=60
+StartLimitIntervalSec=300
 StartLimitBurst=3
 
 [Service]
 Type=oneshot
-User=root
-Group=root
+# PID1 system services default to root. Avoid the systemd 257 explicit-user
+# seccomp transition, which removes CAP_SETUID even for User=root under NNP.
+# The broker verifies its real/effective root identity before privileged work.
 WorkingDirectory=/
 # This pinned interpreter must be an actual root-owned file in a --copies venv.
 # The broker rejects current links, interpreter symlinks and writable ancestors.
 ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev10/venv/bin/python3 -I -B -m raspi_cloud_sync_pro google-setup-broker --config /etc/raspi-cloud-sync-pro/google-setup-broker.json
-Restart=no
+# Atomic intent publication can race the source identity's still-held auth lock.
+# Three bounded starts fit within five minutes; retained failures need manual recovery.
+Restart=on-failure
+RestartSec=1
 TimeoutStartSec=30
 TimeoutStopSec=5
 KillMode=control-group
@@ -39,7 +43,8 @@ RestrictNamespaces=yes
 RestrictRealtime=yes
 LockPersonality=yes
 RestrictAddressFamilies=AF_UNIX
-CapabilityBoundingSet=CAP_DAC_OVERRIDE CAP_SETUID CAP_SETGID
+# The broker uses CAP_KILL to terminate its tracked UID-dropped child groups.
+CapabilityBoundingSet=CAP_DAC_OVERRIDE CAP_SETUID CAP_SETGID CAP_KILL
 AmbientCapabilities=
 MemoryMax=160M
 TasksMax=16

@@ -224,6 +224,23 @@ pending intent needs a deliberate one-shot start. An existing exact matching
 preparation may be reconciled only for the same current unexpired request.
 Previous completed/incomplete artifacts are never silently replaced or removed.
 
+Atomic pointer publication can precede release of the owner's account lock.
+The setup service therefore retries failures after one second, with at most
+three starts in a five-minute rate-limit window. That window exceeds the three
+normal start/stop deadlines and delays. Retries still revalidate current owner,
+intent, authorization and existing configuration. Exhaustion needs deliberate
+recovery; the watcher does not touch or recreate an owner request. These are
+normal process deadlines, not a guarantee against uninterruptible kernel I/O.
+
+The controller uses PID1's root defaults. On the tested systemd 257.13 setup,
+the explicit root credential transition removed effective `CAP_SETUID` under
+the selected sandbox, preventing the child identity drop. Native comparison
+verifies root UID/GID, the four-capability bound (`DAC_OVERRIDE`, `SETUID`,
+`SETGID`, `KILL`), empty ambient/inheritable sets and `NoNewPrivileges`.
+`CAP_KILL` permits cleanup of the controller's tracked child groups after those
+children change UID. Children retain no effective, permitted, inheritable or
+ambient capabilities. [Native proof](acceptance/pi-google-setup-capabilities-2026-11-13.json).
+
 Neither this workflow nor its templates contact Google, refresh a token, create
 a remote folder, invoke rclone, change host networking, start a worker or enable
 uploads. The service template adds a private network namespace, bounded runtime

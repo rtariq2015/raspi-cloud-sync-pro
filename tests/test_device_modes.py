@@ -112,7 +112,8 @@ class DeviceModeTests(unittest.TestCase):
                     "GOOGLE_SETUP_APPROVED" if path.name == "raspi-cloud-google-setup.service" else \
                     "STAGED_WORKER_APPROVED" if path.name == "cloudstick.service" else "DISPOSABLE_TEST_APPROVED"
                 self.assertIn(marker, unit["Unit"]["ConditionPathExists"])
-                self.assertEqual(unit["Service"]["Restart"], "no")
+                self.assertEqual(unit["Service"]["Restart"],
+                                 "on-failure" if path.name == "raspi-cloud-google-setup.service" else "no")
             if "dashboard" in path.name:
                 self.assertEqual(unit["Service"]["User"], "raspi-dashboard")
                 self.assertEqual(unit["Service"]["NoNewPrivileges"], "yes")
@@ -131,8 +132,8 @@ class DeviceModeTests(unittest.TestCase):
             self.assertEqual(unit["Unit"]["ConditionPathExists"], example["approval_file"])
         process = service["Service"]
         self.assertEqual(process["Type"], "oneshot")
-        self.assertEqual(process["User"], "root")
-        self.assertEqual(process["Group"], "root")
+        self.assertNotIn("User", process)
+        self.assertNotIn("Group", process)
         self.assertEqual(shlex.split(process["ExecStart"]), [
             example["interpreter"], "-I", "-B", "-m", "raspi_cloud_sync_pro",
             "google-setup-broker", "--config", "/etc/raspi-cloud-sync-pro/google-setup-broker.json"])
@@ -140,7 +141,7 @@ class DeviceModeTests(unittest.TestCase):
         self.assertNotIn("/current/", process["ExecStart"])
         self.assertEqual(process["RestrictAddressFamilies"].split(), ["AF_UNIX"])
         self.assertEqual(process["CapabilityBoundingSet"].split(),
-                         ["CAP_DAC_OVERRIDE", "CAP_SETUID", "CAP_SETGID"])
+                         ["CAP_DAC_OVERRIDE", "CAP_SETUID", "CAP_SETGID", "CAP_KILL"])
         self.assertEqual(process["AmbientCapabilities"], "")
         for key in ("PrivateNetwork", "NoNewPrivileges", "ProtectHome", "PrivateTmp",
                     "PrivateDevices", "ProtectKernelTunables", "ProtectKernelModules",
@@ -155,7 +156,14 @@ class DeviceModeTests(unittest.TestCase):
         self.assertEqual(process["RuntimeDirectoryPreserve"], "yes")
         self.assertEqual(process["UMask"], "0077")
         self.assertEqual(process["LimitCORE"], "0")
-        self.assertEqual(process["Restart"], "no")
+        self.assertEqual(process["Restart"], "on-failure")
+        self.assertEqual(process["RestartSec"], "1")
+        self.assertEqual(service["Unit"]["StartLimitIntervalSec"], "300")
+        self.assertEqual(service["Unit"]["StartLimitBurst"], "3")
+        self.assertNotIn("StartLimitAction", service["Unit"])
+        self.assertGreater(int(service["Unit"]["StartLimitIntervalSec"]),
+                           3 * (int(process["TimeoutStartSec"]) + int(process["TimeoutStopSec"])
+                                + int(process["RestartSec"])))
         self.assertEqual(process["KillMode"], "control-group")
         self.assertEqual(process["SendSIGKILL"], "yes")
         self.assertEqual(process["TimeoutStartSec"], "30")

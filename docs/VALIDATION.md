@@ -507,3 +507,30 @@ that does not resolve earlier auto-switcher behavior. Firmware reported
 `throttled=0x0` before and after. This exercised Flask `test_client`, not a TCP
 server, browser, HTTPS proxy or real provider account. No real credential was
 read and no cloud request, automatic upload or service activation occurred.
+
+### Actual systemd capability and cleanup checks
+
+Three isolated systemd probes on the Zero 2 W reproduced a service-policy issue
+on systemd 257.13: explicitly setting `User=root` with the tested restrictions
+removed effective `CAP_SETUID`, preventing the broker's ordinary-child identity
+transition. Using the system manager's default root identity preserved that
+capability while retaining no-new-privileges, empty ambient capabilities and the
+private network/filesystem restrictions. Both ordinary children then passed the
+actual UID/GID drop and had no effective, permitted, inheritable or ambient
+capabilities. Interpreter file-capability attributes were absent.
+
+A separate comparison demonstrated that the coordinator also needs `CAP_KILL`
+to stop its own tracked child process groups after their UID drop. Three bounded
+capabilities produced permission denial; adding only `CAP_KILL` allowed the
+actual cleanup function to terminate and reap its tracked child. These probes
+created no authorization intents, used no provider credentials and stopped their
+own temporary services. [Sanitized comparative evidence](acceptance/pi-google-setup-capabilities-2026-11-13.json).
+They do not establish automatic preparation, event delivery or cloud access.
+
+The service template now uses those four bounded capabilities and the default
+root identity. It retries a failed preparation at most three times in a
+five-minute start-limit window; the window exceeds three ordinary configured
+start/stop timeout cycles. This also handles atomic pointer publication while
+the owner's authorization lock is still held. No boot enablement is added.
+Actual event delivery, contention recovery and slow-failure limit acceptance are
+being checked separately from the capability probes.

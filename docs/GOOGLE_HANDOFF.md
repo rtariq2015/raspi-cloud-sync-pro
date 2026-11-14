@@ -408,11 +408,35 @@ operations. Deliberate activation additionally requires the root-owned mode-0600
 The config and approval path ancestors are protected and non-symlinked; config
 must be a root-owned regular file without group/other writes. The marker's
 presence satisfies the systemd condition, while the broker separately validates
-its exact contents. The service is root, one-shot, has no restart policy, uses
+its exact contents. The service is root, one-shot, retries failures with a
+one-second delay, uses
 `PrivateNetwork=yes`, restricts address families to Unix, and bounds runtime and
 capabilities. It does not change host networking. Its root-owned mode-0700
 `/run/raspi-cloud-google-setup` runtime directory is preserved across exits so
 the lock inode remains stable. Both templates omit an `[Install]` section.
+
+`StartLimitBurst=3` and `StartLimitIntervalSec=300` limit normal failed attempts
+before deliberate recovery. The five-minute window exceeds three configured
+start/stop timeouts plus restart delays; a short window could roll over during
+slow failures and allow continued attempts. Retries handle the race between
+atomic request publication and release of the owner's `auth.lock`, as well as
+recoverable interrupted preparation. Every attempt revalidates the source and
+leaves uploads disabled. Long-held locks, exhausted attempts and uninterruptible
+kernel I/O are not promised automatic recovery. Stop the watcher before the
+service when disabling or rolling back, then change protected configuration;
+editing config alone does not cancel a running broker.
+
+The template omits `User=` and `Group=` and uses PID1's root defaults. The tested
+257.13 explicit-root/seccomp startup path removed effective `CAP_SETUID`; the
+[versioned systemd implementation](https://raw.githubusercontent.com/systemd/systemd/v257.13/src/core/exec-invoke.c)
+explains that credential-transition behavior. A native comparison kept the
+sandbox and `NoNewPrivileges` enabled, verified root UID/GID and the required
+capabilities, and exercised both actual ordinary-UID drops. It also demonstrated
+that the controller needs `CAP_KILL` for its own tracked UID-dropped child-group
+cleanup. The four-capability bound grants no network or mount administration.
+Child effective/permitted/inheritable/ambient sets remain empty. See the
+[sanitized comparison](acceptance/pi-google-setup-capabilities-2026-11-13.json)
+and the [Linux capability definitions](https://man7.org/linux/man-pages/man7/capabilities.7.html).
 
 The watcher uses `PathChanged` on the exact
 `dashboard/google-setup/current.json` pointer. It observes future pointer changes;
