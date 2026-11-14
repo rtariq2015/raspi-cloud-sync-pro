@@ -264,6 +264,7 @@ class StagingTests(unittest.TestCase):
                 mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot') as copied, self.assertRaisesRegex(BackupError, 'capture_inventory_limit'):
             stage_changed_snapshot(self.source, self.destination, staging_owner())
         copied.assert_not_called();self.assertFalse(self.destination.exists())
+
         with mock.patch('raspi_cloud_sync_pro.staging._CAPTURE_METADATA_LIMIT', 4097), \
                 mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot') as copied, self.assertRaisesRegex(BackupError, 'capture_inventory_limit'):
             stage_changed_snapshot(self.source, self.destination, staging_owner())
@@ -273,3 +274,33 @@ class StagingTests(unittest.TestCase):
                 mock.patch('raspi_cloud_sync_pro.staging.stage_snapshot') as copied, self.assertRaisesRegex(BackupError, 'capture_inventory_limit'):
             stage_changed_snapshot(self.source, self.destination, staging_owner())
         copied.assert_not_called();self.assertFalse(self.destination.exists())
+
+    def test_exfat_cross_pass_inode_changes_do_not_invalidate_identical_content(self):
+        from raspi_cloud_sync_pro import staging
+        (self.source/'qa.txt').write_bytes(b'actual unchanged file')
+        original = staging._capture_inventory
+        def inode_changes(*args, **kwargs):
+            files, values = original(*args, **kwargs)
+            if not kwargs['contents']:
+                values = {path: value[:1] + (value[1]+1000,) + value[2:] for path, value in values.items()}
+            return files, values
+        with mock.patch.object(staging, '_capture_inventory', side_effect=inode_changes):
+            batch, previous = stage_changed_snapshot(self.source, self.destination, staging_owner())
+            unchanged, current = stage_changed_snapshot(self.source, self.destination, staging_owner(), previous)
+        self.assertIsNone(unchanged);self.assertEqual(current, previous)
+        self.assertEqual((batch.root/'files/qa.txt').read_bytes(), b'actual unchanged file')
+        self.assertEqual(len(list(self.destination.glob('*.ready'))), 1)
+
+    def test_cross_pass_device_size_and_times_still_invalidate_capture(self):
+        from raspi_cloud_sync_pro import staging
+        (self.source/'qa.txt').write_bytes(b'unchanged file')
+        original = staging._capture_inventory
+        for field in (0, 2, 3, 4):
+            def metadata_change(*args, **kwargs):
+                files, values = original(*args, **kwargs)
+                if not kwargs['contents']:
+                    values = {path: value[:field] + (value[field]+1,) + value[field+1:] for path, value in values.items()}
+                return files, values
+            with self.subTest(field=field), mock.patch.object(staging, '_capture_inventory', side_effect=metadata_change), \
+                    self.assertRaisesRegex(BackupError, 'source_changed'):
+                stage_changed_snapshot(self.source, self.destination, staging_owner())

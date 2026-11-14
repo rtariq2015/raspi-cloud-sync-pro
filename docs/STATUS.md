@@ -20,6 +20,12 @@ After restoring the normal worker, it uploaded and passed Google verification.
 The Pi's radio and SSH stayed up; this was worker network isolation rather than
 a physical Wi-Fi outage. Five files are now verified without repeat uploads.
 
+**Latest hardware finding:** dev20's repeated-capture check stopped safely
+because Linux exFAT can change a file's inode number between separate opens.
+The copied contents were correct. Dev21 corrects that comparison while keeping
+the data and ownership checks; its native retest is still pending. The failure
+journal and copied data are retained. The project is not yet complete.
+
 **Updates on your phone:** use the [plain-language progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 It records what works, current work, remaining tests and whether owner help is
 needed. Subscribe there and choose GitHub/email notifications in your account;

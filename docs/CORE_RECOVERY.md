@@ -85,4 +85,17 @@ SSH. Its real captured 72-byte file stayed queued through two fresh processes,
 then reached Google and passed verification when the normal worker resumed.
 Five jobs are now verified; the four older jobs were not uploaded again. This
 does not establish physical radio-outage or Pi-reboot acceptance.
+
+The first dev20 duplicate-capture trial **failed closed**, after publishing a
+complete local copy and before unmount/reattachment. A fresh exclusive-read-only
+diagnostic reproduced three inode-number-only differences between passes;
+device, size, timestamps and copied hashes matched. Linux exFAT assigns an
+`iunique()` number when rebuilding an evicted inode, so inode numbers cannot
+identify a file across separate opens. See the
+[upstream exFAT implementation](https://github.com/torvalds/linux/blob/v6.18/fs/exfat/inode.c#L629-L669).
+Dev21 removes only that cross-pass comparison; per-open identity, content hashes,
+path sets, device and timestamps remain checked. Its two regression tests pass.
+The failed journal and valid copied data were retained and reviewed; no source
+data was deleted or filesystem repair forced. Native dev21 acceptance remains
+required before marking duplicate suppression as passed.
 Plain-language updates and owner questions: [GitHub progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).

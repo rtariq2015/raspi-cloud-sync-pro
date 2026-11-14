@@ -305,7 +305,13 @@ def stage_changed_snapshot(source, destination, ownership, previous_files=None, 
             changed = tuple(item for item in current if previous.get(item.relative) != item)
             batch = stage_snapshot(source, destination, ownership, reserve_bytes=reserve_bytes,
                                    _selected={item.relative for item in changed}) if changed else None
-            if (batch is not None and batch.files != changed) or _capture_inventory(source, contents=False)[1] != fingerprints:
+            final = _capture_inventory(source, contents=False)[1]
+            # FAT/exFAT inode numbers are lookup/cache identities, not persistent
+            # file identities across reopen. Native exFAT reproduced inode-only
+            # differences under an exclusive RO mount. Keep dev/size/timestamps
+            # across passes; the full identity checks within an open FD remain.
+            across_passes = lambda values: {path: value[:1] + value[2:] for path, value in values.items()}
+            if (batch is not None and batch.files != changed) or across_passes(final) != across_passes(fingerprints):
                 raise BackupError('source_changed_during_staging')
             return batch, current
         except BackupError:
