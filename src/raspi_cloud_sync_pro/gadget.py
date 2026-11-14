@@ -212,14 +212,42 @@ class GadgetController:
                 raise BackupError("gadget_io_failed") from error
             raise
 
-    def start(self, *, adopt_host=False):
+    def validate_cold_start(self, staging_directory):
+        """Metadata eligibility only, under session lock; never eject permission."""
+        self._require_session()
+        previous = self.journal.data
+        identity = list(getattr(self.backend, 'image_identity', ()) or ())
+        if (self.started or self.armed or self.loop is not None or len(identity) != 3
+                or any(type(item) is not int or item < 0 for item in identity)):
+            raise BackupError('controller_recovery_required')
+        if previous is not None and (set(previous) != {'schema_version', 'phase', 'image', 'image_identity', 'loop'}
+                or type(previous['schema_version']) is not int or previous['schema_version'] != 1
+                or previous['phase'] != 'host' or previous['image'] != str(self.backend.image)
+                or not isinstance(previous['image_identity'], list)
+                or any(type(item) is not int for item in previous['image_identity'])
+                or previous['image_identity'] != identity or previous['loop'] is not None):
+            raise BackupError('controller_recovery_required')
+        if os.path.lexists(self.journal.directory / 'controller.pending'):
+            raise BackupError('controller_recovery_required')
+        root = Path(staging_directory) if staging_directory is not None else None
+        if root is None or root.is_symlink() or not root.is_dir():
+            raise BackupError('capture_handoff_recovery_required')
+        with os.scandir(root) as entries:
+            if next(entries, None) is not None:
+                raise BackupError('capture_handoff_recovery_required')
+        self.journal.load_capture(self.backend.image, identity)
+
+    def start(self, *, adopt_host=False, cold_start=False, staging_directory=None):
         """Start unarmed; explicitly adopt loaded host media only with a new journal.
 
         Adoption records current host ownership without inspecting the filesystem.
         A later configured, loaded poll must still precede any accepted eject.
         """
+        # Reject ambiguous cold metadata without rewriting an existing pending file.
+        if cold_start is True and type(adopt_host) is bool and not adopt_host:
+            self.validate_cold_start(staging_directory)
         with self._operation():
-            if type(adopt_host) is not bool:
+            if type(adopt_host) is not bool or type(cold_start) is not bool or adopt_host and cold_start:
                 raise BackupError("invalid_host_adoption_request")
             observation = self._observe()
             previous = self.journal.data
@@ -228,7 +256,10 @@ class GadgetController:
                              or previous["phase"] != "host"):
                 raise BackupError("controller_recovery_required")
             self.capture_files = self.journal.load_capture(self.backend.image, getattr(self.backend, 'image_identity', ()) or ())
-            if previous:
+            if cold_start:
+                self._detached(observation)
+                self._attach()
+            elif previous:
                 if not observation.bound or observation.backing != str(self.backend.image) \
                         or observation.loops or observation.mounts:
                     raise BackupError("controller_recovery_required")

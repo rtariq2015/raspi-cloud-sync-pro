@@ -395,3 +395,71 @@ class GadgetControllerTests(unittest.TestCase):
             self.assertEqual(len(list((self.root/'staging').glob('*.ready'))), 2)
             self.assertFalse(self.backend.bound);self.assertFalse(self.backend.mounted);self.assertIsNone(self.backend.loop)
             self.assertNotIn('attach', self.backend.events)
+
+    def test_explicit_cold_start_exports_without_connected_host_and_waits_unarmed(self):
+        staging = self.root/'staging';staging.mkdir(mode=0o700)
+        attach = self.backend.attach_gadget
+        def disconnected_attach():
+            attach();self.backend.configured = False
+        with mock.patch.object(self.backend, 'attach_gadget', side_effect=disconnected_attach), self.controller.session():
+            self.controller.start(cold_start=True, staging_directory=staging)
+            self.assertTrue(self.backend.bound);self.assertFalse(self.controller.armed)
+            self.assertEqual(self.controller.poll(staging), 'waiting_for_host')
+            self.assertNotIn('mount', self.backend.events)
+            self.backend.configured = True
+            self.assertEqual(self.controller.poll(staging), 'waiting_for_host_eject')
+            self.backend.eject();batch = self.controller.poll(staging)
+            self.assertEqual((batch.root/'files/original.txt').read_bytes(), b'retain original')
+
+    def test_cold_start_after_exact_host_journal_preserves_capture_baseline(self):
+        with self.controller.session():
+            self.controller.start();batch = self.capture_cycle()
+        delivered = self.root/'retained.ready';batch.root.rename(delivered)
+        baseline = (self.root/'state/capture-manifest.json').read_bytes()
+        self.backend.bound, self.backend.backing, self.backend.configured = False, '', False
+        restarted = GadgetController(self.backend, self.root/'state')
+        with restarted.session():
+            restarted.start(cold_start=True, staging_directory=self.root/'staging')
+            self.assertFalse(restarted.armed)
+            self.assertEqual(self.capture_cycle(restarted), 'unchanged_snapshot')
+        self.assertEqual((self.root/'state/capture-manifest.json').read_bytes(), baseline)
+        self.assertTrue(delivered.exists())
+
+    def test_cold_start_refuses_ambiguous_journal_before_backend_observation(self):
+        for change in ({'phase': 'staging'}, {'image': '/other'}, {'image_identity': [1, 9, 99]},
+                       {'loop': '/dev/loop9'}, {'schema_version': True}, {'extra': True}):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory);backend = SimulatedGadget(root);controller = GadgetController(backend, root/'state')
+                (root/'staging').mkdir()
+                with controller.session():
+                    controller.journal.save('host', image=str(backend.image), image_identity=list(backend.image_identity), loop=None)
+                    controller.journal.data.update(change)
+                    with mock.patch.object(backend, 'observe') as observe, self.assertRaises(BackupError):
+                        controller.start(cold_start=True, staging_directory=root/'staging')
+                    observe.assert_not_called()
+                self.assertEqual(backend.events, [])
+
+    def test_cold_start_retains_pending_handoff_and_pending_journal(self):
+        for remnant in ('capture.ready', 'capture.incomplete', 'controller.pending', 'capture-manifest.pending'):
+            with self.subTest(remnant=remnant), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory);backend = SimulatedGadget(root);controller = GadgetController(backend, root/'state')
+                staging = root/'staging';staging.mkdir()
+                with controller.session():
+                    path = (root/'state' if remnant.endswith('.pending') else staging)/remnant
+                    path.write_bytes(b'retain pending data')
+                    with mock.patch.object(backend, 'observe') as observe, self.assertRaises(BackupError):
+                        controller.start(cold_start=True, staging_directory=staging)
+                    observe.assert_not_called();self.assertEqual(path.read_bytes(), b'retain pending data')
+
+    def test_cold_start_is_explicit_boolean_and_never_detaches_loaded_host(self):
+        for value in (1, 'true', None):
+            with self.subTest(value=value), self.controller.session(), mock.patch.object(self.backend, 'observe') as observe:
+                with self.assertRaises(BackupError):self.controller.start(cold_start=value, staging_directory=self.root/'staging')
+                observe.assert_not_called()
+        # A loaded image is not cold-start eligibility and must never be read/detached.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory);backend = SimulatedGadget(root);controller = GadgetController(backend, root/'state')
+            (root/'staging').mkdir();backend.bound, backend.backing = True, str(backend.image)
+            with controller.session(), self.assertRaisesRegex(BackupError, 'image_not_exclusive'):
+                controller.start(cold_start=True, staging_directory=root/'staging')
+            self.assertEqual(backend.events, []);self.assertTrue(backend.bound)

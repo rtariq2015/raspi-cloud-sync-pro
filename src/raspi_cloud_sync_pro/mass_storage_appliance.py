@@ -19,8 +19,9 @@ import time
 
 from .errors import BackupError
 from .gadget import GadgetController
+from .hardware import power_diagnostics
 from .google_broker import _root_directory, _root_file, _service_identity, _state_directory
-from .linux_gadget import GadgetSettings, LinuxGadgetBackend, LiveLinuxIO
+from .linux_gadget import LEGACY_GADGET_MODULES, GadgetSettings, LinuxGadgetBackend, LiveLinuxIO
 
 APPROVED_TEST_BUILD = False
 CONFIG = Path('/etc/raspi-cloud-sync-pro/mass-storage-appliance.json')
@@ -84,6 +85,7 @@ class _ApplianceIO(LiveLinuxIO):
     def __init__(self, settings):
         self.settings = settings
         self.root = Path('/sys/kernel/config/usb_gadget') / NAME
+        self.preparing = False
 
     def require_mutations(self):
         _approved(self.settings)
@@ -102,14 +104,30 @@ class _ApplianceIO(LiveLinuxIO):
     def write(self, path, value):
         allowed = {self.root / 'UDC': {'', self.settings.udc},
                    self.root / 'functions/mass_storage.0/lun.0/file': {str(IMAGE)}}
+        if self.preparing:
+            allowed = {path: {value} for path, value in self.profile_attributes().items()}
         _require(Path(path) in allowed and value in allowed[Path(path)])
         super().write(path, value)
 
+    def profile_attributes(self):
+        return {self.root/'idVendor': self.settings.vendor_id, self.root/'idProduct': self.settings.product_id,
+                self.root/'bcdUSB': '0x0200', self.root/'bcdDevice': '0x0100',
+                self.root/'strings/0x409/serialnumber': self.settings.serial,
+                self.root/'strings/0x409/manufacturer': 'Raspi Cloud Sync Pro',
+                self.root/'strings/0x409/product': 'Raspi Cloud Sync Pro - disposable test',
+                self.root/'configs/c.1/MaxPower': '500',
+                self.root/'functions/mass_storage.0/lun.0/removable': '1',
+                self.root/'functions/mass_storage.0/lun.0/ro': '0', self.root/'functions/mass_storage.0/lun.0/nofua': '0'}
+
     def mkdir(self, path):
-        raise BackupError('mass_storage_appliance_existing_profile_required')
+        _require(self.preparing and Path(path) in {self.root, self.root/'strings/0x409',
+                 self.root/'configs/c.1', self.root/'functions/mass_storage.0'})
+        super().mkdir(path)
 
     def symlink(self, source, destination):
-        raise BackupError('mass_storage_appliance_existing_profile_required')
+        _require(self.preparing and Path(source) == self.root/'functions/mass_storage.0'
+                 and Path(destination) == self.root/'configs/c.1/mass_storage.0')
+        super().symlink(source, destination)
 
     def provision_command(self, arguments):
         raise BackupError('mass_storage_appliance_provisioning_forbidden')
@@ -248,6 +266,33 @@ def _private_directory(path):
         _directory(fd, ROOT_UID)
 
 
+def _start_controller(controller, backend, io):
+    """Called inside the exclusive session; no OS provisioning or driver loads."""
+    backend._pin_image()
+    present = io.exists(backend.root)
+    if present and (io.read(backend.root/'UDC') or io.read(backend.lun/'file')):
+        controller.start(adopt_host=True)
+        return
+    controller.validate_cold_start(PRIVATE_STAGING)
+    _require(not any(io.exists('/sys/module/' + name) for name in LEGACY_GADGET_MODULES))
+    _require([path.name for path in io.children('/sys/class/udc')] == [backend.settings.udc])
+    _require(io.children('/sys/kernel/config/usb_gadget') == ([backend.root] if present else []))
+    _require(not backend._loops() and not backend._mounts(()))
+    _require(power_diagnostics(io)['current_ok'] is True)
+    if not present:
+        io.preparing = True
+        try:
+            backend.prepare()
+        finally:
+            io.preparing = False
+    # An exact complete empty profile is reusable; partial profiles are never wiped.
+    _require(all(io.read(path) == value for path, value in io.profile_attributes().items()))
+    _require(io.children(backend.root/'strings') == [backend.root/'strings/0x409'])
+    seen = backend.observe()
+    _require(seen.profile_ok and not seen.bound and not seen.backing and not seen.loops and not seen.mounts)
+    controller.start(cold_start=True, staging_directory=PRIVATE_STAGING)
+
+
 def _run(settings, account, *, once=False):
     io = _ApplianceIO(settings);io.require_mutations()
     previous_umask = os.umask(0o077)
@@ -263,7 +308,7 @@ def _run(settings, account, *, once=False):
         backend = _ApplianceBackend(settings, io)
         captured = 0
         with GadgetController(backend, STATE).session() as controller:
-            controller.start(adopt_host=True)
+            _start_controller(controller, backend, io)
             while True:
                 result = controller.poll(PRIVATE_STAGING)
                 if hasattr(result, 'root'):

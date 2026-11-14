@@ -9,7 +9,7 @@ upload and downloaded-content verification. All local copies remain. Four jobs
 are now verified, including the earlier 10,490,314-byte file; that earlier file
 was not uploaded again. Earlier Windows attribution came from conversation
 context, not an independently recorded host OS. Windows-specific testing,
-persisted USB startup and physical
+persistent USB startup and physical
 offline/reboot acceptance remain unfinished. No-eject operation is unproven.
 Further dashboard/Samba/provider expansion is deferred.
 See [the core recovery record](CORE_RECOVERY.md).

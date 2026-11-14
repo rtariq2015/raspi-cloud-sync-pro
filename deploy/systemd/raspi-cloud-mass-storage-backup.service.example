@@ -9,7 +9,7 @@ User=raspi-backup
 Group=raspi-backup
 # The core trial reuses the protected interpreter with a fixed reviewed package
 # launcher. Re-pin both paths for another tested build; never use /current.
-ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B /opt/raspi-cloud-sync-pro/qa/mass-storage-worker-dev20/launcher.py backup-staged --config /var/lib/raspi-cloud-sync-pro/mass-storage-backup/worker.json
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B /opt/raspi-cloud-sync-pro/qa/mass-storage-worker-dev22/launcher.py backup-staged --config /var/lib/raspi-cloud-sync-pro/mass-storage-backup/worker.json
 WorkingDirectory=/
 Environment=PATH=/opt/raspi-cloud-sync-pro/tools/mass-storage-bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=HOME=/nonexistent LANG=C LC_ALL=C

@@ -76,8 +76,11 @@ false. The separately recorded protected dev19 test build is running and passed
 the automatic Linux-host handoff. Its root service required `CAP_SYS_PTRACE` to
 read PID 1's mount namespace identity; without it startup refused before mutations.
 The corrected service was probed on the Pi before starting the controller.
-It does not provision the USB profile after reboot; interrupted handoffs retain
-data for manual recovery. The example service is therefore static and disabled.
+The deployed dev21 does not provision its USB profile after reboot; interrupted
+handoffs retain data for manual recovery. Its installed service is static.
+Dev22 source adds a narrowly checked cold-start path and boot-capable reference
+unit. Its native boot test and OS loader preparation are still pending;
+copying the example does not enable a service. See [cold startup](MSC_BOOT.md).
 
 Full sanitized evidence: [automatic USB acceptance](acceptance/pi-mass-storage-auto-linux-2026-11-14.json).
 The [offline worker trial](acceptance/pi-core-offline-worker-2026-11-14.json)

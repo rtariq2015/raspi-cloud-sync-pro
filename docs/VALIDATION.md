@@ -1,6 +1,6 @@
 # Phase 2 validation record
 
-Current source: **0.1.0.dev21**, with **829 core Python tests and 28 USB operator
+Current source: **0.1.0.dev22**, with **841 core Python tests and 28 USB operator
 tests passing** locally, including actual rclone against a temporary local alias.
 The [core USB trial](CORE_RECOVERY.md) now passes automatic eject capture,
 reattachment and Google upload/downloaded-hash verification on the real Zorin

@@ -1,6 +1,7 @@
 """Real inode/publication tests with explicitly mocked root/ownership boundaries."""
 
 import ast
+import configparser
 from contextlib import ExitStack, contextmanager
 import json
 import os
@@ -263,6 +264,106 @@ class ApplianceTests(unittest.TestCase):
             observed.bound = True
             with mock.patch.object(appliance.os, 'pread') as read, self.assertRaises(BackupError):backend.check_filesystem('/dev/loop42')
             read.assert_not_called()
+
+    def startup_fixture(self, *, present=False, loaded=False, partial=False, conflict=False):
+        settings = appliance.GadgetSettings(appliance.IMAGE, appliance.MOUNT, appliance.STATE, self.private,
+                                            'fake-udc', name=appliance.NAME, serial=appliance.SERIAL)
+        root = Path('/sys/kernel/config/usb_gadget')/appliance.NAME
+        backend = mock.Mock(root=root, lun=root/'functions/mass_storage.0/lun.0', settings=settings)
+        backend._loops.return_value = [];backend._mounts.return_value = ()
+        backend.observe.return_value = SimpleNamespace(profile_ok=True, bound=False, backing='', loops=(), mounts=())
+        io = mock.Mock();io.preparing = False
+        io.power.return_value = 'throttled=0x0'
+        attributes = appliance._ApplianceIO(settings).profile_attributes()
+        io.profile_attributes.return_value = attributes
+        controller, events = mock.Mock(), []
+        controller.validate_cold_start.side_effect = lambda root: events.append('validate')
+        controller.start.side_effect = lambda **kwargs: events.append(('start', kwargs))
+        def exists(path):
+            return present if Path(path) == root else conflict and str(path) == '/sys/module/g_ether'
+        def read(path):
+            path = Path(path)
+            if path == root/'UDC':return 'fake-udc' if loaded else ''
+            if path == backend.lun/'file':return str(appliance.IMAGE) if loaded else ''
+            return 'foreign' if partial and path == root/'idVendor' else attributes[path]
+        def children(path):
+            if str(path) == '/sys/class/udc':return [Path('/sys/class/udc/fake-udc')]
+            if str(path) == '/sys/kernel/config/usb_gadget':return [root] if present else []
+            if Path(path) == root/'strings':return [root/'strings/0x409']
+            raise AssertionError('unexpected inventory')
+        def prepare():
+            nonlocal present
+            self.assertTrue(io.preparing);self.assertEqual(events, ['validate'])
+            events.append('prepare');present = True
+        backend.prepare.side_effect = prepare
+        io.exists.side_effect, io.read.side_effect, io.children.side_effect = exists, read, children
+        return controller, backend, io, events
+
+    def test_absent_cold_profile_is_prepared_only_after_session_eligibility(self):
+        controller, backend, io, events = self.startup_fixture()
+        appliance._start_controller(controller, backend, io)
+        self.assertEqual(events, ['validate', 'prepare', ('start', {'cold_start': True, 'staging_directory': self.private})])
+        self.assertFalse(io.preparing);backend.prepare.assert_called_once()
+
+    def test_existing_loaded_profile_keeps_normal_adoption_without_cold_replay(self):
+        controller, backend, io, events = self.startup_fixture(present=True, loaded=True)
+        appliance._start_controller(controller, backend, io)
+        self.assertEqual(events, [('start', {'adopt_host': True})])
+        controller.validate_cold_start.assert_not_called();backend.prepare.assert_not_called()
+
+    def test_exact_empty_profile_reused_but_partial_or_conflicting_refused(self):
+        controller, backend, io, events = self.startup_fixture(present=True)
+        appliance._start_controller(controller, backend, io)
+        self.assertEqual(events, ['validate', ('start', {'cold_start': True, 'staging_directory': self.private})])
+        backend.prepare.assert_not_called()
+        for values in ({'present': True, 'partial': True}, {'conflict': True}):
+            controller, backend, io, _ = self.startup_fixture(**values)
+            with self.assertRaises(BackupError):appliance._start_controller(controller, backend, io)
+            backend.prepare.assert_not_called();controller.start.assert_not_called()
+
+    def test_ambiguous_journal_or_loops_refuses_before_cold_profile_creation(self):
+        controller, backend, io, _ = self.startup_fixture()
+        controller.validate_cold_start.side_effect = BackupError('controller_recovery_required')
+        with self.assertRaises(BackupError):appliance._start_controller(controller, backend, io)
+        backend.prepare.assert_not_called();io.read.assert_not_called()
+        controller, backend, io, _ = self.startup_fixture()
+        backend._loops.return_value = [{'name': '/dev/loop9'}]
+        with self.assertRaises(BackupError):appliance._start_controller(controller, backend, io)
+        backend.prepare.assert_not_called();controller.start.assert_not_called()
+        controller, backend, io, _ = self.startup_fixture()
+        io.power.return_value = 'throttled=0x1'
+        with self.assertRaises(BackupError):appliance._start_controller(controller, backend, io)
+        backend.prepare.assert_not_called();controller.start.assert_not_called()
+
+    def test_failed_cold_prepare_is_retained_and_prepare_permission_closed(self):
+        controller, backend, io, _ = self.startup_fixture()
+        backend.prepare.side_effect = OSError('partial profile retained')
+        with self.assertRaises(OSError):appliance._start_controller(controller, backend, io)
+        self.assertFalse(io.preparing);controller.start.assert_not_called()
+
+    def test_prepare_io_exact_allowlist_cannot_export_load_or_modify_foreign_profile(self):
+        settings = appliance.GadgetSettings(appliance.IMAGE, appliance.MOUNT, appliance.STATE, self.private,
+                                            'fake-udc', name=appliance.NAME, serial=appliance.SERIAL)
+        io = appliance._ApplianceIO(settings);io.preparing = True
+        with mock.patch.object(appliance, '_approved'), mock.patch.object(Path, 'write_text') as write, \
+                mock.patch.object(Path, 'mkdir') as mkdir, mock.patch.object(Path, 'symlink_to') as link:
+            for path, value in io.profile_attributes().items():io.write(path, value)
+            io.mkdir(io.root);io.symlink(io.root/'functions/mass_storage.0', io.root/'configs/c.1/mass_storage.0')
+            self.assertEqual(write.call_count, len(io.profile_attributes()));mkdir.assert_called_once();link.assert_called_once()
+            for operation in (lambda: io.write(io.root/'UDC', 'fake-udc'), lambda: io.write(io.root/'idVendor', 'foreign'),
+                              lambda: io.mkdir(io.root/'foreign'), lambda: io.symlink(io.root/'foreign', io.root/'configs/c.1/mass_storage.0'),
+                              lambda: io.provision_command(['modprobe', 'libcomposite'])):
+                with self.assertRaises(BackupError):operation()
+
+    def test_cold_unit_orders_boot_prerequisites_without_stop_eject_or_runtime_loader(self):
+        path = Path(__file__).resolve().parents[1]/'deploy/systemd/raspi-cloud-mass-storage-appliance.service.example'
+        parser = configparser.ConfigParser();parser.read(path)
+        self.assertEqual(set(parser['Unit']['Requires'].split()), {'systemd-modules-load.service', 'sys-kernel-config.mount'})
+        self.assertTrue({'local-fs.target', 'systemd-modules-load.service', 'sys-kernel-config.mount'} <= set(parser['Unit']['After'].split()))
+        self.assertIn('mass-storage-appliance-dev22/launcher.py', parser['Service']['ExecStart'])
+        self.assertEqual(parser['Install']['WantedBy'], 'multi-user.target')
+        self.assertNotIn('ExecStop', parser['Service']);self.assertNotIn('ExecStartPre', parser['Service'])
+        self.assertEqual(parser['Service']['Restart'], 'no');self.assertNotIn('network-online.target', path.read_text())
 
 
 if __name__ == '__main__':
