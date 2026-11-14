@@ -91,8 +91,8 @@ credentials or state. A consumed inherited Unix-stream descriptor must identify
 a root peer through kernel credentials and release the exact request and worker
 PID with a short-lived private frame. A root release proves coordinator
 authority; it does **not** prove network confinement. The coordinator must accept
-actual per-run Wi-Fi confinement before releasing it. This worker has no CLI or
-installed coordinator yet.
+actual per-run Wi-Fi confinement before releasing it. Its private operator CLI is
+described below; no coordinator is installed yet.
 
 The ordinary backup identity validates the protected rclone executable's exact
 digest and creates a new operational generation from the bound preparation.
@@ -124,6 +124,22 @@ per-run Wi-Fi confinement or recurring backup acceptance. The documented
 External/Testing refresh-token lifetime still applies.
 
 ## Remaining integration
+
+The private `google-test` operator command now exposes the Test worker. A trusted
+coordinator supplies `--prepared-state`, `--operational-state`, a pinned absolute
+`--rclone` executable and `--rclone-sha256`, plus separate inherited
+`--request-fd`, `--root-gate-fd` and `--receipt-fd` channels. The optional gate
+argument deliberately defaults to refusal. These are already connected private
+descriptors, not standard input/output or a shell pipeline.
+
+The command validates its receipt channel before reading a request or calling
+the worker. It rejects stdio, duplicate channels and descriptor aliases, consumes
+accepted channels on all outcomes, and sends its private receipt only through
+the framed output descriptor. Ordinary stdout contains a fixed disabled summary;
+parser errors and worker exceptions do not echo arguments or private values.
+Request framing has a five-second deadline; the Test defaults to 120 seconds
+and cannot exceed 300. The command cannot create an owner intent or root release.
+It is source-tested and not installed on the Pi.
 
 Private operator CLI commands now expose `google-control-status`,
 `google-control-export`, `google-control-record` and `google-control-admission`

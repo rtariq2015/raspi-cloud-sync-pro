@@ -74,7 +74,7 @@ See [remote access](docs/REMOTE_ACCESS.md).
 | Enterprise Wi-Fi validation and non-secret configuration plans | Approved enterprise certificates and on-network testing |
 | Appliance image and update design | Image build, first-boot setup and signed updates with rollback |
 
-**457 Python tests and 10 Rust tests pass locally.** Python tests include actual
+**477 Python tests and 10 Rust tests pass locally.** Python tests include actual
 rclone against temporary local storage. Automated checks, simulated hardware,
 physical Pi checks and real cloud tests are recorded separately in the
 [validation record](docs/VALIDATION.md).

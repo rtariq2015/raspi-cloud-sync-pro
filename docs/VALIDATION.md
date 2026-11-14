@@ -753,7 +753,7 @@ F/E9, Python 3.9 grammar, actual JavaScript syntax and diff checks pass. Rust is
 unchanged and retains its previous ten-test acceptance.
 
 The live Pi still runs protected dev10 with both Google request flags off.
-The new tester has no installed CLI/coordinator and refuses without a private
+The new tester has no installed coordinator and refuses without a private
 root-authorized per-run release. A coordinator must prove actual confinement
 before releasing credentials; a root frame or systemd property alone is not
 network proof. Automatic cloud backup remains disabled.
@@ -792,3 +792,19 @@ controls surrounding its negative test. The result explicitly keeps full USB
 acceptance, strict egress acceptance and credential release false. Each future
 credentialed executor needs its own held runtime proof and release gate.
 [Sanitized native evidence](acceptance/pi-wifi-rni-partial-2026-11-13.json).
+
+## Private Google Test CLI
+
+**477 Python tests pass locally**, including actual rclone against temporary local
+storage. Twenty new tests exercise the private `google-test` command with real
+anonymous pipes and connected Unix streams. They cover receipt-first validation,
+missing root-gate refusal before request/state access, channel/stdio aliases,
+wrong-direction and malformed channels, frame/EOF requirements, private receipt
+delivery, safe public output, parser/error suppression and accepted-descriptor
+cleanup. The successful worker is stubbed; no Test fixture reaches a provider.
+
+All 54 CLI tests, Ruff F/E9, Python 3.9 grammar and diff checks pass. Independent
+review cleared the exact changed files. This command supplies coordinator
+plumbing; it cannot create owner/session proof or root release, accept kernel
+confinement, enable a worker or bypass the Test worker's default refusal. It is
+not installed in the protected dev10 Pi runtime.

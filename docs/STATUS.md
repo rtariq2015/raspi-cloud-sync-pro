@@ -68,7 +68,7 @@ and [remote access guide](REMOTE_ACCESS.md).
 
 ## Implemented and tested locally
 
-- **457 Python tests and 10 Rust tests pass locally.** Python includes real rclone
+- **477 Python tests and 10 Rust tests pass locally.** Python includes real rclone
   against temporary local storage; this is not a real cloud-account test.
 - Completed-batch backup worker with per-destination jobs, retries, network policy,
   restart reconciliation and source retention. Disabled by default.

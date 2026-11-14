@@ -1,8 +1,13 @@
 """Development diagnostics, an authenticated dashboard and code-gated device tools."""
 
 import argparse
+import fcntl
+import io
 import json
+import math
+import os
 import sys
+from contextlib import ExitStack, redirect_stderr
 from pathlib import Path
 from typing import List, Optional
 
@@ -10,6 +15,79 @@ from . import __version__
 from .config import ConfigError, load_config
 from .errors import BackupError
 from .history import read_history
+
+
+_GOOGLE_TEST_ERROR = "Private Google Test unavailable; no uploads were enabled and no private details were printed."
+
+
+def _run_private_google_test(args):
+    """Consume operator channels; the worker alone validates a root release.
+
+    The original gate stays owned here while a private duplicate is transferred
+    to the worker. No credentials, owner intent or root release is created here.
+    """
+    from . import google_destination as destination
+    from . import google_test
+
+    with ExitStack() as stack:
+        channels = {}
+        seen = set()
+        invalid = False
+        # Validate the receipt endpoint before anything can contact Google.
+        # Independently consume every accepted partner even after a refusal.
+        for name, fd, writing in (("receipt", args.receipt_fd, True),
+                                  ("request", args.request_fd, False),
+                                  ("gate", args.root_gate_fd, False)):
+            if type(fd) is not int or fd in seen:
+                invalid = True
+                continue
+            seen.add(fd)
+            try:
+                channels[name] = stack.enter_context(destination._channel(fd, writing=writing))
+            except destination.GoogleDestinationError:
+                invalid = True
+        identities = [destination._descriptor_identity(fd) for fd in channels.values()]
+        if invalid or len(channels) != 3 or len(set(identities)) != 3:
+            raise BackupError("google_test_channel_invalid")
+        if (not math.isfinite(args.timeout) or not 0 < args.timeout <= 300
+                or not google_test.control._hash(args.rclone_sha256)
+                or any(not path.is_absolute() or ".." in path.parts
+                       for path in (args.prepared_state, args.operational_state, args.rclone))):
+            raise BackupError("google_test_arguments_invalid")
+        request = destination._read_frame(channels["request"], destination._deadline(5))
+        if not isinstance(request, dict):
+            raise BackupError("google_test_request_invalid")
+
+        gate_identity = destination._descriptor_identity(channels["gate"])
+        private_gate = fcntl.fcntl(channels["gate"], fcntl.F_DUPFD_CLOEXEC, 3)
+        try:
+            outcome = google_test.run_google_test(
+                args.prepared_state, args.operational_state, request,
+                root_gate_fd=private_gate, executable=args.rclone,
+                executable_sha256=args.rclone_sha256, timeout=args.timeout)
+        finally:
+            # The real worker consumes its accepted gate immediately. A failed
+            # handoff/stub may leave it open; never close an unrelated reused FD.
+            try:
+                if destination._descriptor_identity(private_gate) == gate_identity:
+                    os.close(private_gate)
+            except OSError:
+                pass
+        if (type(outcome) is not google_test.GoogleTestOutcome or not isinstance(outcome.receipt, dict)
+                or outcome.receipt.get("outcome") not in ("verified", "failed")
+                or outcome.receipt.get("enabled") is not False
+                or outcome.receipt.get("automatic_deletion") is not False):
+            raise BackupError("google_test_result_invalid")
+        destination._write_frame(channels["receipt"], destination._canonical(outcome.receipt),
+                                 destination._deadline(5))
+        # Build the public fields here; never relay a receipt, raw exception,
+        # identity, path or a projection supplied by a replacement worker.
+        verified = outcome.receipt["outcome"] == "verified"
+        return {"schema_version": 1, "provider": "google_drive",
+                "test_state": "verified" if verified else "failed",
+                "error_code": None if verified and outcome.error_code is None else "google_test_failed",
+                "enabled": False, "current_worker_state_checked": False,
+                "account_verified": False, "automatic_deletion": False}
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -52,6 +130,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     setup_import.add_argument("--folder-name", required=True)
     setup_broker = commands.add_parser("google-setup-broker", help="gated Pi-only preparation broker; no network or upload actions")
     setup_broker.add_argument("--config", type=Path, required=True)
+    google_test = commands.add_parser("google-test", help="private owner Test worker; inherited root release required")
+    google_test.add_argument("--prepared-state", type=Path, required=True)
+    google_test.add_argument("--operational-state", type=Path, required=True)
+    google_test.add_argument("--request-fd", type=int, required=True)
+    google_test.add_argument("--root-gate-fd", type=int, help="inherited root-authenticated Unix stream; omission refuses Test")
+    google_test.add_argument("--receipt-fd", type=int, required=True)
+    google_test.add_argument("--rclone", type=Path, required=True, help="reviewed protected absolute executable")
+    google_test.add_argument("--rclone-sha256", required=True, help="reviewed protected executable SHA256")
+    google_test.add_argument("--timeout", type=float, default=120.0, help="bounded Test deadline, at most 300 seconds")
     for command, help_text in (
         ("google-control-status", "read conservative source control status; never inspect a running worker"),
         ("google-control-export", "privately export an existing owner control intent; never create one"),
@@ -130,7 +217,29 @@ def main(argv: Optional[List[str]] = None) -> int:
     gate = commands.add_parser("device-gate", help="fail unless the reviewed hardware code gate is enabled")
     gate.add_argument("--mode", choices=("mass_storage", "ethernet_samba"))
     gate.add_argument("--device-policy", type=Path)
-    args = parser.parse_args(argv)
+    if (sys.argv[1:] if argv is None else argv)[:1] == ["google-test"]:
+        # Private operator arguments can themselves contain private strings.
+        # Argparse diagnostics normally echo invalid values and unknown options.
+        try:
+            with redirect_stderr(io.StringIO()):
+                args = parser.parse_args(argv)
+        except SystemExit as error:
+            if error.code == 0:
+                return 0
+            print(_GOOGLE_TEST_ERROR, file=sys.stderr)
+            return 2
+    else:
+        args = parser.parse_args(argv)
+    if args.command == "google-test":
+        try:
+            report = _run_private_google_test(args)
+            print(json.dumps(report, indent=2))
+            return 0 if report["test_state"] == "verified" else 2
+        except Exception:
+            # This is the private worker's public error boundary, including raw
+            # subprocess/configuration failures. Never print exception context.
+            print(_GOOGLE_TEST_ERROR, file=sys.stderr)
+            return 2
     if args.command in ("google-control-status", "google-control-export", "google-control-record",
                         "google-control-admission"):
         try:
