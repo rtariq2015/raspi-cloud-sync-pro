@@ -51,13 +51,14 @@ source-tested owner dashboard controls, a default-denied private tester and a
 separate per-batch upload API.
 That web-driven path is not yet connected to a live recurring cloud executor.
 The [core USB trial](CORE_RECOVERY.md) separately uses the existing operator-enabled
-staged worker under the backup identity; its first actual Windows file now passes
-automatic Google upload and downloaded-content verification.
+staged worker under the backup identity. Actual Linux-host USB files pass automatic
+Google upload and downloaded-content verification; Windows acceptance remains
+unverified.
 
 ```mermaid
 flowchart LR
     H[USB host owns image] --> E[Coordinated flush and eject]
-    E --> X[Future gadget adapter proves exclusive access]
+    E --> X[Gadget controller proves exclusive access]
     X --> S[Read-only staging and SHA-256 manifest]
     S --> R[Atomic ready batch on Pi filesystem]
     R --> J[SQLite jobs per destination and file version]
@@ -74,10 +75,10 @@ There is no automatic recovery to host ownership after an error.
 
 ## Staging contract
 
-Only a trusted, exclusively owned, read-only source may be staged. The API is
-intended for the future storage controller; no CLI can assert those conditions
-for a real image. Service-owned source/destination ancestor directories must be
-trusted and stable. No-follow descriptor traversal prevents source file/directory
+Only a trusted, exclusively owned, read-only source may be staged. The guarded
+storage controller supplies this evidence; a CLI request alone cannot assert
+those conditions for a real image. Service-owned source/destination ancestor
+directories must be trusted and stable. No-follow descriptor traversal prevents source file/directory
 symlinks being followed; it does not prevent a privileged process remounting or
 replacing trusted roots. The gadget adapter remains essential.
 
@@ -100,7 +101,9 @@ States are queued → uploading → uploaded → verifying → verified, with re
 and failed outcomes. Each transition appends an event. A retry uses the same
 version path; an interrupted attempt is never promoted to verified. Three
 attempts and 30-second base backoff are defaults, capped at one hour. Syntax,
-fatal and no-retry rclone errors fail; transient errors use the scheduler.
+fatal and no-retry rclone errors fail; transient errors use the scheduler. The
+USB staged worker explicitly removes the retryable-attempt ceiling while retaining
+the one-hour backoff cap; other callers keep the finite default.
 One `flock` worker holds the database lock through the attempt and recovery.
 External writers must respect that lock; direct database edits are unsupported.
 

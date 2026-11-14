@@ -48,6 +48,14 @@ partial profiles, pending Root captures, dirty filesystems, power uncertainty or
 conflicting drivers still refuse startup and retain data for review.
 See [startup and rollback](MSC_BOOT.md).
 
+The earlier [USB Ethernet recovery check](acceptance/pi-usb-ethernet-module-recovery-2026-11-14.json)
+reloaded the saved `g_ether` configuration, observed a configured UDC, restored
+the Pi-side ICS service, and preserved Wi-Fi and boot files. This is a limited
+module/enumeration recovery PASS. USB-host IP addressing and SSH after that
+recovery were NOT TESTED; it is not proof of complete USB-network recovery.
+The saved recovery parameters remain private. Use the rollback prerequisites
+above before restoring them; never switch while a host owns the storage image.
+
 Earlier acceptance needs two qualifications. The first user-confirmed copy/eject
 was attributed to Windows from conversation context; its host OS was not
 independently recorded. Its safe capture and Google verification remain valid.
@@ -78,6 +86,7 @@ physical acceptance. Dashboards and additional providers remain deferred.
 
 Sanitized evidence:
 
+- [Limited USB Ethernet module recovery](acceptance/pi-usb-ethernet-module-recovery-2026-11-14.json)
 - [Initial file](acceptance/pi-mass-storage-google-first-file-2026-11-14.json)
 - [Automatic Linux USB](acceptance/pi-mass-storage-auto-linux-2026-11-14.json)
 - [Isolated offline worker](acceptance/pi-core-offline-worker-2026-11-14.json)

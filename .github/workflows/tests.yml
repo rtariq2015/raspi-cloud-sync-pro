@@ -43,7 +43,8 @@ jobs:
             raspi-cloud-rust-ci \
             cargo build --locked --release --target aarch64-unknown-linux-gnu
   tests:
-    runs-on: ubuntu-latest
+    # Python 3.9 has a setup-python build on 24.04, not the newer latest image.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ["3.9", "3.12", "3.13"]
