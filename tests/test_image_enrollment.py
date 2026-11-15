@@ -42,7 +42,12 @@ class FixtureBackend:
         self.fixture, self.image = fixture, Path(image)
         self.image_identity = None
         self.settings = SimpleNamespace(state_directory=fixture.state)
-        self.io = SimpleNamespace(query=self.query)
+        self.io = SimpleNamespace(query=self.query,enrollment_loop_evidence=self.empty_loop_evidence)
+
+    def empty_loop_evidence(self, rows):
+        if rows:
+            raise BackupError('synthetic_unclassified_loop')
+        return []  # This boundary models an independently empty kernel loop inventory.
 
     def _pin_image(self):
         actual = identity(self.image)

@@ -18,6 +18,7 @@ import stat
 import uuid
 
 from .errors import BackupError
+from .enrollment_loops import verified_loop_inventory
 from .mass_storage_image import LEGACY_SIZE, EXPANDED_SIZE, PARTITION_OFFSET, validate_image_approval, validate_image_headers
 from .maintenance import MaintenanceHold
 from .staging import _capture_inventory, relative_path
@@ -137,7 +138,7 @@ def _allocated(path):
 def _intent(directory, image):
     directory = Path(directory);p = _json(directory / 'intent.json')
     fields = {'schema_version','transaction_id','image','candidate','archive','old_identity','new_identity',
-              'old_mtime_ns','new_mtime_ns','hold_id','records','tree'}
+              'old_mtime_ns','new_mtime_ns','hold_id','records','tree','os_loops'}
     _require(type(p) is dict and set(p) == fields and type(p['schema_version']) is int and p['schema_version'] == 1
              and type(p['transaction_id']) is str and re.fullmatch('[0-9a-f]{32}', p['transaction_id'])
              and p['image'] == str(image) and type(p['hold_id']) is str and re.fullmatch('[0-9a-f]{32}', p['hold_id']))
@@ -154,6 +155,7 @@ def _intent(directory, image):
         for version in ('old','new'):
             _require(hashes[version] == _hash(_read(directory / version / _NAMES[name])))
     _require(type(p['tree']) is dict and set(p['tree']) == {'files','directories'})
+    _require(type(p['os_loops']) is list)
     return p
 
 
@@ -236,14 +238,31 @@ class ReadOnlyImageVerifier:
     """Real loop/mount/header/content checks; tests inject only the Linux boundary."""
     def __init__(self, backend_factory):
         self.factory = backend_factory
+        self.identities = None
+        self.os_loops = None
+
+    def expect(self, identities, os_loops=None):
+        identities = tuple(tuple(value) for value in identities)
+        _require(len(identities) == 2 and len({value[:2] for value in identities}) == 2)
+        _require(self.identities is None or self.identities == identities)
+        self.identities = identities
+        if os_loops is not None:
+            _require(type(os_loops) is list and (self.os_loops is None or self.os_loops == os_loops))
+            self.os_loops = os_loops
+
+    def check_loops(self, io):
+        _require(self.identities is not None)
+        observed = verified_loop_inventory(io,self.identities)
+        _require(self.os_loops is None or self.os_loops == observed)
+        self.os_loops = observed
 
     def detached(self, paths):
         for path in paths:
+            _require(tuple(_image(path)[0]) in (self.identities or ()))
             backend = self.factory(Path(path));seen = backend.observe()
             _require(seen.profile_ok is True and seen.power_ok is True and not seen.bound
                      and not seen.backing and not seen.loops and not seen.mounts)
-            rows = backend.io.query(['losetup','--list','--json','--output','NAME,BACK-FILE,RO'])
-            _require(rows.returncode == 0 and json.loads(rows.stdout)['loopdevices'] == [])
+            self.check_loops(backend.io)
 
     def verify(self, path):
         path = Path(path);identity, stamp = _image(path);self.detached([path])
@@ -379,6 +398,7 @@ class ImageEnrollment:
                          'image':str(self.image),'image_identity':old_id,'loop':None})
             inventory = ControllerJournal(self.state).load_capture(self.image,old_id)
             _require(inventory is not None and hold['capture_sha256'] == _hash(_encode([vars(f) for f in inventory])))
+            self.verifier.expect((old_id,new_id))
             self.verifier.detached([self.image,self.candidate])
             tree = self.verifier.verify(self.image)
             _require(tree == self.verifier.verify(self.candidate) and tree['files'] == [vars(f) for f in inventory])
@@ -403,6 +423,7 @@ class ImageEnrollment:
             plan = {'schema_version':1,'transaction_id':identifier,'image':str(self.image),
                     'candidate':str(self.candidate),'archive':str(archive),'old_identity':old_id,'new_identity':new_id,
                     'old_mtime_ns':old_time,'new_mtime_ns':new_time,'hold_id':hold_id,'tree':tree,
+                    'os_loops':self.verifier.os_loops,
                     'records':{key:{'old':_hash(old[key]),'new':_hash(new[key])} for key in _NAMES}}
             _new(draft/'intent.json',_encode(plan));self.checkpoint('prepare:intent')
             self._set_status(plan,'prepared',directory=draft);self.checkpoint('prepare:status')
@@ -413,6 +434,7 @@ class ImageEnrollment:
     def _load(self, transaction_id, *, recovery=False):
         plan = _intent(self.directory,self.image)
         _require(transaction_id == plan['transaction_id'] and self.candidate == Path(plan['candidate']))
+        self.verifier.expect((plan['old_identity'],plan['new_identity']),plan['os_loops'])
         phase = _status(self.directory,plan,recovery=recovery)
         return plan,phase
 
@@ -507,6 +529,7 @@ class ImageEnrollment:
         backend = self.factory(self.image);seen = backend.observe()
         _require(seen.profile_ok is True and seen.power_ok is True and seen.bound and seen.configured
                  and seen.backing == str(self.image) and not seen.loops and not seen.mounts)
+        self.verifier.check_loops(backend.io)
         # Observe/adopt only. Never replay attach, mount or a journal's claimed host release.
         _atomic(self.targets['controller'],_encode({**journal,'phase':'host'}),recovery=True)
         _atomic(self.targets['maintenance'],_encode({**expected,'phase':'released'}),recovery=True)

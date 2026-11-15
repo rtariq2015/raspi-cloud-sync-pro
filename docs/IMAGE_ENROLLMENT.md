@@ -13,8 +13,8 @@ modify retained staging/history. It is part of the existing Stage 3 upgrade.
 
 `ImageEnrollment` holds the existing controller and maintenance locks. It requires
 the exact active hold ID, matching original journal/inventory/approval, empty
-private capture staging, healthy detached gadget, no mounted filesystem or loop
-devices, and explicit action approval. Native partial ownership records refuse
+private capture staging, healthy detached gadget, no image mounts or conflicting
+loop devices, and explicit action approval. Native partial ownership records refuse
 admission and remain untouched.
 
 Only the original 1 GiB and an explicitly approved 8 GiB candidate are supported.
@@ -35,6 +35,35 @@ read-only resources are cleaned up; ambiguity is preserved for review.
 The protected verifier adapter forbids writable mounts, filesystem repair,
 gadget writes, formatting, provisioning and unrelated commands. Its platform
 gate preserves root, Pi Zero 2 W, aarch64 and host-mount-namespace requirements.
+
+### Narrow exception for active OS zram backing
+
+Enrollment permits a loop only when independent read-only kernel evidence proves
+it backs an active zram swap device and is unrelated to **both** image inodes.
+The kernel configured-loop inventory must exactly match `losetup`, including when
+the latter reports no loops. `/proc/swaps`, the zram `backing_dev` and `disksize`,
+sysfs major/minor bindings, opened block-device identities, and
+`LOOP_GET_STATUS64` must agree. The ioctl is a getter; no swap, loop or device
+configuration is changed. Its backing device/inode must equal the identity of an
+opened, private, singly linked, root-owned regular backing file. Names, loop
+numbers, process labels and a reported zram relationship alone confer no exception.
+
+Unknown loops, either image through any alias, unsafe mounts/holders/partitions,
+missing or changing evidence, offsets, size limits and unsupported loop flags
+refuse enrollment. Two full observations must agree. Stable fingerprints are
+saved in the durable intent and checked again during commit, recovery and
+activation, even after the process restarts. Verifying one image still protects
+both images, including the archived original. Active swap usage and backing-file
+modification times are deliberately excluded because ordinary OS writeback changes
+them without changing ownership or identity.
+
+These observations do not freeze kernel configuration or defend against another
+administrator deliberately changing devices between observations. Exclusive
+administrative control remains a migration precondition. Any changed recorded
+identity refuses automatic reconciliation; retain evidence for review. Older
+unpublished enrollment intents without the new `os_loops` proof are refused,
+rather than silently upgraded. Ordinary 1 GiB operation without an enrollment
+transaction is unchanged.
 
 ## Durable protocol
 
@@ -128,7 +157,7 @@ mismatches, low space, unsafe ownership, native/torn partial records, prepare
 and commit crash boundaries, startup refusal, retained backup bytes, pre-export
 rollback, possible-exposure refusal and verified host reconciliation.
 
-Validation on 15 November 2026:
+Initial enrollment baseline (`9c0ab7c`), 15 November 2026:
 
 | Suite | Result |
 | --- | --- |
@@ -151,6 +180,29 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -W error::ResourceWarn
 Independent review passed after focused corrections for empty-directory proof,
 canonical-absent lock acquisition, allocation/space checks, native pending-record
 refusal and complete-draft publication. No safety protection was bypassed.
+
+Zram compatibility correction, 15 November 2026:
+
+| Suite | Result |
+| --- | --- |
+| New synthetic kernel/loop proof tests | 26 passed; real device calls are mocked |
+| New enrollment/zram integration tests | 7 passed, including reopened transaction and interrupted recovery cases |
+| Complete Python regression discovery | 1,005 run: 1,002 passed, the same 3 optional local-rclone tests skipped |
+| Guarded USB operator tests | 36 passed |
+| Storage-capacity acceptance tests | 35 passed |
+
+The 33 new tests are included in the complete Python result. Across the complete
+suite and two acceptance suites, 1,073 tests passed and 3 were skipped. The same
+commands above apply; focused new coverage can be run with:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:tests .venv/bin/python -W error::ResourceWarning -m unittest test_zram_loop_verification test_enrollment_zram -q
+```
+
+Two independent source reviews checked kernel evidence and transaction/rollback
+integration. A missing global-inventory completeness check was corrected and
+tested; no further concrete safety blocker was found. New tests retain Python
+3.9 compatibility. This is source evidence, not physical 8 GiB acceptance.
 
 Process crashes and fsync checks do not prove physical microSD power-loss
 durability. Physical Windows behavior, actual Pi tooling/namespace and the full

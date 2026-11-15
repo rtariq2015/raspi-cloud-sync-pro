@@ -138,6 +138,11 @@ class LiveLinuxIO:
             raise BackupError("unsupported_linux_query")
         return self._command(arguments, {"losetup", "lsblk"})
 
+    def enrollment_loop_evidence(self, rows):
+        """Read-only kernel/ioctl proof; no exception based on a loop filename."""
+        from .enrollment_loops import collect_loop_evidence
+        return collect_loop_evidence(rows)
+
     def command(self, arguments):
         self.require_mutations()
         return self._command(arguments, {"losetup", "fsck.exfat", "mount", "umount"})
