@@ -116,7 +116,7 @@ class MaintenanceHold:
         require(type(value) is dict and set(value) == set(self._base()) | {'session_id','request_id','phase','capture_sha256'})
         require(json.dumps({k:value[k] for k in self._base()}, sort_keys=True) == json.dumps(self._base(), sort_keys=True))
         require(all(type(value[k]) is str and re.fullmatch('[0-9a-f]{32}', value[k]) for k in ('session_id','request_id'))
-                and value['phase'] in ('pending','capturing','captured','active','releasing','released'))
+                and value['phase'] in ('pending','capturing','captured','active','enrolled','releasing','released'))
         require(value['capture_sha256'] is None if value['phase'] in ('pending','capturing') else
                 type(value['capture_sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['capture_sha256']))
         return value

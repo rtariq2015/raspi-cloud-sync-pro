@@ -9,6 +9,7 @@ handoffs remain on disk; the independent backup worker owns cloud processing.
 import ctypes
 import argparse
 import errno
+from dataclasses import replace
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,7 @@ from .capture_space import CAPACITY_POLICY, LEGACY_POLICY, CaptureSpacePolicy, a
 
 APPROVED_TEST_BUILD = False
 MAINTENANCE_HOLD_ENABLED = False  # Separate reviewed build/admin approval; no config toggle.
+IMAGE_ENROLLMENT_ENABLED = False  # Independent protected-build approval; never a config toggle.
 CONFIG = Path('/etc/raspi-cloud-sync-pro/mass-storage-appliance.json')
 APPROVAL = Path('/etc/raspi-cloud-sync-pro/MASS_STORAGE_APPLIANCE_APPROVED')
 IMAGE = Path('/var/lib/raspi-cloud-sync-pro/mass-storage-trial/disk.img')
@@ -115,6 +117,10 @@ class _ApplianceIO(LiveLinuxIO):
         if self.preparing:
             allowed = {path: {value} for path, value in self.profile_attributes().items()}
         _require(Path(path) in allowed and value in allowed[Path(path)])
+        if not self.preparing and value and Path(path) in {
+                self.root/'UDC', self.root/'functions/mass_storage.0/lun.0/file'}:
+            from .image_enrollment import guard_enrollment
+            guard_enrollment(STATE, IMAGE, self.regular_image(IMAGE), export=True)
         super().write(path, value)
 
     def profile_attributes(self):
@@ -375,14 +381,143 @@ def run_mass_storage_maintenance(action, *, approved=False, request_id=None):
         return {'maintenance_state':'failed_review_required'}
 
 
+def _enrollment_platform_approved():
+    """Recovery gate deliberately does not require an extant canonical image."""
+    _require(APPROVED_TEST_BUILD is True and MAINTENANCE_HOLD_ENABLED is True
+             and IMAGE_ENROLLMENT_ENABLED is True)
+    _require(os.getresuid() == (0, 0, 0) and os.getresgid() == (0, 0, 0))
+    _require(platform.system() == 'Linux' and platform.machine() == 'aarch64'
+             and Path('/proc/device-tree/model').read_bytes().rstrip(b'\0') == b'Raspberry Pi Zero 2 W Rev 1.0')
+    _require(os.readlink('/proc/self/ns/mnt') == os.readlink('/proc/1/ns/mnt'))
+
+
+class _EnrollmentIO(_ApplianceIO):
+    """Image verification only: no export, writable mount, repair or provisioning."""
+
+    def require_mutations(self):
+        _enrollment_platform_approved()
+        current = _settings()
+        _require(current is not None
+                 and replace(self.settings, image=IMAGE, capture_space_policy=LEGACY_POLICY)
+                     == replace(current, capture_space_policy=LEGACY_POLICY))
+
+    def command(self, arguments):
+        self.require_mutations()
+        loop = r'/dev/loop[0-9]+'
+        partition = loop + 'p1'
+        allowed = (
+            arguments == ['losetup', '--find', '--show', '--read-only', '--partscan', str(self.settings.image)]
+            or len(arguments) == 3 and arguments[:2] == ['losetup', '--detach']
+                and re.fullmatch(loop, arguments[2]) is not None
+            or len(arguments) == 3 and arguments[:2] == ['fsck.exfat', '-n']
+                and re.fullmatch(partition, arguments[2]) is not None
+            or len(arguments) == 7 and arguments[:5] == ['mount', '-t', 'exfat', '-o', 'ro,nosuid,nodev,noexec']
+                and re.fullmatch(partition, arguments[5]) is not None
+                and arguments[6] == str(self.settings.mountpoint)
+            or arguments == ['umount', str(self.settings.mountpoint)]
+        )
+        _require(allowed)
+        return self._command(arguments, {'losetup', 'fsck.exfat', 'mount', 'umount'})
+
+    def write(self, path, value):
+        raise BackupError('image_enrollment_verifier_export_forbidden')
+
+    def mkdir(self, path):
+        raise BackupError('image_enrollment_provisioning_forbidden')
+
+    def symlink(self, source, destination):
+        raise BackupError('image_enrollment_provisioning_forbidden')
+
+    def provision_command(self, arguments):
+        raise BackupError('image_enrollment_provisioning_forbidden')
+
+
+def run_mass_storage_enrollment(action, *, approved=False, candidate=None, candidate_approval=None,
+                                hold_id=None, transaction_id=None, recovery_action=None):
+    """Explicit, disabled-by-default image enrollment; never changes services."""
+    if (APPROVED_TEST_BUILD is not True or MAINTENANCE_HOLD_ENABLED is not True
+            or IMAGE_ENROLLMENT_ENABLED is not True):
+        return {'enrollment_state':'disabled'}
+    try:
+        _require(approved is True and action in ('prepare', 'commit', 'recover', 'activate'))
+        if action == 'prepare':
+            _require(candidate is not None and candidate_approval is not None
+                     and isinstance(hold_id, str) and re.fullmatch('[0-9a-f]{32}', hold_id)
+                     and transaction_id is None and recovery_action is None)
+        else:
+            _require(candidate is None and candidate_approval is None and hold_id is None
+                     and isinstance(transaction_id, str) and re.fullmatch('[0-9a-f]{32}', transaction_id)
+                     and (recovery_action in ('commit', 'rollback', 'host') if action == 'recover'
+                          else recovery_action is None))
+        _enrollment_platform_approved()
+        settings = _settings();_require(settings is not None)
+        for path in (STATE, PRIVATE_STAGING):
+            with _root_directory(path):
+                pass
+        # Import only after the existing protected-build/platform/explicit-action gates.
+        from .image_enrollment import ImageEnrollment
+
+        def factory(path):
+            selected = replace(settings, image=Path(path))
+            return LinuxGadgetBackend(selected, _EnrollmentIO(selected))
+
+        if action == 'prepare':
+            _approved(settings)
+            approval = _json(Path(candidate_approval))
+            transaction = ImageEnrollment(STATE, IMAGE, Path(candidate), CONFIG, APPROVAL, PRIVATE_STAGING, factory)
+            identifier = transaction.prepare(hold_id, approval, approved=True)
+            return {'enrollment_state':'prepared_detached', 'transaction_id':identifier}
+        # No active-image approval here: an interrupted rename may leave IMAGE absent.
+        transaction = ImageEnrollment.open(STATE, IMAGE, CONFIG, APPROVAL, PRIVATE_STAGING, factory)
+        if action == 'commit':
+            transaction.commit(transaction_id, approved=True)
+            state = 'committed_detached'
+        elif action == 'recover':
+            transaction.recover(transaction_id, action=recovery_action, approved=True)
+            state = {'commit':'committed_detached', 'rollback':'rolled_back_detached', 'host':'exported_host_owned'}[recovery_action]
+        else:
+            _approved(settings)
+            backend = _ApplianceBackend(settings, _ApplianceIO(settings));backend._pin_image()
+            policy = CaptureSpacePolicy() if settings.capture_space_policy == CAPACITY_POLICY else None
+            with GadgetController(backend, STATE, maintenance_enabled=True, space_policy=policy).session() as controller:
+                transaction.activate(controller, transaction_id, approved=True)
+            state = 'exported_host_owned'
+        return {'enrollment_state':state, 'controller_restart_requires_separate_action':True}
+    except Exception:
+        return {'enrollment_state':'failed_review_required'}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     action = parser.add_mutually_exclusive_group()
     action.add_argument('--request-maintenance-hold', action='store_true')
     action.add_argument('--release-maintenance-hold', metavar='EXACT_HOLD_ID')
+    action.add_argument('--prepare-image-enrollment', metavar='CANDIDATE')
+    action.add_argument('--commit-image-enrollment', metavar='EXACT_TRANSACTION_ID')
+    action.add_argument('--recover-image-enrollment', metavar='EXACT_TRANSACTION_ID')
+    action.add_argument('--activate-image-enrollment', metavar='EXACT_TRANSACTION_ID')
     parser.add_argument('--approve-maintenance-action', action='store_true')
+    parser.add_argument('--candidate-image-approval', metavar='APPROVAL_FILE')
+    parser.add_argument('--maintenance-hold-id', metavar='EXACT_HOLD_ID')
+    parser.add_argument('--enrollment-recovery-action', choices=('commit', 'rollback', 'host'))
+    parser.add_argument('--approve-image-enrollment', action='store_true')
     args = parser.parse_args(argv)
-    if args.request_maintenance_hold or args.release_maintenance_hold is not None:
+    enrollment = [(name, value) for name, value in (
+        ('prepare', args.prepare_image_enrollment), ('commit', args.commit_image_enrollment),
+        ('recover', args.recover_image_enrollment), ('activate', args.activate_image_enrollment)) if value is not None]
+    enrollment_options = (args.approve_image_enrollment or args.candidate_image_approval is not None
+                          or args.maintenance_hold_id is not None or args.enrollment_recovery_action is not None)
+    if enrollment:
+        if args.approve_maintenance_action:
+            parser.error('maintenance approval cannot approve image enrollment')
+        selected, value = enrollment[0]
+        report = run_mass_storage_enrollment(selected, approved=args.approve_image_enrollment,
+            candidate=value if selected == 'prepare' else None, candidate_approval=args.candidate_image_approval,
+            hold_id=args.maintenance_hold_id, transaction_id=None if selected == 'prepare' else value,
+            recovery_action=args.enrollment_recovery_action)
+    elif enrollment_options:
+        parser.error('an explicit image-enrollment action is required')
+    elif args.request_maintenance_hold or args.release_maintenance_hold is not None:
         report = run_mass_storage_maintenance('request' if args.request_maintenance_hold else 'release',
                     approved=args.approve_maintenance_action, request_id=args.release_maintenance_hold)
     else:

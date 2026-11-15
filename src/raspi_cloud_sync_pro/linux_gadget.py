@@ -279,6 +279,10 @@ class LinuxGadgetBackend:
         self.io.symlink(self.function, self.root / "configs/c.1/mass_storage.0")
 
     def attach_gadget(self):
+        from .image_enrollment import guard_enrollment
+        self._pin_image()
+        guard_enrollment(self.settings.state_directory, self.image,
+                         self.image_identity, export=True)
         observation = self.observe()
         if observation.bound or observation.backing or observation.loops or observation.mounts \
                 or not observation.profile_ok or not observation.power_ok:

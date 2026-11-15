@@ -248,6 +248,9 @@ class GadgetController:
 
     def start(self, *, adopt_host=False, cold_start=False, staging_directory=None):
         self._require_session()
+        from .image_enrollment import guard_enrollment
+        guard_enrollment(self.journal.directory, self.backend.image,
+                         getattr(self.backend, 'image_identity', ()) or ())
         with self.maintenance.locked():
             self.maintenance.assert_normal()
             self._start(adopt_host=adopt_host, cold_start=cold_start, staging_directory=staging_directory)
@@ -256,6 +259,9 @@ class GadgetController:
     def validate_maintenance_start(self):
         """Enforced even when new request admission is disabled."""
         self._require_session()
+        from .image_enrollment import guard_enrollment
+        guard_enrollment(self.journal.directory, self.backend.image,
+                         getattr(self.backend, 'image_identity', ()) or ())
         with self.maintenance.locked():
             self.maintenance.assert_normal()
 
@@ -327,6 +333,9 @@ class GadgetController:
             self._attach_checked()
 
     def _attach_checked(self):
+        from .image_enrollment import guard_enrollment
+        guard_enrollment(self.journal.directory, self.backend.image,
+                         getattr(self.backend, 'image_identity', ()) or (), export=True)
         self._check_image()
         self._detach_loop()
         self._save("attach_intent")
