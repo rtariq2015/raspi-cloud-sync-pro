@@ -28,7 +28,7 @@ from .web_ingest import stage_upload
 def worker_snapshot(directory, *, now=None):
     """Read only a bounded status report; it cannot prove account setup or liveness."""
     unavailable = {"state": "not_connected" if directory is None else "unavailable",
-                   "updated_at": None, "age_seconds": None, "pending_jobs": None,
+                   "updated_at": None, "age_seconds": None, "pending_jobs": None, "failed_jobs": None,
                    "destination_count": None, "network_policy_allows_upload": None,
                    "reconciliation_pending": None, "outcomes": [],
                    "cloud_accounts_verified": False}
@@ -70,11 +70,13 @@ def worker_snapshot(directory, *, now=None):
                     "updated_at": updated, "age_seconds": age}
         required = {"jobs_added", "rejected_batches", "cloud_results", "observed_uplink", "metered",
                     "network_policy_allows_upload", "updated_at", "destinations", "automatic_deletion", "pending_jobs"}
-        if not required <= set(data) or set(data) - required - {"reconciliation_pending"}:
+        if not required <= set(data) or set(data) - required - {"reconciliation_pending", "failed_jobs"}:
             raise ValueError()
         for field in ("jobs_added", "rejected_batches", "pending_jobs"):
             if type(data[field]) is not int or not 0 <= data[field] <= 10 ** 12:
                 raise ValueError()
+        if "failed_jobs" in data and (type(data["failed_jobs"]) is not int or not 0 <= data["failed_jobs"] <= 10 ** 12):
+            raise ValueError()
         destinations, outcomes = data["destinations"], data["cloud_results"]
         if not isinstance(destinations, list) or not 1 <= len(destinations) <= 8 \
                 or any(not isinstance(value, str) or not value or len(value) > 512
@@ -87,7 +89,8 @@ def worker_snapshot(directory, *, now=None):
                 or type(data.get("reconciliation_pending", False)) is not bool:
             raise ValueError()
         return {**unavailable, "state": "stale" if age > 300 else "observed", "updated_at": updated,
-                "age_seconds": age, "pending_jobs": data["pending_jobs"], "destination_count": len(destinations),
+                "age_seconds": age, "pending_jobs": data["pending_jobs"], "failed_jobs": data.get("failed_jobs"),
+                "destination_count": len(destinations),
                 "network_policy_allows_upload": data["network_policy_allows_upload"],
                 "reconciliation_pending": data.get("reconciliation_pending", False), "outcomes": outcomes}
     except (ValueError, TypeError, UnicodeError, RecursionError, OverflowError):

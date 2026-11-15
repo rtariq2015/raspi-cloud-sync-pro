@@ -31,11 +31,32 @@ class WorkerSnapshotTests(unittest.TestCase):
         result = worker_snapshot(self.root, now=1001)
         self.assertEqual(result["state"], "observed")
         self.assertEqual(result["pending_jobs"], 2)
+        self.assertIsNone(result["failed_jobs"])
         self.assertEqual(result["destination_count"], 1)
         self.assertFalse(result["network_policy_allows_upload"])
         self.assertFalse(result["cloud_accounts_verified"])
         self.assertNotIn("private:folder", json.dumps(result))
         self.assertEqual(self.path.read_bytes(), before)
+
+    def test_failed_job_count_is_projected_without_changing_legacy_unknown(self):
+        for count in (0, 1, 10 ** 12):
+            self.write_report({**self.report, "pending_jobs": 0, "cloud_results": [None], "failed_jobs": count})
+            before = self.path.read_bytes()
+            result = worker_snapshot(self.root, now=1001)
+            self.assertEqual(result["state"], "observed")
+            self.assertEqual(result["pending_jobs"], 0)
+            self.assertEqual(result["failed_jobs"], count)
+            self.assertEqual(self.path.read_bytes(), before)
+        self.write_report()
+        self.assertIsNone(worker_snapshot(self.root, now=1001)["failed_jobs"])
+
+    def test_invalid_failed_job_counts_are_refused_without_false_zero(self):
+        for count in (True, False, -1, 1.0, "1", None, [], {}, 10 ** 12 + 1):
+            with self.subTest(count=count):
+                self.write_report({**self.report, "failed_jobs": count})
+                result = worker_snapshot(self.root, now=1001)
+                self.assertEqual(result["state"], "invalid")
+                self.assertIsNone(result["failed_jobs"])
 
     def test_stale_report_is_distinguished_without_dropping_observed_queue(self):
         self.write_report({**self.report, "reconciliation_pending": True})

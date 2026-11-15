@@ -216,6 +216,9 @@ class StagedWorker:
         result["pending_jobs"] = self.history.connection.execute(
             "SELECT COUNT(*) FROM jobs WHERE state IN ('queued','retry','uploading','uploaded','verifying') "
             f"AND destination IN ({placeholders})", destinations).fetchone()[0] if destinations else 0
+        result["failed_jobs"] = self.history.connection.execute(
+            "SELECT COUNT(*) FROM jobs WHERE state='failed' "
+            f"AND destination IN ({placeholders})", destinations).fetchone()[0] if destinations else 0
         return result
 
 

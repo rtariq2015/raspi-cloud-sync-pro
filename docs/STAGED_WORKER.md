@@ -52,8 +52,15 @@ running when the 100-new-batch scan budget is exhausted, even if no jobs have ye
 been queued. Removing a destination retains its jobs without keeping the active
 scheduler busy for that removed destination.
 
-The worker exposes sanitized status including pending jobs, rejected batches,
-observed uplink, metering and per-destination outcomes. It never writes raw
+The worker exposes sanitized status including pending jobs, terminal failed jobs,
+rejected batches, observed uplink, metering and per-destination outcomes. The
+`failed_jobs` count comes from durable history for the currently configured
+destinations, so a failure remains visible after later idle ticks and restarts.
+Zero pending jobs alone does not mean all backups succeeded. The existing report
+reader accepts the optional counter; older reports leave it unknown rather than
+assuming zero. Reporting a failure does not reset its attempts, delete its source
+or automatically retry a terminal job. The Rust scheduler still schedules only
+pending work or unfinished reconciliation. The worker never writes raw
 provider output or credentials into status. Each tick is bounded by the number
 of new batches processed and the providers' individual process timeouts. Very
 large inventories and whole-file retries still need Pi throughput/endurance tests.

@@ -2,6 +2,26 @@
 
 **Updated: 14 November 2026. Dev22 development trial; no main merge or release.**
 
+**Version 1 reliability fix — source only.** Terminal backup failures now remain
+counted in worker status after idle ticks and restarts, instead of disappearing
+behind zero pending jobs. Existing reports remain compatible, and retry,
+verification and retention behavior are unchanged. **898 local Python tests and
+11 Rust tests pass**, including failure/restart, retained-data, destination-scope
+and report-compatibility checks. Rust formatting and Clippy also pass.
+This change has not been installed on the Pi; the physical result below concerns
+the existing accepted build.
+
+**Google authorization remains the highest-priority blocker.** A read-only check
+of the existing project's Google console confirmed External/Testing mode and
+its instruction to complete Branding configuration before publishing. Production
+status and a fresh private authorization require owner approval; no account,
+scope, credential or service settings were changed. Google documents the
+[seven-day Testing limit](https://developers.google.com/identity/protocols/oauth2#expiration).
+The existing narrow `drive.file` permission is
+[non-sensitive](https://developers.google.com/workspace/drive/api/guides/api-specific-auth);
+full sensitive-scope verification must not be assumed necessary. Publishing
+status alone is not evidence that an already-issued grant lasts longer.
+
 **Latest acceptance — 6:36 PM EST: PASS.** The owner accepted safe Windows Eject
 for the first version. One fresh 1 MiB Windows file was copied, flushed and
 read-back checked. After ordinary safe Eject, an independent observer recorded
@@ -47,7 +67,7 @@ also need acceptance. The present installation uses a disposable 1 GiB image.
 **It requires Eject after copying each batch; no-eject capture is not implemented.**
 Website, extra providers and other secondary work remain paused.
 
-**841 core Python tests, 28 USB operator tests and 26 Wi-Fi recovery tests pass.**
+**844 core Python tests, 28 USB operator tests and 26 Wi-Fi recovery tests pass.**
 Public hardware gates/configuration examples remain disabled. The Pi runs
 separately approved protected builds, with source data, older versions and
 rollback evidence retained. No SD reflash or real-disk formatting occurred.

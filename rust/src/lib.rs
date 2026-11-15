@@ -305,6 +305,16 @@ mod tests {
                 .unwrap()
                 .needs_work()
         );
+        fs::write(
+            &runner,
+            "#!/bin/sh\nprintf '%s\\n' '{\"pending_jobs\":0,\"failed_jobs\":1}'\n",
+        )
+        .unwrap();
+        assert!(
+            !run_worker(&runner, &fixture.0.join("worker.json"))
+                .unwrap()
+                .needs_work()
+        );
         fs::write(&runner, "#!/bin/sh\nprintf '%s\\n' '{\"pending_jobs\":0,\"reconciliation_pending\":\"false\"}'\n").unwrap();
         assert_eq!(
             run_worker(&runner, &fixture.0.join("worker.json")),

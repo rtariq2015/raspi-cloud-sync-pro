@@ -1,3 +1,4 @@
+import hashlib
 import io
 import json
 import subprocess
@@ -109,19 +110,39 @@ class StagedWorkerTests(unittest.TestCase):
 
     def test_unbounded_worker_keeps_nonretryable_failure_terminal_after_restart(self):
         batch = stage_upload(io.BytesIO(b"retain failed source"), "QA.txt", self.settings.staging)
+        payload = batch.root / "files/QA.txt"
+        original_hash = hashlib.sha256(payload.read_bytes()).hexdigest()
         provider = Destination("first")
         with mock.patch.object(provider, "upload", side_effect=BackupError("permanent_failure")) as upload:
             result = StagedWorker(self.settings, self.history, [provider]).tick(
                 now=100, observation=("wifi", Connectivity.ONLINE, False))
             self.assertEqual(result["cloud_results"], ["failed"])
+            self.assertEqual((result["failed_jobs"], result["pending_jobs"]), (1, 0))
+            self.history.close()
+            with History(self.history.path) as history:
+                result = StagedWorker(self.settings, history, [provider]).tick(
+                    now=10000, observation=("wifi", Connectivity.ONLINE, False))
+                self.assertEqual(result["cloud_results"], [None])
+                self.assertEqual((result["failed_jobs"], result["pending_jobs"]), (1, 0))
+                self.assertEqual((history.jobs()[0]["state"], history.jobs()[0]["attempts"]), ("failed", 1))
             upload.assert_called_once()
-        with History(self.history.path) as history:
-            result = StagedWorker(self.settings, history, [provider]).tick(
-                now=10000, observation=("wifi", Connectivity.ONLINE, False))
-            self.assertEqual(result["cloud_results"], [None])
-            self.assertEqual((history.jobs()[0]["state"], history.jobs()[0]["attempts"]), ("failed", 1))
         self.assertEqual(provider.uploads, 0)
-        self.assertEqual((batch.root / "files/QA.txt").read_bytes(), b"retain failed source")
+        self.assertEqual(hashlib.sha256(payload.read_bytes()).hexdigest(), original_hash)
+
+    def test_failed_job_count_excludes_other_destinations_without_changing_their_jobs(self):
+        stage_upload(io.BytesIO(b"retain both destinations"), "QA.txt", self.settings.staging)
+        first, removed = Destination("first"), Destination("removed")
+        with mock.patch.object(first, "upload", side_effect=BackupError("permanent_failure")), \
+                mock.patch.object(removed, "upload", side_effect=BackupError("permanent_failure")):
+            result = StagedWorker(self.settings, self.history, [first, removed]).tick(
+                now=100, observation=("wifi", Connectivity.ONLINE, False))
+        self.assertEqual((result["failed_jobs"], result["pending_jobs"]), (2, 0))
+        before = self.history.jobs()
+        for providers, expected in (([first], 1), ([Destination("unrelated")], 0)):
+            result = StagedWorker(self.settings, self.history, providers).tick(
+                now=101, observation=("unknown", Connectivity.OFFLINE, True))
+            self.assertEqual(result["failed_jobs"], expected)
+        self.assertEqual(self.history.jobs()[:2], before)
 
     def test_receipts_skip_rehash_after_restart_but_cannot_authorize_changed_payload(self):
         batch = stage_upload(io.BytesIO(b"good"), "QA.txt", self.settings.staging)
