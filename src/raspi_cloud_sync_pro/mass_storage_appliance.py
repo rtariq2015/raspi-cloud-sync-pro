@@ -7,6 +7,7 @@ handoffs remain on disk; the independent backup worker owns cloud processing.
 """
 
 import ctypes
+import argparse
 import errno
 import json
 import os
@@ -23,8 +24,10 @@ from .hardware import power_diagnostics
 from .google_broker import _root_directory, _root_file, _service_identity, _state_directory
 from .linux_gadget import LEGACY_GADGET_MODULES, GadgetSettings, LinuxGadgetBackend, LiveLinuxIO
 from .mass_storage_image import PARTITION_OFFSET, validate_image_approval, validate_image_headers
+from .maintenance import MaintenanceHold
 
 APPROVED_TEST_BUILD = False
+MAINTENANCE_HOLD_ENABLED = False  # Separate reviewed build/admin approval; no config toggle.
 CONFIG = Path('/etc/raspi-cloud-sync-pro/mass-storage-appliance.json')
 APPROVAL = Path('/etc/raspi-cloud-sync-pro/MASS_STORAGE_APPLIANCE_APPROVED')
 IMAGE = Path('/var/lib/raspi-cloud-sync-pro/mass-storage-trial/disk.img')
@@ -266,6 +269,7 @@ def _private_directory(path):
 def _start_controller(controller, backend, io):
     """Called inside the exclusive session; no OS provisioning or driver loads."""
     backend._pin_image()
+    controller.validate_maintenance_start()  # Before adoption, configfs preparation or cold export.
     present = io.exists(backend.root)
     if present and (io.read(backend.root/'UDC') or io.read(backend.lun/'file')):
         controller.start(adopt_host=True)
@@ -304,12 +308,15 @@ def _run(settings, account, *, once=False):
             pass
         backend = _ApplianceBackend(settings, io)
         captured = 0
-        with GadgetController(backend, STATE).session() as controller:
+        with GadgetController(backend, STATE, maintenance_enabled=MAINTENANCE_HOLD_ENABLED).session() as controller:
             _start_controller(controller, backend, io)
             while True:
                 result = controller.poll(PRIVATE_STAGING)
                 if hasattr(result, 'root'):
                     handoff_ready_batch(result, account);captured += 1
+                if MAINTENANCE_HOLD_ENABLED and controller.complete_maintenance(PRIVATE_STAGING):
+                    return {'appliance_state':'maintenance_active', 'batches_handed_off':captured,
+                            'root_cloud_operations':False, 'automatic_deletion':False}
                 if once:
                     return {'appliance_state': 'host_owned', 'batches_handed_off': captured,
                             'root_cloud_operations': False, 'automatic_deletion': False}
@@ -331,7 +338,46 @@ def run_mass_storage_appliance(*, once=False):
         return {'appliance_state': 'failed_review_required', 'root_cloud_operations': False, 'automatic_deletion': False}
 
 
-if __name__ == '__main__':
-    report = run_mass_storage_appliance()
+def run_mass_storage_maintenance(action, *, approved=False, request_id=None):
+    """Root/Pi/approval-gated one-shot action; never switches/stops services."""
+    if APPROVED_TEST_BUILD is not True or MAINTENANCE_HOLD_ENABLED is not True:
+        return {'maintenance_state':'disabled'}
+    try:
+        _require(approved is True and action in ('request', 'release'))
+        settings = _settings();_require(settings is not None);_approved(settings)
+        for path in (STATE, PRIVATE_STAGING):
+            with _root_directory(path):
+                pass
+        io = _ApplianceIO(settings);io.require_mutations()
+        backend = _ApplianceBackend(settings, io);backend._pin_image()
+        if action == 'request':
+            _require(request_id is None)
+            identifier = MaintenanceHold(STATE, backend, enabled=True).submit()
+            return {'maintenance_state':'submitted_waiting_for_safe_eject', 'request_id':identifier}
+        with GadgetController(backend, STATE, maintenance_enabled=True).session() as controller:
+            result = controller.release_maintenance(request_id, PRIVATE_STAGING, approved=True)
+        return {'maintenance_state':result, 'controller_restart_requires_separate_action':True}
+    except Exception:
+        return {'maintenance_state':'failed_review_required'}
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument('--request-maintenance-hold', action='store_true')
+    action.add_argument('--release-maintenance-hold', metavar='EXACT_HOLD_ID')
+    parser.add_argument('--approve-maintenance-action', action='store_true')
+    args = parser.parse_args(argv)
+    if args.request_maintenance_hold or args.release_maintenance_hold is not None:
+        report = run_mass_storage_maintenance('request' if args.request_maintenance_hold else 'release',
+                    approved=args.approve_maintenance_action, request_id=args.release_maintenance_hold)
+    else:
+        if args.approve_maintenance_action:
+            parser.error('an explicit maintenance action is required')
+        report = run_mass_storage_appliance()
     print(json.dumps(report))
-    raise SystemExit(2 if report['appliance_state'] == 'failed_review_required' else 0)
+    return 2 if 'failed_review_required' in report.values() else 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

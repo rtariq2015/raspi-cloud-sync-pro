@@ -3,8 +3,8 @@
 Date: 15 November 2026 (America/New_York). Branch: `development`.
 Starting application source: `665977bd60e2f9afb6297ba2110b31157eb37f29`.
 G4F/Stage 2/Stage 3 commits contain documentation, acceptance evidence and the
-offline storage simulations. Stage 3B adds narrowly scoped source capacity
-validation and its offline regressions; it is not deployed.
+offline storage simulations. Stages 3B/3C add source-only capacity validation
+and maintenance hold with offline regressions; neither is deployed.
 The separately approved Stage 2 maintenance installed the existing three-line
 worker fix from that baseline on the Pi. Stage 3B changes no Pi installation.
 The G4F documentation checkpoint is `fdb0c0eb2f774bdc1154cafcfcaab088785b4672`.
@@ -12,6 +12,14 @@ The latest documentation checkpoint is the Git commit containing this report.
 No main merge or release is authorized.
 
 ## Executive result
+
+**Stage 3C SOURCE-ONLY PASS:** explicit root-approved session-bound maintenance
+waits for genuine Eject, capture, verified cleanup and handoff before active hold.
+Unresolved/partial records block export/restart even with admission disabled;
+separate unchanged-image release retains read-only checks and interrupted-release
+refusal. **902 main tests run: 899 passed, 3 optional local-rclone skips; 36 USB
+operator and 15 storage simulations passed.** The working Pi was not accessed
+or modified. [Full maintenance report](MAINTENANCE_HOLD_STAGE3C.md).
 
 **Stage 3B source support complete:** legacy 1 GiB approval remains compatible;
 8 GiB requires an explicit capacity/layout record and exact image identity.
@@ -44,6 +52,28 @@ regressions pass.** The current 1 GiB image, services and all 19/95 history rows
 remain unchanged. Larger-image controller support, verified maintenance hold,
 real disposable exFAT tests and reviewed low-space admission are prerequisites; no live migration was
 attempted. [Full Stage 3 report and future approval prompt](STORAGE_CAPACITY_STAGE3.md).
+
+## Checkpoint: Stage 3C safe maintenance hold
+
+- **STATUS:** source-only/offline PASS; no live hold, release or migration.
+- **START:** `e4f273da722c1488575dc674be4daa16a358a1ab`.
+- **CHANGES:** private maintenance latch and admission lock, controller hold at
+  the existing post-capture return boundary, explicit root admin actions and
+  handoff-before-active appliance integration. No ownership enum/systemd change.
+- **SAFETY:** default gates off; same image/session; actual loaded→empty eject
+  observation; no force detach, repair, deletion or automatic hold recovery.
+  Pending/active/interrupted records block startup, including with admission off.
+- **REVIEW:** two focused correction passes, then independent PASS. One-shot
+  records are retained; stale/ambiguous states need review, not deletion/replay.
+- **TESTS:** 147 focused tests PASS (subset of main); final distinct suites total
+  950 passed / 3 optional local-rclone skips. Generated fixtures only; process
+  death is not physical power-loss acceptance. Existing 1/8 GiB contracts pass.
+- **LIVE:** no access or changes; historical 19/95 checkpoint is not overwritten
+  or claimed as a new measurement.
+- **COMMIT:** source-only commit containing this report.
+- **NEXT:** owner review, then separately authorize low-space admission. No
+  Stage 3D/3E or physical migration work has begun.
+- **REPORT:** [Stage 3C implementation and tests](MAINTENANCE_HOLD_STAGE3C.md).
 
 ## Checkpoint: Stage 3B source capacity support
 

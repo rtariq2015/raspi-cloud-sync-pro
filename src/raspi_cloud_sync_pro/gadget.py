@@ -5,6 +5,7 @@ No force-eject, timeout-based host release, automatic repair, or deletion exists
 """
 
 import fcntl
+import hashlib
 import json
 import os
 import stat
@@ -14,7 +15,8 @@ from pathlib import Path
 
 from .errors import BackupError
 from .staging import StagedFile, stage_changed_snapshot
-from .storage import StorageOwnership
+from .storage import Ownership, StorageOwnership
+from .maintenance import MaintenanceHold
 
 
 @dataclass(frozen=True)
@@ -146,7 +148,7 @@ class ControllerJournal:
 class GadgetController:
     """Hold session() for the lifetime of the controller, including idle polling."""
 
-    def __init__(self, backend, state_directory: Path):
+    def __init__(self, backend, state_directory: Path, *, maintenance_enabled=False):
         self.backend = backend
         self.journal = ControllerJournal(state_directory)
         self.ownership = StorageOwnership()
@@ -155,6 +157,8 @@ class GadgetController:
         self.in_session = False
         self.loop = None
         self.capture_files = None
+        self.maintenance = MaintenanceHold(state_directory, backend, enabled=maintenance_enabled)
+        self._maintenance_release = None
 
     @contextmanager
     def session(self):
@@ -215,6 +219,7 @@ class GadgetController:
     def validate_cold_start(self, staging_directory):
         """Metadata eligibility only, under session lock; never eject permission."""
         self._require_session()
+        self.validate_maintenance_start()
         previous = self.journal.data
         identity = list(getattr(self.backend, 'image_identity', ()) or ())
         if (self.started or self.armed or self.loop is not None or len(identity) != 3
@@ -238,6 +243,19 @@ class GadgetController:
         self.journal.load_capture(self.backend.image, identity)
 
     def start(self, *, adopt_host=False, cold_start=False, staging_directory=None):
+        self._require_session()
+        with self.maintenance.locked():
+            self.maintenance.assert_normal()
+            self._start(adopt_host=adopt_host, cold_start=cold_start, staging_directory=staging_directory)
+            self.maintenance.open_session()
+
+    def validate_maintenance_start(self):
+        """Enforced even when new request admission is disabled."""
+        self._require_session()
+        with self.maintenance.locked():
+            self.maintenance.assert_normal()
+
+    def _start(self, *, adopt_host=False, cold_start=False, staging_directory=None):
         """Start unarmed; explicitly adopt loaded host media only with a new journal.
 
         Adoption records current host ownership without inspecting the filesystem.
@@ -297,6 +315,14 @@ class GadgetController:
         self._detached(self._observe())
 
     def _attach(self):
+        with self.maintenance.locked():
+            value = self.maintenance.record()
+            if not (self._maintenance_release is not None and value is not None
+                    and value['phase'] == 'releasing' and value['request_id'] == self._maintenance_release):
+                self.maintenance.assert_normal()
+            self._attach_checked()
+
+    def _attach_checked(self):
         self._check_image()
         self._detach_loop()
         self._save("attach_intent")
@@ -308,6 +334,72 @@ class GadgetController:
         self.ownership.confirm_host_access(locally_unmounted=True, loop_detached=True)
         self._save("host")
 
+    def _capture_digest(self):
+        files = self.journal.load_capture(self.backend.image, getattr(self.backend, 'image_identity', ()) or ())
+        raw = json.dumps(None if files is None else [vars(item) for item in files], sort_keys=True).encode('ascii')
+        return hashlib.sha256(raw).hexdigest()
+
+    def _empty_capture(self, directory):
+        root = Path(directory)
+        fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(fd)
+            if (info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) != 0o700 or os.listdir(fd)
+                    or (root.lstat().st_dev, root.lstat().st_ino) != (info.st_dev, info.st_ino)):
+                raise BackupError('maintenance_capture_handoff_unfinished')
+        finally:
+            os.close(fd)
+
+    def complete_maintenance(self, staging_directory):
+        """Acknowledge hold only after the appliance's private batch handoff."""
+        self._require_session()
+        with self.maintenance.locked():
+            value = self.maintenance.record()
+            if value is None or value['phase'] == 'released':
+                return False
+            if (value['phase'] == 'pending' and self.started and self.loop is None
+                    and self.maintenance.enabled and value['session_id'] == self.maintenance.session_id
+                    and self.journal.data['phase'] == 'host'):
+                return False  # Still waiting for a genuine Windows Eject.
+            if (value['phase'] != 'captured' or value['session_id'] != self.maintenance.session_id
+                    or not self.started or self.loop is not None or self.journal.data['phase'] != 'maintenance_captured'
+                    or self.ownership.state != Ownership.RETURNABLE
+                    or value['capture_sha256'] != self._capture_digest()):
+                raise BackupError('maintenance_review_required')
+            with self._operation():
+                self._empty_capture(staging_directory)
+                self._detached(self._observe())
+                self._save('maintenance_active')
+                self.maintenance.transition(value, 'active')
+                self.started = False;self.armed = False
+                return True
+
+    def release_maintenance(self, request_id, staging_directory, *, approved=False):
+        """Separate approved one-shot release, unchanged image only; never repair."""
+        self._require_session()
+        with self.maintenance.locked():
+            self.maintenance.validate_challenge()
+            value = self.maintenance.record()
+            if (approved is not True or not self.maintenance.enabled or value is None
+                    or value['phase'] != 'active' or value['request_id'] != request_id
+                    or self.started or self.armed or self.loop is not None):
+                raise BackupError('maintenance_release_refused')
+            expected = {'schema_version':1, 'phase':'maintenance_active', 'image':str(self.backend.image),
+                        'image_identity':list(getattr(self.backend, 'image_identity', ()) or ()), 'loop':None}
+            if self.journal.data != expected or self._capture_digest() != value['capture_sha256']:
+                raise BackupError('maintenance_release_refused')
+            with self._operation():
+                self._empty_capture(staging_directory)
+                self._detached(self._observe())
+                self.maintenance.transition(value, 'releasing')
+                self._maintenance_release = request_id
+                try:
+                    self._attach()  # Existing read-only fsck and verified loop detach precede export.
+                finally:
+                    self._maintenance_release = None
+                self.maintenance.transition(self.maintenance.record(), 'released')
+                return 'released_host_owned'
+
     def poll(self, staging_directory: Path):
         """Observe an actual loaded→empty removable LUN in this uninterrupted session.
 
@@ -318,6 +410,8 @@ class GadgetController:
         with self._operation():
             if not self.started:
                 raise BackupError("controller_not_started")
+            with self.maintenance.locked():
+                requested = self.maintenance.pending()
             observation = self._observe()
             self._power(observation)
             if observation.loops or observation.mounts or not observation.bound:
@@ -327,12 +421,16 @@ class GadgetController:
                 return "waiting_for_host"
             if observation.backing == str(self.backend.image):
                 self.armed = True
-                return "waiting_for_host_eject"
+                return 'maintenance_pending' if requested else "waiting_for_host_eject"
             if observation.backing or not self.armed:
                 raise BackupError("host_release_unproven")
             self.ownership.confirm_host_release(clean_eject_observed=True)
             self._save("eject_observed")
             self.armed = False
+            with self.maintenance.locked():
+                requested = self.maintenance.pending()
+                if requested:
+                    self.maintenance.transition(requested, 'capturing')
             self.backend.detach_gadget()  # Never clear a loaded LUN or use forced_eject.
             self._detached(self._observe())
             self._check_image()
@@ -356,7 +454,14 @@ class GadgetController:
             if current_files != self.capture_files:
                 self.journal.save_capture(self.backend.image, getattr(self.backend, 'image_identity', ()) or (), current_files)
                 self.capture_files = current_files
-            self._attach()
+            with self.maintenance.locked():
+                requested = self.maintenance.pending()
+                if requested:
+                    self._detached(self._observe())
+                    self._save('maintenance_captured')
+                    self.maintenance.transition(requested, 'captured', capture_sha256=self._capture_digest())
+                else:
+                    self._attach()
             return batch if batch else 'unchanged_snapshot'
 
     def recover_resources(self):

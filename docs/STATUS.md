@@ -2,6 +2,18 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
+**Stage 3C — maintenance hold: SOURCE-ONLY PASS; disabled and not deployed.**
+A root-approved, session-bound request waits for genuine Windows Safe Eject,
+finishes capture and private handoff, then prevents USB reattachment. Unresolved
+or partial hold records block restart even with request admission disabled.
+Separate release requires the same image, exact hold ID, unchanged inventory,
+empty private staging and the existing read-only filesystem checks. No live Pi
+access, service change, Eject, upload or migration occurred.
+**950 local tests passed, 3 optional rclone checks skipped** across the main,
+operator and disposable-simulation suites. Actual hardware hold/release remains
+unverified; the installed CLOUDSTICK still uses its working **1 GiB** image.
+[Stage 3C implementation, commands, tests and limits](MAINTENANCE_HOLD_STAGE3C.md).
+
 **Stage 3B — source-level 8 GiB validation complete; not deployed.** Existing
 1 GiB configuration/approval behavior remains supported. A future 8 GiB image
 needs an explicit capacity/layout approval bound to the exact image identity;
@@ -9,9 +21,9 @@ arbitrary sizes and stale identities are refused. Filesystem reads remain behind
 verified USB release and read-only checking. No live Pi access, service change
 or storage migration occurred. The installed image remains **1 GiB**.
 Local results: **861 main-suite tests passed, 3 optional rclone tests skipped;
-36 USB operator tests and 15 storage simulations passed**. The next prerequisite
-is a reviewed maintenance hold; low-space admission and real 8 GiB acceptance
-remain separate.
+36 USB operator tests and 15 storage simulations passed**. Its maintenance-hold
+prerequisite is implemented in Stage 3C source above; low-space admission and
+real 8 GiB acceptance remain separate.
 [Source changes, tests and next prerequisite](STORAGE_CAPACITY_STAGE3B.md).
 
 **G4F — Production Google backup acceptance: PASS.** One unique synthetic
@@ -59,10 +71,10 @@ passed.** No live storage or services changed; all 19 verified records and
 larger exFAT volumes or physical power cuts.
 [Capacity report, limits and proposed migration prompt](STORAGE_CAPACITY_STAGE3.md).
 
-**What remains before practical office use:** Stage 3B's capacity support is
-source-only; the installed controller still has its 1 GiB limit. The next
-prerequisite is a verified maintenance hold. Real disposable exFAT tests,
-suitable low-space admission and separately approved deployment/cutover also
+**What remains before practical office use:** capacity support and maintenance
+hold are source-only; the installed controller still has its 1 GiB limit.
+The next prerequisite is reviewed low-space admission. Real disposable exFAT
+tests, hardware hold/release acceptance and separately approved deployment/cutover
 remain. Expected
 QA volume/retention still needs owner confirmation; longer workloads and recovery
 remain unaccepted. The USB image is still the disposable **1 GiB** image.
