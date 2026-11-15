@@ -1,6 +1,6 @@
 """Manual disposable MSC export; no mounting, capture, driver switch or cloud.
 
-Root supplies a fresh, preformatted 1 GiB MBR/exFAT image at IMAGE. Run ``plan``
+Root supplies a fresh, preformatted approved 1 or 8 GiB MBR/exFAT image at IMAGE. Run ``plan``
 before a separately reviewed g_ether switch; explicitly approve that saved plan
 before ``attach``. An attached image remains host-owned even if this process
 exits or reports failure. Never clear its LUN or unbind it to recover a failure.
@@ -21,11 +21,16 @@ import time
 from pathlib import Path
 
 from raspi_cloud_sync_pro import linux_gadget as gadget
+from raspi_cloud_sync_pro.errors import BackupError
+from raspi_cloud_sync_pro.mass_storage_image import (
+    EXPANDED_SIZE, LEGACY_SIZE, image_layout as capacity_layout,
+    validate_image_headers, validate_image_size,
+)
 
 ROOT = Path('/var/lib/raspi-cloud-sync-pro/mass-storage-trial')
 IMAGE = ROOT / 'disk.img'
 NAME = 'raspi-cloud-disposable-msc'
-SIZE = 1024 ** 3
+SIZE = LEGACY_SIZE
 ENV = {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C', 'LC_ALL': 'C', 'HOME': '/nonexistent'}
 
 
@@ -76,6 +81,31 @@ def parse(raw):
     return json.loads(raw, object_pairs_hook=unique)
 
 
+def approved_size(size):
+    try:
+        return validate_image_size(size)
+    except BackupError:
+        require(False)
+
+
+def validate_plan_metadata(plan):
+    """Stateless capacity/record validation; safe while the host owns the image."""
+    require(type(plan) is dict and type(plan.get('schema_version')) is int
+            and plan['schema_version'] in (1, 2)
+            and type(plan.get('image_identity')) is list and len(plan['image_identity']) == 5
+            and all(type(value) is int and value >= 0 for value in plan['image_identity'])
+            and type(plan.get('observed')) is dict)
+    size = approved_size(plan['image_identity'][2])
+    if plan['schema_version'] == 1:
+        require(size == LEGACY_SIZE and set(plan) == {'schema_version', 'image_identity', 'observed'})
+    else:
+        require(size == EXPANDED_SIZE
+                and set(plan) == {'schema_version', 'image_identity', 'observed', 'image_size_bytes', 'image_layout'}
+                and canonical({'image_size_bytes':plan['image_size_bytes'], 'image_layout':plan['image_layout']})
+                    == canonical({'image_size_bytes':size, 'image_layout':capacity_layout(size)}))
+    return size
+
+
 def save(name, value):
     raw = canonical(value)
     fd = os.open(ROOT / name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
@@ -103,22 +133,24 @@ def command(args):
     return result.stdout
 
 
-def image_layout(path):
+def image_layout(path, *, size=None):
     """Only before export: verify a whole image, MBR partition 1, and exFAT VBR."""
+    size = approved_size(SIZE if size is None else size)
     protected(path)
     fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     try:
         info = os.fstat(fd)
-        require(info.st_nlink == 1 and stat.S_IMODE(info.st_mode) == 0o600 and info.st_size == SIZE)
+        require(info.st_nlink == 1 and stat.S_IMODE(info.st_mode) == 0o600 and info.st_size == size)
         mbr = os.pread(fd, 512, 0)
         entry = mbr[446:462]
         start, count = int.from_bytes(entry[8:12], 'little'), int.from_bytes(entry[12:16], 'little')
         require(len(mbr) == 512 and mbr[510:] == b'\x55\xaa' and entry[4] == 7
-                and start == 2048 and count > 0 and start + count <= SIZE // 512 and not any(mbr[462:510]))
+                and start == 2048 and count > 0 and start + count == size // 512 and not any(mbr[462:510]))
         boot = os.pread(fd, 512, start * 512)
-        require(len(boot) == 512 and boot[3:11] == b'EXFAT   ' and boot[510:] == b'\x55\xaa'
-                and boot[108] == 9 and int.from_bytes(boot[64:72], 'little') in (0, start)
-                and int.from_bytes(boot[72:80], 'little') == count)
+        try:
+            validate_image_headers(mbr, boot, size)
+        except BackupError:
+            require(False)
         require(identity(info) == identity(os.fstat(fd)) == identity(path.lstat()))
         return identity(info)
     finally:
@@ -226,7 +258,10 @@ def observe_eject(backend, timeout):
     raise RuntimeError('No verified eject was observed; host ownership retained')
 
 
-def operate(action, peer, timeout=180):
+def operate(action, peer, timeout=180, *, size=None, approve_8gib=False):
+    if action == 'plan':
+        size = approved_size(SIZE if size is None else size)
+        require(size != EXPANDED_SIZE or approve_8gib is True)
     observed = preflight(peer, observing=action == 'watch-eject')
     fd = os.open(ROOT / 'operator.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
     try:
@@ -235,7 +270,9 @@ def operate(action, peer, timeout=180):
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         if action == 'plan':
             require(not (ROOT / 'attach-intent.json').exists())
-            plan = {'schema_version': 1, 'image_identity': image_layout(IMAGE), 'observed': observed}
+            plan = {'schema_version': 1, 'image_identity': image_layout(IMAGE, size=size), 'observed': observed}
+            if size == EXPANDED_SIZE:
+                plan.update(schema_version=2, image_size_bytes=size, image_layout=capacity_layout(size))
             save('rollback.json', {'steps': ['Never detach a loaded LUN or unload a driver during host I/O.',
                 'Retain this image and all trial records on every failure.',
                 'After separately verified host eject and empty LUN only: unbind this exact trial UDC.',
@@ -245,8 +282,8 @@ def operate(action, peer, timeout=180):
             return 'planned'
         require(action in ('attach', 'watch-eject') and not observed['legacy_modules'])
         raw = private_file(ROOT / 'plan.json');plan = parse(raw)
-        require(set(plan) == {'schema_version', 'image_identity', 'observed'}
-                and type(plan['schema_version']) is int and plan['schema_version'] == 1)
+        planned_size = validate_plan_metadata(plan)
+        require(size is None or approved_size(size) == planned_size)
         approval = parse(private_file(ROOT / 'ATTACH_APPROVED.json'))
         require(approval == {'schema_version': 1, 'approve_host_export': True, 'plan_sha256': hashlib.sha256(raw).hexdigest()}
                 and type(approval['schema_version']) is int and approval['approve_host_export'] is True)
@@ -282,9 +319,16 @@ def main(argv=None):
     parser.add_argument('action', choices=('plan', 'attach', 'watch-eject'))
     parser.add_argument('--ssh-peer', required=True)
     parser.add_argument('--timeout', type=int, choices=range(1, 601), default=180, metavar='1..600')
+    parser.add_argument('--image-size-gib', type=int, choices=(1, 8))
+    parser.add_argument('--approve-8gib-disposable-image', action='store_true')
     args = parser.parse_args(argv)
     try:
-        result = operate(args.action, args.ssh_peer, args.timeout)
+        if args.image_size_gib is None and not args.approve_8gib_disposable_image:
+            result = operate(args.action, args.ssh_peer, args.timeout)
+        else:
+            result = operate(args.action, args.ssh_peer, args.timeout,
+                size=None if args.image_size_gib is None else args.image_size_gib * LEGACY_SIZE,
+                approve_8gib=args.approve_8gib_disposable_image)
         print(json.dumps({'status': result, 'cloud_enabled': False, 'local_capture_enabled': False}))
         return 0
     except Exception:

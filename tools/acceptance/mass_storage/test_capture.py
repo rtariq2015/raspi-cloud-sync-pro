@@ -26,14 +26,16 @@ class CaptureTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory();self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
         self.mount, self.staging = self.root / 'mount', self.root / 'staging'
-        self.image = self.root / 'image';self.image.write_bytes(b'not a filesystem')
+        self.image = self.root / 'image'
+        with self.image.open('xb') as output:
+            output.write(b'not a filesystem');output.truncate(capture.trial.LEGACY_SIZE)
         self.account = SimpleNamespace(pw_uid=os.getuid(), pw_gid=os.getgid())
         self.events, self.released = [], False
         self.stack = contextlib.ExitStack();self.addCleanup(self.stack.close)
         for obj, name, value in ((capture, 'MOUNT', self.mount), (capture, 'STAGING', self.staging),
                                  (capture.trial, 'ROOT', self.root), (capture.trial, 'IMAGE', self.image)):
             self.stack.enter_context(mock.patch.object(obj, name, value))
-        plan = {'image_identity': capture.trial.identity(self.image.stat())}
+        plan = {'schema_version':1, 'image_identity': capture.trial.identity(self.image.stat()), 'observed':{}}
         self.stack.enter_context(mock.patch.object(capture.trial, 'private_file', return_value=json.dumps(plan).encode()))
         self.stack.enter_context(mock.patch.object(capture.trial, 'protected'))
         self.stack.enter_context(mock.patch.object(capture, '_service_identity', return_value=self.account))
@@ -120,10 +122,13 @@ class CaptureTests(unittest.TestCase):
         self.assertIs(capture.trial.observe_eject, original)
 
     def test_failed_child_cleanup_retains_image_and_staging(self):
-        backend = self.backend(stage_error=True);before = self.image.read_bytes()
+        backend = self.backend(stage_error=True)
+        with self.image.open('rb') as incoming:before = incoming.read(512)
         with self.assertRaises(OSError):capture.capture('192.0.2.9', 10)
         backend.unmount.assert_called_once();backend.detach_loop.assert_called_once()
-        self.assertEqual(self.image.read_bytes(), before);self.assertTrue(self.staging.is_dir())
+        with self.image.open('rb') as incoming:self.assertEqual(incoming.read(512),before)
+        self.assertEqual(self.image.stat().st_size,capture.trial.LEGACY_SIZE)
+        self.assertTrue(self.staging.is_dir())
         self.assertNotIn('capture-complete.json', self.events)
 
     def test_existing_staging_refuses_no_overwrite_after_release(self):
@@ -166,8 +171,13 @@ class CaptureTests(unittest.TestCase):
 
     def test_dirty_exfat_header_refused_without_repair(self):
         with self.image.open('r+b') as stream:
-            stream.truncate(2 * 1024 * 1024);stream.seek(1024 * 1024)
-            header = bytearray(512);header[3:11] = b'EXFAT   ';header[510:] = b'\x55\xaa';stream.write(header)
+            count = capture.trial.LEGACY_SIZE//512-2048
+            mbr, header = bytearray(512), bytearray(512)
+            mbr[450] = 7;mbr[454:458] = (2048).to_bytes(4,'little');mbr[458:462] = count.to_bytes(4,'little')
+            mbr[510:] = header[510:] = b'\x55\xaa'
+            header[3:11] = b'EXFAT   ';header[108] = 9
+            header[72:80] = count.to_bytes(8,'little')
+            stream.write(mbr);stream.seek(1024*1024);stream.write(header)
         expected = capture.trial.identity(self.image.stat())[:3]
         capture.clean_header(expected)
         for flag in (2, 4):
@@ -181,11 +191,17 @@ class CaptureTests(unittest.TestCase):
         self.assertNotIn('secret', output.getvalue());self.assertFalse(json.loads(output.getvalue())['cloud_verified'])
         ast.parse(SCRIPT.read_text(), feature_version=(3, 9));ast.parse(capture.CHILD, feature_version=(3, 9))
 
-    def manual_environment(self, *, backing='', approval=None):
+    def manual_environment(self, *, backing='', approval=None, size=None):
+        size = capture.trial.LEGACY_SIZE if size is None else size
+        if size != capture.trial.LEGACY_SIZE:
+            with self.image.open('r+b') as output:output.truncate(size)
         observed = {'ssh_peer': '192.0.2.9', 'udc': 'fake-udc', 'legacy_modules': [],
                     'ics': ['ActiveState=inactive', 'UnitFileState=enabled'], 'wifi': 'same'}
         prior = {**observed, 'legacy_modules': ['g_ether'], 'ics': ['ActiveState=active', 'UnitFileState=enabled']}
-        raw = json.dumps({'schema_version': 1, 'image_identity': capture.trial.identity(self.image.stat()), 'observed': prior}).encode()
+        plan = {'schema_version': 1, 'image_identity': capture.trial.identity(self.image.stat()), 'observed': prior}
+        if size == capture.trial.EXPANDED_SIZE:
+            plan.update(schema_version=2,image_size_bytes=size,image_layout=capture.trial.capacity_layout(size))
+        raw = json.dumps(plan).encode()
         digest = hashlib.sha256(raw).hexdigest()
         manual = {'schema_version': 1, 'plan_sha256': digest, 'user_safe_eject_confirmed': True,
                   'previous_loaded_observation_confirmed': True, 'no_admin_forced_eject': True}
@@ -239,6 +255,35 @@ class CaptureTests(unittest.TestCase):
             manual.assert_not_called();watched.assert_called_once()
             self.assertEqual(capture.main(['--ssh-peer', '192.0.2.9', '--operator-confirmed-handoff']), 0)
             manual.assert_called_once_with('192.0.2.9')
+
+    def test_8gib_manual_handoff_uses_same_bound_capacity_plan_without_payload_reads(self):
+        backend,_,continuation,_,_ = self.manual_environment(size=capture.trial.EXPANDED_SIZE)
+        with mock.patch.object(capture.os,'pread') as read:
+            self.assertEqual(capture.confirmed_handoff('192.0.2.9'),{'status':'captured'})
+        read.assert_not_called();backend.detach_gadget.assert_called_once()
+        continuation.assert_called_once_with(backend,self.account,'operator_confirmed_host_safe_eject')
+
+    def test_manual_handoff_rejects_stale_8gib_layout_before_backend_or_payload_reads(self):
+        _,factory,continuation,reports,data = self.manual_environment(size=capture.trial.EXPANDED_SIZE)
+        plan = json.loads(data['plan.json'])
+        plan['image_layout']['partition_sectors'] = capture.trial.LEGACY_SIZE//512-2048
+        data['plan.json'] = json.dumps(plan).encode()
+        with mock.patch.object(capture.os,'pread') as read,self.assertRaises(RuntimeError):
+            capture.confirmed_handoff('192.0.2.9')
+        read.assert_not_called();factory.assert_not_called();continuation.assert_not_called();self.assertEqual(reports,[])
+
+    def test_8gib_watched_capture_preserves_release_before_readonly_capture(self):
+        with self.image.open('r+b') as output:output.truncate(capture.trial.EXPANDED_SIZE)
+        plan = {'schema_version':2,'image_identity':capture.trial.identity(self.image.stat()),'observed':{},
+                'image_size_bytes':capture.trial.EXPANDED_SIZE,
+                'image_layout':capture.trial.capacity_layout(capture.trial.EXPANDED_SIZE)}
+        backend = self.backend()
+        with mock.patch.object(capture.trial,'private_file',return_value=json.dumps(plan).encode()):
+            result = capture.capture('192.0.2.9',10)
+        self.assertEqual(result['status'],'captured')
+        self.assertLess(self.events.index('capture-eject-observed.json'),self.events.index('loop'))
+        self.assertLess(self.events.index('fsck'),self.events.index('clean-header'))
+        backend.attach_gadget.assert_not_called()
 
 
 if __name__ == '__main__':

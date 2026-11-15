@@ -4,10 +4,17 @@ This is a manual host-only trial, not a service or automatic backup. It changes
 only one fresh configfs profile. The core hardware gate remains disabled.
 
 Root first reviews and runs `prepare_image.py` separately. It creates only the new
-1 GiB partitioned exFAT image at
+1 GiB partitioned exFAT image by default at
 `/var/lib/raspi-cloud-sync-pro/mass-storage-trial/disk.img`. Existing paths are
 never overwritten. Use a protected installed interpreter/package and a protected
 copy of these operator scripts. No project script changes boot configuration.
+Source invocations use the project's installed package/environment (or
+`PYTHONPATH=src`); preparation now imports the shared capacity policy too.
+Source also supports an explicitly selected 8 GiB disposable image with separate
+creation approval and a capacity-bound export plan. This is not permission to
+replace the current image. See [Stage 3B's approval contract and limitations](../../../docs/STORAGE_CAPACITY_STAGE3B.md).
+The fixed existing-directory refusal, disabled public hardware build and all
+host-ownership safeguards remain in effect. No migration utility is supplied.
 If preparation times out or is interrupted, inspect the retained intent and
 read-only loop inventory before any further operation. A loop association may
 exist even if its creating command did not return a name. Never retry creation

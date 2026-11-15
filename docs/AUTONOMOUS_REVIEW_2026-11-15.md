@@ -2,15 +2,24 @@
 
 Date: 15 November 2026 (America/New_York). Branch: `development`.
 Starting application source: `665977bd60e2f9afb6297ba2110b31157eb37f29`.
-Git changes in this session are documentation, acceptance evidence, an offline
-storage simulation harness and its existing-workflow CI discovery command only.
+G4F/Stage 2/Stage 3 commits contain documentation, acceptance evidence and the
+offline storage simulations. Stage 3B adds narrowly scoped source capacity
+validation and its offline regressions; it is not deployed.
 The separately approved Stage 2 maintenance installed the existing three-line
-worker fix from that baseline on the Pi; no new application code was written.
+worker fix from that baseline on the Pi. Stage 3B changes no Pi installation.
 The G4F documentation checkpoint is `fdb0c0eb2f774bdc1154cafcfcaab088785b4672`.
 The latest documentation checkpoint is the Git commit containing this report.
 No main merge or release is authorized.
 
 ## Executive result
+
+**Stage 3B source support complete:** legacy 1 GiB approval remains compatible;
+8 GiB requires an explicit capacity/layout record and exact image identity.
+Shared geometry checks remain behind exclusive ownership and read-only fsck.
+Image preparation and manual approval/capture routes use the same capacity
+contract. Journals and capture inventories still refuse replacement identities
+without rebinding. The live 1 GiB image and services were not accessed or changed.
+[Stage 3B changes, tests and remaining prerequisites](STORAGE_CAPACITY_STAGE3B.md).
 
 **G4F PASS:** the ordinary Windows test computer copied one unique synthetic
 1 MiB file to CLOUDSTICK. Windows source and USB read-back SHA-256 matched.
@@ -35,6 +44,26 @@ regressions pass.** The current 1 GiB image, services and all 19/95 history rows
 remain unchanged. Larger-image controller support, verified maintenance hold,
 real disposable exFAT tests and reviewed low-space admission are prerequisites; no live migration was
 attempted. [Full Stage 3 report and future approval prompt](STORAGE_CAPACITY_STAGE3.md).
+
+## Checkpoint: Stage 3B source capacity support
+
+- **STATUS:** source/offline milestone complete; no deployment or migration.
+- **START:** `efc5d08ce0f34378efb14b0838ac4d6217e4ceb9`.
+- **CHANGE:** shared strict 1/8 GiB approval/geometry policy; explicit 8 GiB
+  preparation and capacity-bound operator plans; no journal schema/rebinding.
+- **SAFEGUARDS:** metadata-only live-owner approval; detached read-only fsck
+  boundary; exact path/device/inode/size; public build disabled; failure retention.
+- **TESTS:** final main discovery 864 run / 861 passed / 3 optional local-rclone
+  skips; USB operator 36 passed; Stage 3 simulations 15 passed. Focused 109
+  controller and 16 preparation tests are included in the main-suite total.
+- **REVIEW:** independent source and test reviews found no remaining concrete
+  blocker; real 8 GiB exFAT/Windows acceptance is not established.
+- **LIVE SYSTEM:** not accessed or changed; no service, image, cloud or credential
+  operation. The live 1 GiB build remains installed.
+- **COMMIT:** the source-only Git commit containing this checkpoint.
+- **NEXT:** owner review, then separately authorize maintenance-hold development.
+  Low-space admission and real filesystem validation still precede migration.
+- **REPORT:** [exact contract, code changes, commands and limits](STORAGE_CAPACITY_STAGE3B.md).
 
 ## Checkpoint: Stage 3 storage planning and safe simulation
 

@@ -22,6 +22,7 @@ from .gadget import GadgetController
 from .hardware import power_diagnostics
 from .google_broker import _root_directory, _root_file, _service_identity, _state_directory
 from .linux_gadget import LEGACY_GADGET_MODULES, GadgetSettings, LinuxGadgetBackend, LiveLinuxIO
+from .mass_storage_image import PARTITION_OFFSET, validate_image_approval, validate_image_headers
 
 APPROVED_TEST_BUILD = False
 CONFIG = Path('/etc/raspi-cloud-sync-pro/mass-storage-appliance.json')
@@ -75,10 +76,7 @@ def _approved(settings):
     _require(os.readlink('/proc/self/ns/mnt') == os.readlink('/proc/1/ns/mnt'))
     _require(_settings() == settings)
     approval = _json(APPROVAL)
-    expected = {'schema_version': 1, 'mass_storage_appliance_approved': True,
-                'image_identity': list(LiveLinuxIO().regular_image(IMAGE))}
-    _require(json.dumps(approval, sort_keys=True) == json.dumps(expected, sort_keys=True)
-             and expected['image_identity'][2] == 1024 ** 3)
+    validate_image_approval(approval, LiveLinuxIO().regular_image(IMAGE))
 
 
 class _ApplianceIO(LiveLinuxIO):
@@ -143,14 +141,13 @@ class _ApplianceBackend(LinuxGadgetBackend):
             before = os.fstat(fd)
             _require(stat.S_ISREG(before.st_mode) and before.st_uid == ROOT_UID and before.st_nlink == 1
                      and (before.st_dev, before.st_ino, before.st_size) == self.image_identity)
-            mbr, boot = os.pread(fd, 512, 0), os.pread(fd, 512, 1024 * 1024)
-            _require(len(mbr) == len(boot) == 512 and mbr[510:] == boot[510:] == b'\x55\xaa'
-                and mbr[450] == 7 and int.from_bytes(mbr[454:458], 'little') == 2048
-                and int.from_bytes(mbr[458:462], 'little') == before.st_size // 512 - 2048
-                and not any(mbr[462:510]) and boot[3:11] == b'EXFAT   '
-                and int.from_bytes(boot[106:108], 'little') & 6 == 0)
+            mbr, boot = os.pread(fd, 512, 0), os.pread(fd, 512, PARTITION_OFFSET)
+            validate_image_headers(mbr, boot, before.st_size)
             after = os.fstat(fd)
             _require((after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns) ==
+                     (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns))
+            named = IMAGE.lstat()
+            _require((named.st_dev, named.st_ino, named.st_size, named.st_mtime_ns, named.st_ctime_ns) ==
                      (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns))
         finally:
             os.close(fd)

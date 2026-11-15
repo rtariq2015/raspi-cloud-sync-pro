@@ -34,8 +34,9 @@ class TrialTests(unittest.TestCase):
                          'wifi_profile': 'fixed', 'legacy_modules': ['g_ether'],
                          'ics': ['ActiveState=active', 'UnitFileState=enabled']}
 
-    def filesystem(self):
-        start, count = 2048, trial.SIZE // 512 - 2048
+    def filesystem(self, size=None):
+        size = trial.SIZE if size is None else size
+        start, count = 2048, size // 512 - 2048
         mbr, boot = bytearray(512), bytearray(512)
         mbr[450] = 7
         mbr[454:458] = start.to_bytes(4, 'little')
@@ -44,7 +45,7 @@ class TrialTests(unittest.TestCase):
         boot[3:11], boot[108] = b'EXFAT   ', 9
         boot[64:72], boot[72:80] = start.to_bytes(8, 'little'), count.to_bytes(8, 'little')
         with self.image.open('xb') as stream:
-            stream.truncate(trial.SIZE)
+            stream.truncate(size)
             stream.write(mbr)
             stream.seek(start * 512)
             stream.write(boot)
@@ -83,6 +84,64 @@ class TrialTests(unittest.TestCase):
                     stream.seek(offset);stream.write(old)
             with self.image.open('r+b') as stream:stream.truncate(trial.SIZE - 1)
             with self.assertRaises(RuntimeError):trial.image_layout(self.image)
+
+    def test_8gib_image_requires_explicit_capacity_and_exact_filesystem_geometry(self):
+        self.filesystem(trial.EXPANDED_SIZE)
+        with mock.patch.object(trial,'protected'):
+            with self.assertRaises(RuntimeError):trial.image_layout(self.image)
+            before = trial.identity(self.image.stat())
+            self.assertEqual(trial.image_layout(self.image,size=trial.EXPANDED_SIZE),before)
+            with self.image.open('r+b') as output:
+                output.seek(1024*1024+72);output.write((trial.LEGACY_SIZE//512-2048).to_bytes(8,'little'))
+            with self.assertRaises(RuntimeError):trial.image_layout(self.image,size=trial.EXPANDED_SIZE)
+
+    def test_8gib_plan_and_hash_approval_attach_without_payload_reads(self):
+        self.filesystem(trial.EXPANDED_SIZE);self.root_boundaries()
+        self.assertEqual(trial.operate('plan',self.observed['ssh_peer'],size=trial.EXPANDED_SIZE,approve_8gib=True),'planned')
+        plan = json.loads((self.root/'plan.json').read_text())
+        self.assertEqual(plan['schema_version'],2)
+        self.assertEqual(plan['image_size_bytes'],trial.EXPANDED_SIZE)
+        self.assertEqual(plan['image_layout'],trial.capacity_layout(trial.EXPANDED_SIZE))
+        self.approve();self.observed.update(legacy_modules=[],ics=['ActiveState=inactive','UnitFileState=enabled'])
+        backend,events = self.backend()
+        with mock.patch.object(trial.gadget,'LinuxGadgetBackend',return_value=backend), \
+                mock.patch.object(trial,'image_layout',side_effect=AssertionError('No payload reads after plan')):
+            self.assertEqual(trial.operate('attach',self.observed['ssh_peer']),'host_owned')
+        self.assertEqual(events,['prepare','attach'])
+
+    def test_invalid_or_unapproved_capacity_refused_before_trial_preflight(self):
+        for size in (True,4*1024**3,16*1024**3,trial.LEGACY_SIZE-1,float(trial.LEGACY_SIZE),'8'):
+            with self.subTest(size=size),mock.patch.object(trial,'preflight') as preflight:
+                with self.assertRaises(RuntimeError):trial.operate('plan','192.0.2.9',size=size,approve_8gib=True)
+                preflight.assert_not_called()
+        with mock.patch.object(trial,'preflight') as preflight:
+            with self.assertRaises(RuntimeError):trial.operate('plan','192.0.2.9',size=trial.EXPANDED_SIZE)
+            preflight.assert_not_called()
+
+    def test_8gib_stale_plan_or_legacy_schema_never_constructs_backend(self):
+        self.filesystem(trial.EXPANDED_SIZE);self.root_boundaries()
+        trial.operate('plan',self.observed['ssh_peer'],size=trial.EXPANDED_SIZE,approve_8gib=True)
+        self.approve();self.observed.update(legacy_modules=[],ics=['ActiveState=inactive','UnitFileState=enabled'])
+        valid = json.loads((self.root/'plan.json').read_text())
+        variants = [dict(valid,schema_version=1),dict(valid,image_size_bytes=trial.LEGACY_SIZE),
+                    dict(valid,image_layout=dict(valid['image_layout'],partition_sectors=99)),
+                    dict(valid,image_identity=[1,999,trial.EXPANDED_SIZE,0,0])]
+        for plan in variants:
+            (self.root/'plan.json').write_text(json.dumps(plan))
+            with self.subTest(plan=plan),mock.patch.object(trial.gadget,'LinuxGadgetBackend') as backend, \
+                    mock.patch.object(trial.os,'pread') as read,self.assertRaises(RuntimeError):
+                trial.operate('attach',self.observed['ssh_peer'])
+            backend.assert_not_called();read.assert_not_called()
+
+    def test_capacity_plan_rejects_numeric_aliases_and_extra_fields(self):
+        plan = {'schema_version':2,'image_identity':[1,2,trial.EXPANDED_SIZE,0,0],'observed':{},
+                'image_size_bytes':trial.EXPANDED_SIZE,'image_layout':trial.capacity_layout(trial.EXPANDED_SIZE)}
+        self.assertEqual(trial.validate_plan_metadata(plan),trial.EXPANDED_SIZE)
+        for change in ({'schema_version':True},{'image_size_bytes':float(trial.EXPANDED_SIZE)},
+                       {'extra':True},{'image_identity':[1,2,trial.EXPANDED_SIZE,False,0]},
+                       {'image_layout':dict(plan['image_layout'],partition=True)}):
+            with self.subTest(change=change),self.assertRaises(RuntimeError):
+                trial.validate_plan_metadata(dict(plan,**change))
 
     def test_real_symlink_hardlink_and_untrusted_owner_refused(self):
         self.filesystem()

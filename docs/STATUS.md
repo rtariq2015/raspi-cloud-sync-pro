@@ -2,6 +2,18 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
+**Stage 3B — source-level 8 GiB validation complete; not deployed.** Existing
+1 GiB configuration/approval behavior remains supported. A future 8 GiB image
+needs an explicit capacity/layout approval bound to the exact image identity;
+arbitrary sizes and stale identities are refused. Filesystem reads remain behind
+verified USB release and read-only checking. No live Pi access, service change
+or storage migration occurred. The installed image remains **1 GiB**.
+Local results: **861 main-suite tests passed, 3 optional rclone tests skipped;
+36 USB operator tests and 15 storage simulations passed**. The next prerequisite
+is a reviewed maintenance hold; low-space admission and real 8 GiB acceptance
+remain separate.
+[Source changes, tests and next prerequisite](STORAGE_CAPACITY_STAGE3B.md).
+
 **G4F — Production Google backup acceptance: PASS.** One unique synthetic
 1 MiB file was created and SHA-256 checked on the ordinary Windows test PC,
 copied onto CLOUDSTICK, flushed and safely ejected. The Pi automatically
@@ -47,9 +59,11 @@ passed.** No live storage or services changed; all 19 verified records and
 larger exFAT volumes or physical power cuts.
 [Capacity report, limits and proposed migration prompt](STORAGE_CAPACITY_STAGE3.md).
 
-**What remains before practical office use:** separately approve reviewed support
-beyond the installed controller's hard 1 GiB limit, verified maintenance hold,
-real disposable exFAT tests and suitable low-space admission, then a controlled physical migration. Expected
+**What remains before practical office use:** Stage 3B's capacity support is
+source-only; the installed controller still has its 1 GiB limit. The next
+prerequisite is a verified maintenance hold. Real disposable exFAT tests,
+suitable low-space admission and separately approved deployment/cutover also
+remain. Expected
 QA volume/retention still needs owner confirmation; longer workloads and recovery
 remain unaccepted. The USB image is still the disposable **1 GiB** image.
 **Safe Eject is required for each batch; no-eject capture is not implemented.**

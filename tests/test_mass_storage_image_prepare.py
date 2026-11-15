@@ -10,6 +10,8 @@ import tempfile
 import unittest
 from unittest import mock
 
+from raspi_cloud_sync_pro.errors import BackupError
+
 SOURCE = Path(__file__).resolve().parents[1] / "tools/acceptance/mass_storage/prepare_image.py"
 spec = importlib.util.spec_from_file_location("msc_image_prepare", SOURCE)
 image = importlib.util.module_from_spec(spec)
@@ -90,7 +92,7 @@ class MassStorageImagePreparationTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "unexpected_loop_after_detach"):
                 image.wait_detached("/dev/loop7")
 
-    def _prepare_fixture(self, directory, *, fail_format=False):
+    def _prepare_fixture(self, directory, *, fail_format=False, size=4 * 1024 ** 2):
         calls = []
 
         def command(arguments):
@@ -99,19 +101,32 @@ class MassStorageImagePreparationTests(unittest.TestCase):
                 return "/dev/loop7"
             if arguments[0] == "/usr/sbin/mkfs.exfat" and fail_format:
                 raise RuntimeError("simulated_format_failure")
+            if arguments[0] == "/usr/sbin/mkfs.exfat":
+                # Header fixture only; no actual formatter or filesystem is used.
+                header = bytearray(512)
+                header[3:11], header[108], header[510:] = b'EXFAT   ', 9, b'\x55\xaa'
+                header[72:80] = ((size-image.OFFSET)//512).to_bytes(8,'little')
+                with (target/'disk.img').open('r+b') as output:
+                    output.seek(image.OFFSET);output.write(header)
             return ""
 
         target = Path(directory) / "trial"
         patches = [mock.patch.object(image, "DIRECTORY", target),
                    mock.patch.object(image, "IMAGE", target / "disk.img"),
-                   mock.patch.object(image, "SIZE", 4 * 1024 ** 2),
+                   mock.patch.object(image, "SIZE", size),
                    mock.patch.object(image, "preflight"),
-                   mock.patch.object(image, "image_identity", return_value=(1, 2, 4 * 1024 ** 2)),
+                   mock.patch.object(image, "image_identity", side_effect=lambda **kwargs:
+                       tuple(getattr((target/'disk.img').stat(),key) for key in ('st_dev','st_ino','st_size'))),
                    mock.patch.object(image, "loops", return_value=[]),
                    mock.patch.object(image, "verify_loop"),
                    mock.patch.object(image, "command", side_effect=command),
                    mock.patch.object(image.os, "posix_fallocate",
                                      side_effect=lambda fd, offset, length: os.ftruncate(fd, length))]
+        if size == 4 * 1024 ** 2:
+            # Preserve the old small lifecycle model without expanding production
+            # capacity policy. The 8 GiB fixture below uses the actual validators.
+            patches += [mock.patch.object(image, 'validate_image_size', return_value=size),
+                        mock.patch.object(image, 'validate_image_headers')]
         return target, calls, patches
 
     def test_new_image_lifecycle_checks_before_format_and_detaches(self):
@@ -155,6 +170,52 @@ class MassStorageImagePreparationTests(unittest.TestCase):
             self.assertEqual(calls, [])
             self.assertTrue((target / "disk.img").exists())
             self.assertFalse((target / "prepared.json").exists())
+
+    def test_explicit_8gib_lifecycle_binds_capacity_and_exact_loop_limit(self):
+        from contextlib import ExitStack
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+            target, calls, patches = self._prepare_fixture(directory,size=image.EXPANDED_SIZE)
+            for patch in patches:stack.enter_context(patch)
+            result = image.prepare(size=image.EXPANDED_SIZE,approve_8gib=True)
+            self.assertEqual((target/'disk.img').stat().st_size,image.EXPANDED_SIZE)
+            self.assertEqual(result['schema_version'],2)
+            self.assertEqual(result['image_size_bytes'],image.EXPANDED_SIZE)
+            self.assertEqual(result['image_layout'],image.image_layout(image.EXPANDED_SIZE))
+            self.assertIn(str(image.EXPANDED_SIZE-image.OFFSET),calls[0])
+            self.assertEqual(json.loads((target/'creation-intent.json').read_text())['size'],image.EXPANDED_SIZE)
+            self.assertFalse(result['exported']);self.assertFalse(result['mounted'])
+
+    def test_default_1gib_lifecycle_keeps_legacy_receipt_without_new_approval(self):
+        from contextlib import ExitStack
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+            target, calls, patches = self._prepare_fixture(directory,size=image.LEGACY_SIZE)
+            for patch in patches:stack.enter_context(patch)
+            result = image.prepare()
+            self.assertEqual((target/'disk.img').stat().st_size,image.LEGACY_SIZE)
+            self.assertEqual(result['schema_version'],1)
+            self.assertNotIn('image_size_bytes',result);self.assertNotIn('image_layout',result)
+            self.assertIn(str(image.LEGACY_SIZE-image.OFFSET),calls[0])
+            self.assertEqual(result['image_identity'][2],image.LEGACY_SIZE)
+            self.assertFalse(result['exported']);self.assertFalse(result['mounted'])
+
+    def test_invalid_or_unapproved_capacity_never_reaches_preflight(self):
+        for size in (False,True,4*1024**3,16*1024**3,image.LEGACY_SIZE-1,float(image.LEGACY_SIZE),'8'):
+            with self.subTest(size=size),mock.patch.object(image,'preflight') as preflight:
+                with self.assertRaises(BackupError):image.prepare(size=size,approve_8gib=True)
+                preflight.assert_not_called()
+        for approval in (False,1,'yes'):
+            with self.subTest(approval=approval),mock.patch.object(image,'preflight') as preflight:
+                with self.assertRaisesRegex(RuntimeError,'explicit_8gib'):
+                    image.prepare(size=image.EXPANDED_SIZE,approve_8gib=approval)
+                preflight.assert_not_called()
+
+    def test_8gib_loop_limit_cannot_reuse_legacy_limit(self):
+        identity = (1,2,image.EXPANDED_SIZE)
+        legacy = {'name':'/dev/loop7','back-file':str(image.IMAGE),'offset':image.OFFSET,
+                  'sizelimit':image.LEGACY_SIZE-image.OFFSET,'ro':False}
+        with mock.patch.object(image,'image_identity',return_value=identity),mock.patch.object(image,'loops',return_value=[legacy]):
+            with self.assertRaisesRegex(RuntimeError,'exclusive_offset_loop_unverified'):
+                image.verify_loop('/dev/loop7',identity,size=image.EXPANDED_SIZE)
 
 
 if __name__ == "__main__":

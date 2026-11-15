@@ -250,6 +250,8 @@ class ApplianceTests(unittest.TestCase):
             mbr[450] = 7;mbr[454:458] = (2048).to_bytes(4, 'little')
             mbr[458:462] = (1024**3//512-2048).to_bytes(4, 'little')
             mbr[510:] = boot[510:] = b'\x55\xaa';boot[3:11] = b'EXFAT   '
+            boot[108] = 9
+            boot[72:80] = (1024**3//512-2048).to_bytes(8, 'little')
             stream.write(mbr);stream.seek(1024*1024);stream.write(boot)
         backend = object.__new__(appliance._ApplianceBackend)
         info = image.stat();backend.image_identity = info.st_dev, info.st_ino, info.st_size

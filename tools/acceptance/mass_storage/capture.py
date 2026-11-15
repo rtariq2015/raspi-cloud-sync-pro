@@ -60,13 +60,18 @@ def wait_for(check, seconds=5):
 
 def clean_header(expected):
     """Read only filesystem metadata, and only AFTER this invocation's eject."""
+    trial.require(type(expected) in (list, tuple) and len(expected) == 3)
+    expected = list(expected)
+    size = trial.approved_size(expected[2])
     fd = os.open(trial.IMAGE, os.O_RDONLY | os.O_NOFOLLOW)
     try:
         info = os.fstat(fd)
         trial.require(trial.identity(info)[:3] == expected and stat.S_ISREG(info.st_mode) and info.st_nlink == 1)
-        header = os.pread(fd, 512, 1024 * 1024)
-        trial.require(len(header) == 512 and header[3:11] == b'EXFAT   ' and header[510:] == b'\x55\xaa'
-                      and int.from_bytes(header[106:108], 'little') & 6 == 0)
+        mbr, header = os.pread(fd, 512, 0), os.pread(fd, 512, 1024 * 1024)
+        try:
+            trial.validate_image_headers(mbr, header, size)
+        except trial.BackupError:
+            trial.require(False)
         trial.require(trial.identity(os.fstat(fd))[:3] == expected == trial.identity(trial.IMAGE.lstat())[:3])
     finally:
         os.close(fd)
@@ -173,7 +178,9 @@ def stage_child(account, timeout=120):
 def capture_released(backend, account, release_method):
     """Internal continuation; callers must independently prove this invocation's release."""
     loop, mounted, cleaned = None, False, False
-    expected = trial.parse(trial.private_file(trial.ROOT / 'plan.json'))['image_identity'][:3]
+    plan = trial.parse(trial.private_file(trial.ROOT / 'plan.json'))
+    trial.validate_plan_metadata(plan)
+    expected = plan['image_identity'][:3]
     trial.require(trial.identity(trial.IMAGE.lstat())[:3] == expected)
     backend.mountpoint = MOUNT
     io = CaptureIO(backend.root, account);backend.io = io
@@ -231,6 +238,7 @@ def confirmed_handoff(peer):
         trial.require(stat.S_ISREG(info.st_mode) and info.st_uid == 0 and info.st_nlink == 1 and stat.S_IMODE(info.st_mode) == 0o600)
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         raw = trial.private_file(trial.ROOT / 'plan.json');plan = trial.parse(raw);digest = hashlib.sha256(raw).hexdigest()
+        trial.validate_plan_metadata(plan)
         expected = {'schema_version': 1, 'plan_sha256': digest, 'user_safe_eject_confirmed': True,
                     'previous_loaded_observation_confirmed': True, 'no_admin_forced_eject': True}
         trial.require(trial.canonical(trial.parse(trial.private_file(trial.ROOT / 'MANUAL_CAPTURE_APPROVED.json'))) == trial.canonical(expected))
