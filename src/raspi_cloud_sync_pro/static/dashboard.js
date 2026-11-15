@@ -4,12 +4,16 @@ let googlePreparationTimer = null;
 let googlePreparationRetryUntil = 0;
 let googleControlTimer = null;
 let googleControlRetryUntil = 0;
+let backupRefreshTimer = null;
+let backupRefreshFlight = null;
+let advancedReady = false;
+let advancedRefreshFlight = null;
 const $ = id => document.getElementById(id);
 const text = (tag, value, className) => { const el = document.createElement(tag); el.textContent = value; if(className) el.className = className; return el; };
 const bytes = n => n < 1024 ? `${n} B` : n < 1048576 ? `${(n/1024).toFixed(1)} KB` : n < 1073741824 ? `${(n/1048576).toFixed(1)} MB` : `${(n/1073741824).toFixed(1)} GB`;
 function message(value, error=false) { $('message').textContent=value; $('message').className=error?'notice error':'notice'; $('message').hidden=false; }
 async function api(path, options={}) { const response=await fetch(path, {credentials:'same-origin', ...options}); if(response.status===401) {location.href='/login'; throw new Error('Sign in again.');} if(!response.ok) throw new Error(response.status===413?'The server rejected the upload request. Maximum file size: 100 MiB.':response.status===403?'Your account cannot perform this action.':'The request could not be completed. Please try again.'); return response.json(); }
-function view(name) { if(!$(name)?.classList.contains('view')) return; document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!==name); document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.view===name)); $('view-label').textContent=({overview:'Overview',files:'Files',backups:'Backups',network:'Wi-Fi & access',history:'History'})[name]; }
+function view(name) { if(!$(name)?.classList.contains('view')) return; document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!==name); document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.view===name)); $('view-label').textContent=({overview:'Overview',files:'Files',backups:'Backups',network:'Wi-Fi & access',history:'History',advanced:'Advanced Tools'})[name]; }
 document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>view(el.dataset.view)));
 function fileRows() { const term=$('file-search').value.toLowerCase(); const selected=files.filter(file=>file.name.toLowerCase().includes(term)); $('file-rows').replaceChildren(); $('files-empty').hidden=selected.length>0; for(const file of selected) {const row=document.createElement('tr'); row.append(text('td',file.name),text('td',bytes(file.size))); const state=document.createElement('td'); state.append(text('span',file.cloud_verified?'Verified':'Staged locally','tag '+(file.cloud_verified?'verified':'staged'))); row.append(state); const actions=text('td',''); actions.className='row-actions'; const query=new URLSearchParams({batch:file.batch,name:file.name}); const preview=text('button','Preview'); preview.addEventListener('click',async()=>{try{const data=await api('/api/preview?'+query); $('preview-name').textContent=file.name; $('preview-text').textContent=data.supported?data.text+(data.truncated?'\n\n[Preview limited to 64 KiB]':''):'This file has no text preview. Use Download to open it on your device.'; $('preview-dialog').showModal();}catch(error){message(error.message,true);}}); const download=text('a','Download'); download.href='/api/download?'+query; actions.append(preview,download); row.append(actions); $('file-rows').append(row);} }
 function workerReport(report) {
@@ -22,6 +26,110 @@ function workerReport(report) {
     $('worker-detail').textContent=queue+' · '+report.destination_count+' destinations · Reported '+age+' ago. '+policy+'. '+(report.reconciliation_pending?'More completed batches await reconciliation. ':'')+'This is a last report, not a live heartbeat or proof of cloud-account setup.';
   } else $('worker-detail').textContent='Reports do not start a worker or authorize cloud accounts. A parked scheduler may have no recent report. File verification is shown separately in history.';
 }
+function backupTimestamp(value) {
+  if(typeof value!=='number'||!Number.isFinite(value)||value<0) return 'Unknown';
+  const date=new Date(value*1000);
+  return Number.isFinite(date.getTime())?date.toLocaleString():'Unknown';
+}
+function backupReport(report) {
+  const observed=['current','stale'].includes(report?.state);
+  const available=observed&&report?.history?.state==='available';
+  const count=value=>Number.isSafeInteger(value)&&value>=0?value:null;
+  const counts=report?.history?.counts||{};
+  const verified=available?count(counts.verified):null;
+  const pendingStates=['queued','retry','uploading','uploaded','verifying'];
+  const pending=available&&pendingStates.every(state=>count(counts[state])!==null)?pendingStates.reduce((sum,state)=>sum+counts[state],0):null;
+  for(const [id,value] of [['verified-count',verified],['backup-verified',verified],['backup-pending',pending],['backup-retrying',available?count(counts.retry):null],['backup-failed',available?count(counts.failed):null]]) $(id).textContent=value===null?'—':String(value);
+  const reportLabels={current:'Read-only backup report received.',stale:'The backup report is stale. Current service health is unknown.',not_connected:'The read-only backup status bridge is not connected.',unavailable:'Backup status is unavailable. Current service health is unknown.',invalid:'The backup report could not be validated. Current service health is unknown.'};
+  $('backup-report-state').textContent=reportLabels[report?.state]||reportLabels.unavailable;
+  $('backup-updated').textContent=observed?'Report observed: '+backupTimestamp(report.observed_at)+' · '+(Number.isSafeInteger(report.age_seconds)?report.age_seconds:'Unknown')+' seconds ago.':'No usable observation is available.';
+  const serviceLabels={running:'Running',stopped:'Stopped',failed:'Failed',unknown:'Unknown'};
+  const service=serviceLabels[report?.service?.state]||serviceLabels.unknown;
+  $('backup-service').textContent=observed?(report.state==='stale'?'Last observed: '+service+' (stale)':'Observed: '+service):'Unknown';
+  const google=report?.google_drive;
+  $('backup-google').textContent=observed&&google?.state==='historically_verified'?'Google Drive backup verified previously':observed&&google?.state==='recorded'?'Google Drive destination recorded':'Google Drive status unknown';
+  $('backup-google-detail').textContent=observed&&google?.state==='historically_verified'?'Last verified backup: '+backupTimestamp(google.last_verified_at)+'. Current Google access has not been tested.':'Current Google access has not been tested. Dashboard sign-in setup is separate from the existing USB backup worker.';
+  const destinations=observed&&Array.isArray(report.destinations)?report.destinations:[];
+  $('backup-destinations').textContent=destinations.length?destinations.map(item=>item.label).join(' · ')+' · Recorded backup destinations; private identifiers hidden.':'Destination information unavailable.';
+  $('backup-progress').replaceChildren();
+  const jobs=available&&Array.isArray(report.jobs)?report.jobs:[];
+  const stateLabels={queued:'Queued',retry:'Waiting to retry',uploading:'Uploading',uploaded:'Uploaded — awaiting verification',verifying:'Verifying downloaded contents',verified:'Verified',failed:'Failed'};
+  const active=jobs.filter(job=>['uploading','uploaded','verifying'].includes(job.state));
+  if(!active.length) $('backup-progress').append(text('p',available?'No transfer-stage job is recorded in the recent history.':'Transfer state unavailable.','muted'));
+  for(const job of active) $('backup-progress').append(text('p',job.label+' · '+(stateLabels[job.state]||'Unknown'),'muted'));
+  $('backup-progress').append(text('p','Progress shows recorded job stages. The worker does not provide reliable live byte counts or percentages.','fine'));
+  $('backup-recent').replaceChildren();
+  if(!jobs.length) $('backup-recent').append(text('p',available?'No backup jobs recorded yet.':'Backup history unavailable.','empty'));
+  for(const job of jobs.slice(0,5)) {
+    const line=text('div','','file-line'),details=text('div',job.label);
+    details.append(text('small',job.destination+' · '+backupTimestamp(job.updated_at)));
+    if(job.error_message) details.append(text('small',job.error_message));
+    line.append(details,text('span',stateLabels[job.state]||'Unknown'));
+    $('backup-recent').append(line);
+  }
+  $('history-rows').replaceChildren();
+  $('history-empty').hidden=jobs.length>0;
+  $('history-empty').textContent=available?'No backup history yet.':'Backup history unavailable.';
+  for(const job of jobs) {
+    const row=document.createElement('tr');
+    let detail=job.error_message||'—';
+    if(job.state==='retry') detail+=' · Next retry: '+backupTimestamp(job.next_attempt);
+    row.append(text('td',job.label),text('td',job.destination),text('td',stateLabels[job.state]||'Unknown'),text('td',job.attempts),text('td',bytes(job.size)),text('td',backupTimestamp(job.updated_at)),text('td',detail));
+    $('history-rows').append(row);
+  }
+  workerReport(observed?report.worker:null);
+}
+function scheduleBackupRefresh() {
+  if(backupRefreshTimer!==null) {clearTimeout(backupRefreshTimer);backupRefreshTimer=null;}
+  if(document.visibilityState==='hidden') return;
+  backupRefreshTimer=setTimeout(()=>{backupRefreshTimer=null;refreshBackups();},15000);
+}
+function refreshBackups() {
+  if(backupRefreshFlight!==null) return backupRefreshFlight;
+  if(backupRefreshTimer!==null) {clearTimeout(backupRefreshTimer);backupRefreshTimer=null;}
+  backupRefreshFlight=(async()=>{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
+    try {backupReport(await api('/api/backups',{signal:controller.signal}));}
+    catch(error) {backupReport({state:'unavailable'});}
+    finally {clearTimeout(timeout);backupRefreshFlight=null;scheduleBackupRefresh();}
+  })();
+  return backupRefreshFlight;
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden') {
+    if(backupRefreshTimer!==null) {clearTimeout(backupRefreshTimer);backupRefreshTimer=null;}
+  } else refreshBackups();
+});
+function advancedReport(report) {
+  if(!$('rclone-tools')) return;
+  advancedReady=report?.state==='ready'&&report.open_url==='http://127.0.0.1:5573/'&&report.client_tunnel_verified===false;
+  $('rclone-tunnels').disabled=!advancedReady;
+  if(!advancedReady) $('rclone-tunnels').checked=false;
+  $('rclone-open').disabled=!advancedReady||!$('rclone-tunnels').checked;
+  $('rclone-admin-state').textContent=advancedReady?'Pi loopback WebGUI reported ready.':report?.state==='disabled'?'Advanced rclone access is disabled.':'Advanced rclone access is unavailable.';
+  $('rclone-admin-detail').textContent=advancedReady?'This dashboard has not checked either SSH tunnel on your computer. Open only after both tunnels are running. Your browser will still require the private rclone sign-in.':'Separate local administrator setup and approval are required. This dashboard does not start rclone or expose its administrative interface.';
+}
+function refreshAdvanced() {
+  if(!$('rclone-tools')) return Promise.resolve();
+  if(advancedRefreshFlight!==null) return advancedRefreshFlight;
+  $('rclone-open').disabled=true;
+  advancedRefreshFlight=(async()=>{
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
+    try {advancedReport(await api('/api/advanced/rclone',{signal:controller.signal}));}
+    catch(error) {advancedReport({state:'unavailable'});}
+    finally {clearTimeout(timeout);advancedRefreshFlight=null;}
+  })();
+  return advancedRefreshFlight;
+}
+document.getElementById('rclone-check')?.addEventListener('click',refreshAdvanced);
+document.getElementById('rclone-tunnels')?.addEventListener('change',()=>{
+  $('rclone-open').disabled=!advancedReady||!$('rclone-tunnels').checked;
+});
+document.getElementById('rclone-open')?.addEventListener('click',()=>{
+  if(!advancedReady||!$('rclone-tunnels').checked||$('rclone-open').disabled) return;
+  window.open('http://127.0.0.1:5573/','_blank','noopener,noreferrer');
+});
 function scheduleGoogleControlRefresh() {
   if(googleControlTimer!==null) {clearTimeout(googleControlTimer);googleControlTimer=null;}
   if(performance.now()>=googleControlRetryUntil) return;
@@ -151,7 +259,7 @@ document.querySelectorAll('.oauth-connect').forEach(button=>button.addEventListe
     window.location.assign(url.href);
   } catch(error) {message(error.message||'The connection could not be started.',true);button.disabled=false;}
 }));
-async function refresh() { const button=$('refresh'); button.disabled=true; try {const [state,listing,history,destinations]=await Promise.all([api('/api/status'),api('/api/files'),api('/api/history'),api('/api/destinations')]); destinationSetup(destinations); workerReport(state.worker); files=listing.files; $('file-count').textContent=files.length; $('verified-count').textContent=history.jobs.filter(job=>job.state==='verified').length; const wifi=state.network.interfaces?.wlan0; $('wifi-status').textContent=wifi?.state_code===100?'Connected':'Not connected'; $('wifi-address').textContent=wifi?.ipv4_addresses?.join(', ')||'No Wi-Fi address'; $('free-space').textContent=bytes(state.storage.free); $('recent-files').replaceChildren(); $('recent-files').className=''; if(!files.length) $('recent-files').append(text('p','Your first upload will appear here.','empty')); for(const file of files.slice(-4).reverse()) {const line=text('div','','file-line'); const details=text('div',file.name); details.append(text('small',bytes(file.size)+' · Staged locally')); line.append(details,text('span','↧')); $('recent-files').append(line);} fileRows(); $('network-details').replaceChildren(); for(const [name,data] of Object.entries(state.network.interfaces||{})){ $('network-details').append(text('dt',name==='usb0'?'USB Ethernet':name==='wlan0'?'Wi-Fi':name),text('dd',(data.state_code===100?'Connected':'Unavailable')+' · '+(data.ipv4_addresses?.join(', ')||'No IPv4 address')));} const route=state.network.preferred_ipv4_route; $('network-details').append(text('dt','Preferred IPv4 route'),text('dd',route?route.interface+' via '+route.gateway:'Unknown'),text('dt','Cached Internet state'),text('dd',state.network.cached_global_connectivity||'Unknown')); $('history-rows').replaceChildren(); $('history-empty').hidden=history.jobs.length>0; for(const job of history.jobs){const row=document.createElement('tr'); row.append(text('td',job.relative),text('td',job.destination),text('td',job.state),text('td',job.attempts)); $('history-rows').append(row);} }catch(error){message(error.message,true);}finally{button.disabled=false;} }
+async function refresh() { const button=$('refresh'); button.disabled=true; try {const [state,listing,destinations]=await Promise.all([api('/api/status'),api('/api/files'),api('/api/destinations'),refreshBackups(),refreshAdvanced()]); destinationSetup(destinations); files=listing.files; $('file-count').textContent=files.length; const wifi=state.network.interfaces?.wlan0; $('wifi-status').textContent=wifi?.state_code===100?'Connected':'Not connected'; $('wifi-address').textContent=wifi?.ipv4_addresses?.join(', ')||'No Wi-Fi address'; $('free-space').textContent=bytes(state.storage.free); $('recent-files').replaceChildren(); $('recent-files').className=''; if(!files.length) $('recent-files').append(text('p','Your first upload will appear here.','empty')); for(const file of files.slice(-4).reverse()) {const line=text('div','','file-line'); const details=text('div',file.name); details.append(text('small',bytes(file.size)+' · Staged locally')); line.append(details,text('span','↧')); $('recent-files').append(line);} fileRows(); $('network-details').replaceChildren(); for(const [name,data] of Object.entries(state.network.interfaces||{})){ $('network-details').append(text('dt',name==='usb0'?'USB Ethernet':name==='wlan0'?'Wi-Fi':name),text('dd',(data.state_code===100?'Connected':'Unavailable')+' · '+(data.ipv4_addresses?.join(', ')||'No IPv4 address')));} const route=state.network.preferred_ipv4_route; $('network-details').append(text('dt','Preferred IPv4 route'),text('dd',route?route.interface+' via '+route.gateway:'Unknown'),text('dt','Cached Internet state'),text('dd',state.network.cached_global_connectivity||'Unknown')); }catch(error){message(error.message,true);}finally{button.disabled=false;} }
 $('refresh').addEventListener('click',refresh); $('file-search').addEventListener('input',fileRows); $('close-preview').addEventListener('click',()=>$('preview-dialog').close());
 $('upload-file')?.addEventListener('change',async event=>{const input=event.target,file=input.files[0]; if(!file) return; if(file.size>100*1024*1024){message('Choose a file of 100 MiB or smaller.',true);return;} input.disabled=true; message('Uploading '+file.name+'… Keep this page open.'); const form=new FormData(); form.append('file',file); try {await api('/api/files',{method:'POST',headers:{'X-CSRF-Token':document.querySelector('meta[name="csrf-token"]').content},body:form});message('File received and staged on your Pi. Cloud backup is separate.');await refresh();}catch(error){message(error.message,true);}finally{input.disabled=false;input.value='';}});
 let installPrompt; window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('install-app').hidden=false;}); $('install-app').addEventListener('click',async()=>{if(installPrompt){await installPrompt.prompt();installPrompt=null;$('install-app').hidden=true;}});

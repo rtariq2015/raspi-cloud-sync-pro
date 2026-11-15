@@ -2,6 +2,16 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
+**Cloud Backup Web UI — source preparation; not deployed.** The existing
+dashboard now has source support for sanitized USB-worker monitoring through a
+separate read-only report, full job totals, recent history, retry/error details
+and recorded transfer stages. Owner-only Advanced Tools prepares access to the
+existing official rclone GUI through two private SSH forwards. Its independent
+service and dashboard opt-in are disabled by default. No Pi service, credential,
+destination or USB configuration was changed. See
+[implementation and deployment boundary](CLOUD_BACKUP_UI.md) and
+[optional official rclone GUI](RCLONE_ADMIN.md).
+
 **Latest live acceptance — Stage 4: PASS for one controlled clean Pi reboot.**
 The existing 8 GiB exFAT CLOUDSTICK returned automatically on Windows D:.
 The USB controller, backup worker and Wi-Fi recovery timer started automatically;

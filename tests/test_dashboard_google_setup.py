@@ -170,7 +170,7 @@ class DashboardGoogleSetupTests(unittest.TestCase):
         self.assertFalse(state["current_worker_state_checked"])
         for field in ("enabled", "account_verified", "folder_exists_verified", "automatic_deletion"):
             self.assertFalse(state[field])
-        self.assertEqual(self.request(self.client, "get", "/api/status").json["cloud"], "not_configured")
+        self.assertEqual(self.request(self.client, "get", "/api/status").json["cloud"], "unknown")
         viewer = self.app.test_client()
         self.login(viewer, "viewer", "test-viewer-password")
         viewer_state = self.google_status(viewer)["preparation"]

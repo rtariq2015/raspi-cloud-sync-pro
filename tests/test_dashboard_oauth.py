@@ -121,7 +121,7 @@ class DashboardOAuthTests(unittest.TestCase):
         self.assertFalse(response.json["test_verified"])
         self.assertNotIn("private-", json.dumps(response.json))
         self.assertEqual(self.calls, ["google_drive"])
-        self.assertEqual(self.request(self.client, "get", "/api/status").json["cloud"], "not_configured")
+        self.assertEqual(self.request(self.client, "get", "/api/status").json["cloud"], "unknown")
         self.assertIsNone(self.client.get_cookie("raspi_oauth_handoff", domain="device.example", path="/api/oauth/complete"))
         self.assertEqual(self.complete(self.client, ticket, token).status_code, 409)
         self.assertEqual(self.calls, ["google_drive"])

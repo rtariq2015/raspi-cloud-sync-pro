@@ -172,7 +172,7 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("attachment", response.headers["Content-Disposition"])
         self.assertEqual(response.mimetype, "application/octet-stream")
         response.close()
-        self.assertEqual(self.client.get("/api/status").json["cloud"], "not_configured")
+        self.assertEqual(self.client.get("/api/status").json["cloud"], "unknown")
 
     def test_viewer_can_read_but_cannot_upload_and_no_delete_api_exists(self):
         self.login()
@@ -262,7 +262,7 @@ class DashboardTests(unittest.TestCase):
         response = self.client.get("/api/status")
         self.assertEqual(response.json["worker"]["state"], "observed")
         self.assertEqual(response.json["worker"]["pending_jobs"], 0)
-        self.assertEqual(response.json["cloud"], "not_configured")
+        self.assertEqual(response.json["cloud"], "unknown")
         self.assertFalse(response.json["worker"]["cloud_accounts_verified"])
         self.assertEqual(self.client.get("/api/history").json, {"available": False, "jobs": []})
         self.assertFalse((worker / "history.sqlite3").exists())

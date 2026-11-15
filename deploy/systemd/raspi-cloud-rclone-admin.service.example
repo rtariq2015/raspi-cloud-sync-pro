@@ -1,0 +1,53 @@
+[Unit]
+Description=Optional isolated rclone administration GUI (SSH tunnel only)
+# SOURCE EXAMPLE ONLY: no automatic enablement or dependency on core services.
+ConditionPathExists=/etc/raspi-cloud-rclone-admin/ADMIN_APPROVED
+
+[Service]
+Type=simple
+User=raspi-rclone-admin
+Group=raspi-rclone-admin
+WorkingDirectory=/var/lib/raspi-cloud-rclone-admin
+StateDirectory=raspi-cloud-rclone-admin
+StateDirectoryMode=0700
+CacheDirectory=raspi-cloud-rclone-admin
+CacheDirectoryMode=0700
+LoadCredential=admin.htpasswd:/etc/raspi-cloud-rclone-admin/admin.htpasswd
+ExecStartPre=/usr/bin/test -s %d/admin.htpasswd
+ExecStartPre=/usr/bin/test -f /var/lib/raspi-cloud-rclone-admin/rclone.conf
+# Reuse the reviewed existing v1.76.0 executable, never install another rclone.
+# gui uses its embedded assets; the legacy rcd --rc-web-gui option is unsupported.
+ExecStart=/opt/raspi-cloud-sync-pro/tools/mass-storage-bin/rclone gui --addr=127.0.0.1:5573 --api-addr=127.0.0.1:5572 --no-open-browser --no-auth=false --rc-no-auth=false --rc-htpasswd=%d/admin.htpasswd --rc-allow-origin=http://127.0.0.1:5573 --config=/var/lib/raspi-cloud-rclone-admin/rclone.conf --cache-dir=/var/cache/raspi-cloud-rclone-admin --log-level=ERROR
+Environment=HOME=/nonexistent LANG=C LC_ALL=C
+UnsetEnvironment=RCLONE_CONFIG RCLONE_CONFIG_PASS RCLONE_RC_NO_AUTH RCLONE_RC_USER RCLONE_RC_PASS RCLONE_RC_ADDR HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy
+UMask=0077
+# rclone gui constructs a credential-bearing login URL even with no-open-browser.
+# Do not send stdout/stderr to the journal, a dashboard or a public log collector.
+StandardOutput=null
+StandardError=null
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# Empty isolated administration only. Adding internet/cloud access is separate
+# approval, not a consequence of starting this source example.
+IPAddressDeny=any
+IPAddressAllow=localhost
+InaccessiblePaths=-/var/lib/raspi-cloud-sync-pro -/etc/raspi-cloud-sync-pro
+ReadWritePaths=/var/lib/raspi-cloud-rclone-admin /var/cache/raspi-cloud-rclone-admin
+LimitCORE=0
+Restart=no
+TimeoutStopSec=20
+
+# No [Install] section: this optional service is deliberately not boot-enabled.

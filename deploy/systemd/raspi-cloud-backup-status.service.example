@@ -1,0 +1,33 @@
+[Unit]
+Description=Raspi Cloud Sync Pro read-only USB backup status projection
+After=raspi-cloud-mass-storage-backup.service
+ConditionPathExists=/etc/raspi-cloud-sync-pro/BACKUP_STATUS_APPROVED
+
+[Service]
+Type=oneshot
+# Source files stay private to raspi-backup. Only this new report uses the
+# dashboard group. Do not change the worker's own User/Group or permissions.
+User=raspi-backup
+Group=raspi-dashboard
+UMask=0027
+RuntimeDirectory=raspi-cloud-backup-status
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+# Resolve/review the existing state paths before installing this example.
+ExecStart=/opt/raspi-cloud-sync-pro/current/venv/bin/python -m raspi_cloud_sync_pro.backup_status --history /var/lib/raspi-cloud-sync-pro/mass-storage-backup/state/history.sqlite3 --worker-state /var/lib/raspi-cloud-sync-pro/mass-storage-backup/state --output /run/raspi-cloud-backup-status
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+ReadWritePaths=/run/raspi-cloud-backup-status
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX
+CapabilityBoundingSet=
+MemoryMax=96M
+TimeoutStartSec=10
+# No [Install] section: this example is never enabled automatically.

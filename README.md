@@ -53,6 +53,11 @@ at the same time. Use built-in Wi-Fi for this design.
 
 ## Optional dashboard preview
 
+The latest source adds a sanitized USB-backup monitoring panel and owner-only
+Advanced Tools entry for the official rclone GUI. These additions are tested
+locally and **await separate deployment approval**; the live Pi is unchanged.
+See [backup monitoring and boundaries](docs/CLOUD_BACKUP_UI.md).
+
 See your files, open a text preview, download a copy, and follow backup history
 from one interface. Owners can upload; viewers can browse and download.
 

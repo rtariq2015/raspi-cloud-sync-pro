@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh sanitized USB backup status observations
+ConditionPathExists=/etc/raspi-cloud-sync-pro/BACKUP_STATUS_APPROVED
+
+[Timer]
+OnBootSec=15s
+OnUnitInactiveSec=15s
+AccuracySec=1s
+Unit=raspi-cloud-backup-status.service
+
+# No [Install] section: installation/start requires separate owner approval.

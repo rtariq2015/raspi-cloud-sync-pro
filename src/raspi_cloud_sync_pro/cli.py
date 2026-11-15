@@ -337,6 +337,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     dashboard.add_argument("--state", type=Path, required=True)
     dashboard.add_argument("--history", type=Path)
     dashboard.add_argument("--worker-state", type=Path, help="read only the completed-batch worker's status directory")
+    dashboard.add_argument("--backup-status", type=Path,
+                           help="read only the sanitized USB backup status bridge directory")
+    dashboard.add_argument("--rclone-admin-access", action="store_true",
+                           help="allow owner-only loopback readiness checks after separate GUI deployment approval")
     dashboard.add_argument("--port", type=int, default=8080)
     dashboard.add_argument("--public-origin", help="reviewed HTTPS origin behind the reverse proxy")
     dashboard.add_argument("--google-setup-requests", action="store_true",
@@ -571,9 +575,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                 reset_dashboard_password(args.state, username=args.username)
                 print("Dashboard password reset. This account's existing sessions are revoked on their next request.")
             else:
+                monitoring = {}
+                if args.backup_status is not None:
+                    monitoring["backup_status"] = args.backup_status
+                if args.rclone_admin_access:
+                    monitoring["rclone_admin_access"] = True
                 serve_dashboard(args.state, history=args.history, worker_state=args.worker_state, port=args.port,
                                 public_origin=args.public_origin, google_setup_requests=args.google_setup_requests,
-                                enable_google_control_requests=args.google_control_requests)
+                                enable_google_control_requests=args.google_control_requests, **monitoring)
             return 0
         except ImportError:
             print("Install the optional dashboard dependencies in a virtual environment.", file=sys.stderr)

@@ -19,7 +19,7 @@ from . import __version__
 from .accounts import _auth_lock, change_dashboard_password, initialize_dashboard as initialize_dashboard, read_auth as _read_auth
 from .config import _unique_object
 from .errors import BackupError
-from .history import read_history
+from .backup_status import observe_status, read_status
 from .network_diagnostics import network_status
 from .staging import open_regular, relative_path
 from .web_ingest import stage_upload
@@ -100,7 +100,8 @@ def worker_snapshot(directory, *, now=None):
 
 
 def create_app(state, *, history=None, worker_state=None, public_origin=None, network_reader=network_status,
-               oauth_transport=None, google_setup_requests=False, enable_google_control_requests=False):
+               oauth_transport=None, google_setup_requests=False, enable_google_control_requests=False,
+               backup_status=None, rclone_admin_access=False, rclone_admin_reader=None):
     from flask import Flask, abort, g, jsonify, redirect, render_template, request, send_file, session, url_for
     from werkzeug.security import check_password_hash, generate_password_hash
     from .oauth import OAuthError, OAuthManager, OwnerProof
@@ -111,6 +112,8 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
         raise ValueError("Google setup request availability must be an explicit boolean")
     if type(enable_google_control_requests) is not bool:
         raise ValueError("Google control request availability must be an explicit boolean")
+    if type(rclone_admin_access) is not bool:
+        raise ValueError("rclone administration access must be an explicit boolean")
 
     state = Path(state).absolute()
     if state.is_symlink() or state.stat().st_uid != os.getuid() or state.stat().st_mode & 0o077:
@@ -425,19 +428,49 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
                 cache["at"] = time.monotonic()
             network = cache["data"]
         disk = shutil.disk_usage(state)
+        backup = backup_report()
         return jsonify(project="Raspi Cloud Sync Pro", version=__version__, network=network,
                        storage={"free": disk.free, "total": disk.total}, role=current_user()["role"],
-                       cloud="not_configured", automatic_deletion=False, remote_access="external_setup_required",
+                       cloud=backup["google_drive"]["state"], automatic_deletion=False, remote_access="external_setup_required",
                        worker=worker_snapshot(worker_state))
+
+    def backup_report():
+        # No privileged files, service commands, rclone calls or OAuth changes
+        # from a web request. A separately installed metadata bridge can supply
+        # the running USB worker without sharing its private configuration.
+        return read_status(backup_status) if backup_status is not None else observe_status(history, worker_state)
+
+    @app.get("/api/backups")
+    def backups():
+        return jsonify(backup_report())
+
+    @app.get("/api/advanced/rclone")
+    def rclone_admin():
+        owner_proof()
+        from .rclone_admin import status as admin_status
+        report = admin_status(False)
+        if rclone_admin_access:
+            try:
+                candidate = rclone_admin_reader() if rclone_admin_reader is not None else admin_status(True)
+                if (isinstance(candidate, dict)
+                        and set(candidate) == {"state", "open_url", "client_tunnel_verified"}
+                        and candidate["state"] in ("disabled", "unavailable", "ready")
+                        and candidate["client_tunnel_verified"] is False
+                        and candidate["open_url"] == ("http://127.0.0.1:5573/" if candidate["state"] == "ready" else None)):
+                    report = candidate
+                else:
+                    report = {**report, "state": "unavailable"}
+            except Exception:
+                report = {**report, "state": "unavailable"}
+        return jsonify(report)
 
     @app.get("/api/history")
     def history_view():
-        if history is None:
-            return jsonify(jobs=[], available=False)
-        try:
-            return jsonify(jobs=read_history(Path(history), 200), available=True)
-        except BackupError:
-            return jsonify(jobs=[], available=False)
+        report = backup_report()
+        # Keep the legacy route authenticated, but never let it bypass the
+        # filename/destination/error redaction applied by the Backups panel.
+        return jsonify(jobs=[{**job, "relative": job["label"]} for job in report["jobs"]],
+                       available=report["history"]["state"] == "available")
 
     def batch_files():
         from .staging import ReadyBatch
@@ -540,14 +573,16 @@ def create_app(state, *, history=None, worker_state=None, public_origin=None, ne
 
 
 def serve_dashboard(state, *, history=None, worker_state=None, port=8080, public_origin=None,
-                    google_setup_requests=False, enable_google_control_requests=False):
+                    google_setup_requests=False, enable_google_control_requests=False, backup_status=None,
+                    rclone_admin_access=False):
     from waitress import serve
     if type(port) is not int or not 1024 <= port <= 65535:
         raise ValueError("Use an unprivileged dashboard port")
     # Always loopback. A reviewed HTTPS reverse proxy supplies external access.
     app = create_app(state, history=history, worker_state=worker_state, public_origin=public_origin,
                      google_setup_requests=google_setup_requests,
-                     enable_google_control_requests=enable_google_control_requests)
+                     enable_google_control_requests=enable_google_control_requests, backup_status=backup_status,
+                     rclone_admin_access=rclone_admin_access)
     serve(app, host="127.0.0.1", port=port, threads=2, connection_limit=32,
           channel_timeout=30, max_request_body_size=102 * 1024 * 1024,
           clear_untrusted_proxy_headers=True)
