@@ -57,7 +57,7 @@ recovery in this test, not a measured maximum startup time.
 | Google configuration | Same account/destination bindings, static configuration and refresh grant; no reauthorization, new upload or deletion initiated |
 | Installed code and units | Controller/worker module hashes, launchers, unit files and configuration bindings unchanged |
 | Storage and power | Root writable, 42,132,090,880 available bytes (about 39.24 GiB); power status `0x0`; no recent critical storage errors detected |
-| OS zram | Fresh authoritative kernel proof accepted the unrelated active backing loop; swap was unchanged |
+| OS zram | Fresh authoritative kernel proof accepted the unrelated active backing loop; no swap configuration or device changes were made |
 
 All 24 protected before/after comparison gates passed. No repair, rollback,
 architecture change, formatting, credential change or network change was needed.
