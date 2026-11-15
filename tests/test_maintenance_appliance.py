@@ -176,8 +176,8 @@ class MaintenanceApplianceTests(unittest.TestCase):
             original_handoff(batch, account)
             events.append('handoff-complete')
 
-        def factory(device, state, *, maintenance_enabled):
-            controller = GadgetController(device, state, maintenance_enabled=maintenance_enabled)
+        def factory(device, state, *, maintenance_enabled, space_policy=None):
+            controller = GadgetController(device, state, maintenance_enabled=maintenance_enabled, space_policy=space_policy)
             poll, complete = controller.poll, controller.complete_maintenance
             calls = 0
 
@@ -209,7 +209,7 @@ class MaintenanceApplianceTests(unittest.TestCase):
 
     def test_runtime_waits_for_eject_and_handoff_before_reporting_active(self):
         backend, events, controllers = self.runtime_fixture()
-        result = appliance._run(object(), self.account)
+        result = appliance._run(SimpleNamespace(capture_space_policy=appliance.LEGACY_POLICY), self.account)
         self.assertEqual(result['appliance_state'], 'maintenance_active')
         self.assertEqual(result['batches_handed_off'], 1)
         self.assertLess(events.index('still-pending'), events.index('poll-2'))
@@ -226,7 +226,7 @@ class MaintenanceApplianceTests(unittest.TestCase):
 
     def test_handoff_failure_retains_captured_latch_and_data_without_active_ack(self):
         backend, events, _ = self.runtime_fixture(fail_handoff=True)
-        with self.assertRaises(OSError):appliance._run(object(), self.account)
+        with self.assertRaises(OSError):appliance._run(SimpleNamespace(capture_space_policy=appliance.LEGACY_POLICY), self.account)
         self.assertNotIn('active', events)
         self.assertEqual(events.count('complete-attempt'), 1)  # Pending poll only.
         self.assertEqual(json.loads((self.state/'maintenance.json').read_text())['phase'], 'captured')

@@ -2,6 +2,15 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
+**Stage 3D — low-space admission: SOURCE-ONLY PASS; not deployed.**
+The explicit 8 GiB policy budgets remaining changed-file allocation, metadata,
+8 GiB recovery headroom and 4 GiB for operation. It rechecks available blocks
+and inodes during capture; failures retain evidence and prevent handoff/forced
+USB return. Legacy 1 GiB keeps its existing 16 MiB path. **982 local tests passed,
+3 optional rclone checks skipped** across the main/operator/simulation suites.
+No live Pi access, service change, Eject, upload or migration occurred.
+[Stage 3D calculation, configuration, tests and limits](LOW_SPACE_ADMISSION_STAGE3D.md).
+
 **Stage 3C — maintenance hold: SOURCE-ONLY PASS; disabled and not deployed.**
 A root-approved, session-bound request waits for genuine Windows Safe Eject,
 finishes capture and private handoff, then prevents USB reattachment. Unresolved
@@ -22,8 +31,8 @@ verified USB release and read-only checking. No live Pi access, service change
 or storage migration occurred. The installed image remains **1 GiB**.
 Local results: **861 main-suite tests passed, 3 optional rclone tests skipped;
 36 USB operator tests and 15 storage simulations passed**. Its maintenance-hold
-prerequisite is implemented in Stage 3C source above; low-space admission and
-real 8 GiB acceptance remain separate.
+prerequisite is implemented in Stage 3C source above; Stage 3D adds low-space
+admission, while real 8 GiB acceptance remains separate.
 [Source changes, tests and next prerequisite](STORAGE_CAPACITY_STAGE3B.md).
 
 **G4F — Production Google backup acceptance: PASS.** One unique synthetic
@@ -34,10 +43,11 @@ with the existing Production authorization and completed worker verification.
 A separate Google download matched the Windows original and staged copy.
 Windows confirmed the USB copy and local source remained intact afterward.
 
-**19 backup versions are verified, with 95 history events.** All previous
-18 full job records and 90 events remained unchanged. There are no pending or
-failed jobs and no unexpected new or duplicate jobs. USB/controller and backup
-services remain active and enabled. During G4F, no service restart, software deployment,
+**Last accepted live checkpoint: 19 verified backup versions and 95 events.**
+All previous 18 full job records and 90 events remained unchanged. At that
+checkpoint there were no pending/failed or unexpected new/duplicate jobs;
+USB/controller and backup services were active and enabled. These are historical
+observations, not new measurements from source-only work. During G4F, no service restart, software deployment,
 network change, credential replacement, reboot or storage resize occurred.
 [Physical acceptance and limits](acceptance/pi-windows-production-google-g4f-2026-11-15.json).
 
@@ -71,10 +81,10 @@ passed.** No live storage or services changed; all 19 verified records and
 larger exFAT volumes or physical power cuts.
 [Capacity report, limits and proposed migration prompt](STORAGE_CAPACITY_STAGE3.md).
 
-**What remains before practical office use:** capacity support and maintenance
-hold are source-only; the installed controller still has its 1 GiB limit.
-The next prerequisite is reviewed low-space admission. Real disposable exFAT
-tests, hardware hold/release acceptance and separately approved deployment/cutover
+**What remains before practical office use:** capacity support, maintenance hold
+and low-space admission are source-only; the installed controller still has its
+1 GiB limit. The next recommendation is real disposable 8 GiB exFAT validation
+and migration rehearsal. Hardware hold/release/low-space acceptance and separately approved deployment/cutover
 remain. Expected
 QA volume/retention still needs owner confirmation; longer workloads and recovery
 remain unaccepted. The USB image is still the disposable **1 GiB** image.

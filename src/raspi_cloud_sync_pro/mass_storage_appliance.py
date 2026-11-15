@@ -25,6 +25,7 @@ from .google_broker import _root_directory, _root_file, _service_identity, _stat
 from .linux_gadget import LEGACY_GADGET_MODULES, GadgetSettings, LinuxGadgetBackend, LiveLinuxIO
 from .mass_storage_image import PARTITION_OFFSET, validate_image_approval, validate_image_headers
 from .maintenance import MaintenanceHold
+from .capture_space import CAPACITY_POLICY, LEGACY_POLICY, CaptureSpacePolicy, approved_capture_policy
 
 APPROVED_TEST_BUILD = False
 MAINTENANCE_HOLD_ENABLED = False  # Separate reviewed build/admin approval; no config toggle.
@@ -63,12 +64,17 @@ def _json(path):
 
 def _settings():
     value = _json(CONFIG)
-    _require(type(value) is dict and set(value) == {'schema_version', 'enabled', 'udc', 'serial', 'approval_file'}
-             and type(value['schema_version']) is int and value['schema_version'] == 1 and type(value['enabled']) is bool)
+    required = {'schema_version', 'enabled', 'udc', 'serial', 'approval_file'}
+    _require(type(value) is dict and type(value.get('schema_version')) is int
+             and (value['schema_version'] == 1 and set(value) == required
+                  or value['schema_version'] == 2 and set(value) == required | {'capture_space_policy'}
+                     and value['capture_space_policy'] == CAPACITY_POLICY)
+             and type(value['enabled']) is bool)
     if not value['enabled']:
         return None
     _require(value['serial'] == SERIAL and value['approval_file'] == str(APPROVAL))
-    settings = GadgetSettings(IMAGE, MOUNT, STATE, PRIVATE_STAGING, value['udc'], name=NAME, serial=SERIAL)
+    settings = GadgetSettings(IMAGE, MOUNT, STATE, PRIVATE_STAGING, value['udc'], name=NAME, serial=SERIAL,
+                             capture_space_policy=value.get('capture_space_policy', LEGACY_POLICY))
     return settings
 
 
@@ -79,7 +85,8 @@ def _approved(settings):
     _require(os.readlink('/proc/self/ns/mnt') == os.readlink('/proc/1/ns/mnt'))
     _require(_settings() == settings)
     approval = _json(APPROVAL)
-    validate_image_approval(approval, LiveLinuxIO().regular_image(IMAGE))
+    size = validate_image_approval(approval, LiveLinuxIO().regular_image(IMAGE))
+    approved_capture_policy(size, settings.capture_space_policy)
 
 
 class _ApplianceIO(LiveLinuxIO):
@@ -308,7 +315,8 @@ def _run(settings, account, *, once=False):
             pass
         backend = _ApplianceBackend(settings, io)
         captured = 0
-        with GadgetController(backend, STATE, maintenance_enabled=MAINTENANCE_HOLD_ENABLED).session() as controller:
+        policy = CaptureSpacePolicy() if settings.capture_space_policy == CAPACITY_POLICY else None
+        with GadgetController(backend, STATE, maintenance_enabled=MAINTENANCE_HOLD_ENABLED, space_policy=policy).session() as controller:
             _start_controller(controller, backend, io)
             while True:
                 result = controller.poll(PRIVATE_STAGING)
@@ -334,8 +342,14 @@ def run_mass_storage_appliance(*, once=False):
             return {'appliance_state': 'disabled', 'root_cloud_operations': False, 'automatic_deletion': False}
         _approved(settings)
         return _run(settings, _service_identity('raspi-backup'), once=once)
-    except Exception:
-        return {'appliance_state': 'failed_review_required', 'root_cloud_operations': False, 'automatic_deletion': False}
+    except Exception as error:
+        result = {'appliance_state': 'failed_review_required', 'root_cloud_operations': False, 'automatic_deletion': False}
+        messages = {'capture_space_low':'Not enough available space for safe capture; files were retained. Recovery review is required.',
+                    'capture_space_unknown':'Available storage could not be verified; capture stopped for review.',
+                    'invalid_capture_space_policy':'The capture-space policy needs approval review.'}
+        if isinstance(error, BackupError) and error.code in messages:
+            result.update(error_code=error.code, message=messages[error.code])
+        return result
 
 
 def run_mass_storage_maintenance(action, *, approved=False, request_id=None):

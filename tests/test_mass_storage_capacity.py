@@ -155,7 +155,7 @@ class ApplianceCapacityBoundaryTests(unittest.TestCase):
         return backend
 
     def test_approved_8_gib_metadata_path_does_not_open_image_payload(self):
-        settings = object(); identity = (7, 88, EXPANDED_SIZE)
+        settings = SimpleNamespace(capture_space_policy=appliance.CAPACITY_POLICY); identity = (7, 88, EXPANDED_SIZE)
         def model_only(path):
             self.assertEqual(path, Path('/proc/device-tree/model'))
             return b'Raspberry Pi Zero 2 W Rev 1.0\0'

@@ -15,6 +15,7 @@ from pathlib import Path
 
 from .errors import BackupError
 from .gadget import GadgetObservation
+from .capture_space import CAPACITY_POLICY, LEGACY_POLICY
 
 HARDWARE_OPERATIONS_ENABLED = False  # Separate reviewed disposable-data approval is required.
 LEGACY_GADGET_MODULES = ("g_ether", "g_mass_storage", "g_multi", "g_acm_ms", "g_serial", "g_cdc",
@@ -37,8 +38,11 @@ class GadgetSettings:
     serial: str = "REPLACE_WITH_UNIQUE_LAB_SERIAL"
     vendor_id: str = "0x1d6b"
     product_id: str = "0x0104"
+    capture_space_policy: str = LEGACY_POLICY
 
     def __post_init__(self):
+        if type(self.capture_space_policy) is not str or self.capture_space_policy not in (LEGACY_POLICY, CAPACITY_POLICY):
+            raise BackupError('invalid_capture_space_policy')
         paths = (self.image, self.mountpoint, self.state_directory, self.staging_directory)
         if any(not isinstance(p, Path) or not p.is_absolute() or ".." in p.parts
                or any(c.isspace() or ord(c) < 32 for c in str(p)) for p in paths):

@@ -87,7 +87,7 @@ class ApplianceTests(unittest.TestCase):
                 appliance._settings()
 
     def test_approval_binds_same_regular_image_identity_and_explicit_true(self):
-        settings = object();valid = {'schema_version': 1, 'mass_storage_appliance_approved': True,
+        settings = SimpleNamespace(capture_space_policy=appliance.LEGACY_POLICY);valid = {'schema_version': 1, 'mass_storage_appliance_approved': True,
                                     'image_identity': [7, 88, 1024**3]}
         with mock.patch.object(appliance, 'APPROVED_TEST_BUILD', True), mock.patch.object(appliance.os, 'getresuid', return_value=(0,)*3), \
                 mock.patch.object(appliance.os, 'getresgid', return_value=(0,)*3), \
@@ -215,7 +215,7 @@ class ApplianceTests(unittest.TestCase):
                 mock.patch.object(appliance, '_state_directory', self.ordinary_directory), \
                 mock.patch.object(appliance, '_ApplianceBackend'), mock.patch.object(appliance, 'GadgetController', return_value=controller), \
                 mock.patch.object(appliance, 'handoff_ready_batch', side_effect=lambda *args: events.append('handoff')):
-                result = appliance._run(object(), self.account, once=True)
+                result = appliance._run(SimpleNamespace(capture_space_policy=appliance.LEGACY_POLICY), self.account, once=True)
             restored = os.umask(0o000);self.assertEqual(restored, 0o000)
         finally:os.umask(previous)
         self.assertEqual(events, ['enter', ('start', {'adopt_host': True}), 'poll', 'handoff', 'exit'])
@@ -230,7 +230,7 @@ class ApplianceTests(unittest.TestCase):
                 mock.patch.object(appliance, '_state_directory', self.ordinary_directory), mock.patch.object(appliance, '_ApplianceBackend'), \
                 mock.patch.object(appliance, 'GadgetController', return_value=controller), \
                 mock.patch.object(appliance, 'handoff_ready_batch', side_effect=OSError('retained')), self.assertRaises(OSError):
-            appliance._run(object(), self.account, once=True)
+            appliance._run(SimpleNamespace(capture_space_policy=appliance.LEGACY_POLICY), self.account, once=True)
         controller.poll.assert_called_once();controller.session.return_value.__exit__.assert_called_once()
 
     def test_appliance_io_cannot_provision_or_change_other_profile_attributes(self):

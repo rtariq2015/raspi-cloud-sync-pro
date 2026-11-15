@@ -3,8 +3,8 @@
 Date: 15 November 2026 (America/New_York). Branch: `development`.
 Starting application source: `665977bd60e2f9afb6297ba2110b31157eb37f29`.
 G4F/Stage 2/Stage 3 commits contain documentation, acceptance evidence and the
-offline storage simulations. Stages 3B/3C add source-only capacity validation
-and maintenance hold with offline regressions; neither is deployed.
+offline storage simulations. Stages 3B/3C/3D add source-only capacity validation,
+maintenance hold and low-space admission with offline regressions; none is deployed.
 The separately approved Stage 2 maintenance installed the existing three-line
 worker fix from that baseline on the Pi. Stage 3B changes no Pi installation.
 The G4F documentation checkpoint is `fdb0c0eb2f774bdc1154cafcfcaab088785b4672`.
@@ -12,6 +12,14 @@ The latest documentation checkpoint is the Git commit containing this report.
 No main merge or release is authorized.
 
 ## Executive result
+
+**Stage 3D SOURCE-ONLY PASS:** explicit 8 GiB configuration selects remaining
+changed-output admission with measured unprivileged available capacity,
+metadata/allocation/inode margins, 8 GiB recovery and 4 GiB operating headroom.
+Legacy 1 GiB remains on its 16 MiB path. Errors retain data and conservative
+recovery/hold behavior. **934 main tests run: 931 passed, 3 optional local-rclone
+skips; 36 USB operator and 15 storage simulations passed.** No live Pi or cloud
+operation. [Full calculation and acceptance limits](LOW_SPACE_ADMISSION_STAGE3D.md).
 
 **Stage 3C SOURCE-ONLY PASS:** explicit root-approved session-bound maintenance
 waits for genuine Eject, capture, verified cleanup and handoff before active hold.
@@ -52,6 +60,27 @@ regressions pass.** The current 1 GiB image, services and all 19/95 history rows
 remain unchanged. Larger-image controller support, verified maintenance hold,
 real disposable exFAT tests and reviewed low-space admission are prerequisites; no live migration was
 attempted. [Full Stage 3 report and future approval prompt](STORAGE_CAPACITY_STAGE3.md).
+
+## Checkpoint: Stage 3D low-space admission
+
+- **STATUS:** source/offline PASS; no deployment or migration.
+- **START:** `ace64eb8cc48c46114804d19327f80b3feffdd37`.
+- **CHANGE:** fixed named 8 GiB policy, capacity-bound settings/approval,
+  per-chunk and publication checks, fixed error projection and disabled example.
+- **CALCULATION:** remaining rounded changed payload + metadata/control margin
+  + 8 GiB recovery + 4 GiB operating reserve. No repeated image/workspace charge;
+  retained data is already in measured availability. Observations are not reservations.
+- **LEGACY/HOLD:** 1 GiB default unchanged; maintenance and recovery protections
+  pass. No automatic deletion, forced USB return or history reset.
+- **TESTS:** 230 focused PASS (main subset); final main 931 passed/3 optional
+  rclone skips plus 36 operator and 15 simulation tests = 982 passed/3 skipped.
+- **REVIEW:** independent source/configuration PASS after one bounded error
+  refinement. Private late-ready evidence and allocation races are documented.
+- **LIVE:** not accessed; historical 19/95 is not a new measurement or reset target.
+- **COMMIT:** source-only commit containing this checkpoint.
+- **NEXT:** owner review, then separately approved real disposable 8 GiB exFAT
+  validation/rehearsal. No physical migration or next-stage work started.
+- **REPORT:** [Stage 3D implementation and acceptance](LOW_SPACE_ADMISSION_STAGE3D.md).
 
 ## Checkpoint: Stage 3C safe maintenance hold
 

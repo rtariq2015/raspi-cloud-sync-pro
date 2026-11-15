@@ -1,0 +1,8 @@
+{
+  "schema_version": 2,
+  "enabled": false,
+  "udc": "REPLACE_WITH_OBSERVED_UDC",
+  "serial": "RCSP-DISPOSABLE-ONLY",
+  "approval_file": "/etc/raspi-cloud-sync-pro/MASS_STORAGE_APPLIANCE_APPROVED",
+  "capture_space_policy": "capacity-reserve-v1"
+}

@@ -5,6 +5,7 @@ implemented here. Incomplete batches are retained on failure, never auto-pruned.
 """
 
 import hashlib
+import errno
 import json
 import os
 import shutil
@@ -17,6 +18,7 @@ from typing import Tuple
 
 from .errors import BackupError
 from .storage import StorageOwnership
+from .capture_space import CaptureSpaceAdmission, CaptureSpacePolicy
 
 CHUNK_SIZE = 1024 * 1024
 _CAPTURE_ENTRY_LIMIT = 10000
@@ -149,7 +151,7 @@ class ReadyBatch:
 
 
 def stage_snapshot(source: Path, destination: Path, ownership: StorageOwnership,
-                   *, reserve_bytes: int = 16 * 1024 * 1024, _selected=None) -> ReadyBatch:
+                   *, reserve_bytes: int = 16 * 1024 * 1024, _selected=None, _admission=None) -> ReadyBatch:
     """Copy every regular file under a trusted exclusive read-only source root.
 
     Caller-supplied evidence in StorageOwnership is a model only, not permission
@@ -168,6 +170,10 @@ def stage_snapshot(source: Path, destination: Path, ownership: StorageOwnership,
             if source == destination or source in destination.parents or destination in source.parents:
                 raise BackupError("overlapping_staging_roots")
             destination.mkdir(mode=0o700, parents=True, exist_ok=True)
+            if _admission is not None:
+                if type(_admission) is not CaptureSpaceAdmission or _admission.destination != destination:
+                    raise BackupError('invalid_capture_space_policy')
+                _admission.check()
             temporary = destination / (uuid.uuid4().hex + ".incomplete")
             temporary.mkdir(mode=0o700)
             payload = temporary / "files"
@@ -194,37 +200,56 @@ def stage_snapshot(source: Path, destination: Path, ownership: StorageOwnership,
                     output.parent.mkdir(parents=True, exist_ok=True)
                     with open_regular(source, relative) as incoming, output.open("xb") as outgoing:
                         before = os.fstat(incoming.fileno())
-                        if shutil.disk_usage(destination).free < before.st_size + reserve_bytes:
+                        if _admission is not None:
+                            _admission.begin_file(relative, before.st_size)
+                        elif shutil.disk_usage(destination).free < before.st_size + reserve_bytes:
                             raise BackupError("staging_space_low")
                         digest = hashlib.sha256()
                         size = 0
                         for block in iter(lambda: incoming.read(CHUNK_SIZE), b""):
-                            outgoing.write(block)
+                            if _admission is not None:
+                                _admission.check()
+                            written = outgoing.write(block)
+                            if _admission is not None and written != len(block):
+                                raise BackupError('staging_io_error')
                             digest.update(block)
                             size += len(block)
+                            if _admission is not None:
+                                outgoing.flush()
+                                _admission.written(relative, len(block))
                         after = os.fstat(incoming.fileno())
                         if (before.st_size, before.st_mtime_ns, before.st_ctime_ns) != \
                                 (after.st_size, after.st_mtime_ns, after.st_ctime_ns) or size != before.st_size:
                             raise BackupError("source_changed_during_staging")
                         outgoing.flush()
                         os.fsync(outgoing.fileno())
+                    if _admission is not None:
+                        _admission.finish_file(relative, size, digest.hexdigest())
                     files.append(StagedFile(relative, size, digest.hexdigest()))
             files.sort(key=lambda f: f.relative)
             manifest = {"schema_version": 1, "files": [vars(f) for f in files]}
+            if _admission is not None:
+                _admission.check()
             with (temporary / "manifest.json").open("x", encoding="utf-8") as output:
                 json.dump(manifest, output, ensure_ascii=True, sort_keys=True)
                 output.flush()
                 os.fsync(output.fileno())
             for directory, _, _ in os.walk(temporary, topdown=False):
                 _fsync_directory(Path(directory))
+            if _admission is not None:
+                _admission.publication_check()
             ready = temporary.with_suffix(".ready")
             temporary.rename(ready)
             _fsync_directory(destination)
+            if _admission is not None:
+                _admission.publication_check()
             return ReadyBatch(ready, tuple(files))
         except BackupError:
             raise
         except OSError as exc:
             # Includes ENOSPC; no cursor advances and partial batches remain for recovery.
+            if _admission is not None and exc.errno == errno.ENOSPC:
+                raise BackupError('capture_space_low') from exc
             raise BackupError("staging_io_error") from exc
 
 
@@ -277,7 +302,8 @@ def _capture_inventory(source, *, contents):
     return tuple(sorted(files, key=lambda item: item.relative)), fingerprints
 
 
-def stage_changed_snapshot(source, destination, ownership, previous_files=None, *, reserve_bytes=16 * 1024 * 1024):
+def stage_changed_snapshot(source, destination, ownership, previous_files=None, *, reserve_bytes=16 * 1024 * 1024,
+                           space_policy=None):
     """Hash all current files, copy only new/changed versions, or return no batch.
 
     The returned full inventory means local capture only, never handoff or cloud
@@ -303,8 +329,17 @@ def stage_changed_snapshot(source, destination, ownership, previous_files=None, 
             if len(json.dumps([vars(item) for item in current], ensure_ascii=True).encode('ascii')) > _CAPTURE_METADATA_LIMIT - 4096:
                 raise BackupError('capture_inventory_limit')
             changed = tuple(item for item in current if previous.get(item.relative) != item)
-            batch = stage_snapshot(source, destination, ownership, reserve_bytes=reserve_bytes,
-                                   _selected={item.relative for item in changed}) if changed else None
+            if space_policy is None:
+                batch = stage_snapshot(source, destination, ownership, reserve_bytes=reserve_bytes,
+                                       _selected={item.relative for item in changed}) if changed else None
+            else:
+                if type(space_policy) is not CaptureSpacePolicy:
+                    raise BackupError('invalid_capture_space_policy')
+                destination.mkdir(mode=0o700, parents=True, exist_ok=True)
+                with space_policy.admit(destination, changed) as admission:
+                    batch = stage_snapshot(source, destination, ownership, reserve_bytes=reserve_bytes,
+                        _selected={item.relative for item in changed}, _admission=admission) if changed else None
+                    admission.publication_check()
             final = _capture_inventory(source, contents=False)[1]
             # FAT/exFAT inode numbers are lookup/cache identities, not persistent
             # file identities across reopen. Native exFAT reproduced inode-only
@@ -317,4 +352,6 @@ def stage_changed_snapshot(source, destination, ownership, previous_files=None, 
         except BackupError:
             raise
         except OSError as error:
+            if space_policy is not None and error.errno == errno.ENOSPC:
+                raise BackupError('capture_space_low') from error
             raise BackupError('staging_io_error') from error

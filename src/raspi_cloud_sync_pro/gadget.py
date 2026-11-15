@@ -17,6 +17,7 @@ from .errors import BackupError
 from .staging import StagedFile, stage_changed_snapshot
 from .storage import Ownership, StorageOwnership
 from .maintenance import MaintenanceHold
+from .capture_space import CaptureSpacePolicy
 
 
 @dataclass(frozen=True)
@@ -148,7 +149,9 @@ class ControllerJournal:
 class GadgetController:
     """Hold session() for the lifetime of the controller, including idle polling."""
 
-    def __init__(self, backend, state_directory: Path, *, maintenance_enabled=False):
+    def __init__(self, backend, state_directory: Path, *, maintenance_enabled=False, space_policy=None):
+        if space_policy is not None and type(space_policy) is not CaptureSpacePolicy:
+            raise BackupError('invalid_capture_space_policy')
         self.backend = backend
         self.journal = ControllerJournal(state_directory)
         self.ownership = StorageOwnership()
@@ -159,6 +162,7 @@ class GadgetController:
         self.capture_files = None
         self.maintenance = MaintenanceHold(state_directory, backend, enabled=maintenance_enabled)
         self._maintenance_release = None
+        self.space_policy = space_policy
 
     @contextmanager
     def session(self):
@@ -440,8 +444,13 @@ class GadgetController:
             self.backend.verify_mount_read_only(self.loop)
             self.ownership.begin_staging(loop_read_only=True, mount_read_only=True)
             self._save("staging")
+            capture_options = {}
+            if self.space_policy is not None:
+                if getattr(self.backend, 'image_identity', (None, None, None))[2] != self.space_policy.image_size_bytes:
+                    raise BackupError('invalid_capture_space_policy')
+                capture_options['space_policy'] = self.space_policy
             batch, current_files = stage_changed_snapshot(self.backend.mountpoint, staging_directory,
-                                                          self.ownership, self.capture_files)
+                                                          self.ownership, self.capture_files, **capture_options)
             self._save("unmount_intent", batch=str(batch.root) if batch else None)
             self.backend.unmount()
             observation = self._observe()
