@@ -13,7 +13,7 @@ Windows confirmed the USB copy and local source remained intact afterward.
 **19 backup versions are verified, with 95 history events.** All previous
 18 full job records and 90 events remained unchanged. There are no pending or
 failed jobs and no unexpected new or duplicate jobs. USB/controller and backup
-services remain active and enabled. No service restart, software deployment,
+services remain active and enabled. During G4F, no service restart, software deployment,
 network change, credential replacement, reboot or storage resize occurred.
 [Physical acceptance and limits](acceptance/pi-windows-production-google-g4f-2026-11-15.json).
 
@@ -25,16 +25,21 @@ only in verifier memory for the separate download; stored credentials were
 unchanged. This is current working authorization, not a promise that a grant
 can never expire or be revoked.
 
-**Next roadmap stage — reporting fix: prepared, awaiting deployment approval.**
-The existing `665977b` change keeps terminal failures visible after idle ticks
-and restarts. **57 focused local tests passed** in this session. Read-only
-inspection confirms the live worker still has the pre-fix source/report; the
-fix has not been deployed. The live dashboard is not connected to that worker
-report, so the minimum proposed maintenance affects only the backup worker.
-[One cumulative review, exact maintenance/rollback and next-stage prompt](AUTONOMOUS_REVIEW_2026-11-15.md).
+**Roadmap Stage 2 — reporting fix: deployed and accepted.** After explicit owner
+approval, the exact existing `665977b` worker change was installed and only the
+backup worker restarted. Its fresh status reports `pending_jobs=0`, `failed_jobs=0`.
+An isolated credential-free Pi fixture proved a failed job stays visible after
+idle ticks and a fresh process restart, with one attempt and unchanged data.
+All 19 live backup records, 95 events, scheduler rows and credential/configuration hashes
+were preserved. Controller and dashboard processes were unchanged; no new cloud
+operation occurred. Rollback was not needed. The dashboard remains unbound to
+this report; no UI upgrade is claimed. **57 focused local preparation tests passed**,
+plus two local and two native fixture interpreters.
+[Deployment evidence](acceptance/pi-failure-reporting-stage2-2026-11-15.json) ·
+[Cumulative review and next-stage prompt](AUTONOMOUS_REVIEW_2026-11-15.md).
 
-**What remains before practical office use:** deploy and accept the reporting
-fix with separate approval, plan practical storage capacity, and validate longer
+**What remains before practical office use:** plan practical storage capacity
+with a separately approved physical migration, and validate longer
 workloads and recovery. The USB image is still the disposable **1 GiB** image.
 **Safe Eject is required for each batch; no-eject capture is not implemented.**
 This one-file ordinary-PC test does not prove Siemens compatibility or authorize

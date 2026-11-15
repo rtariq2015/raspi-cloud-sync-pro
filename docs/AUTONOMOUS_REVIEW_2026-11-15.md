@@ -2,9 +2,12 @@
 
 Date: 15 November 2026 (America/New_York). Branch: `development`.
 Starting application source: `665977bd60e2f9afb6297ba2110b31157eb37f29`.
-This session changes documentation and acceptance evidence only. The application
-source stays at that tested baseline; the documentation checkpoint is identified
-by the Git commit containing this report. No main merge or release is authorized.
+Git changes in this session are documentation and acceptance evidence only.
+The separately approved Stage 2 maintenance installed the existing three-line
+worker fix from that baseline on the Pi; no new application code was written.
+The G4F documentation checkpoint is `fdb0c0eb2f774bdc1154cafcfcaab088785b4672`.
+The latest documentation checkpoint is the Git commit containing this report.
+No main merge or release is authorized.
 
 ## Executive result
 
@@ -16,9 +19,11 @@ A separate Google download matched the Windows original and staged copy.
 There are now **19 verified backup records and 95 events**, including all
 previous 18 full job records and 90 full events unchanged.
 
-**Roadmap Stage 2 PARTIAL:** preparation for the existing reporting fix is
-complete; its live deployment is **BLOCKED awaiting explicit approval**.
-No new functionality was written and no live software was replaced.
+**Roadmap Stage 2 PASS:** after separate owner approval, the exact existing
+failure-reporting fix was installed in the protected worker source. Only the
+backup worker restarted. Its fresh report shows zero pending and zero failed
+jobs. An isolated native Pi fixture retained a terminal failure after idle ticks
+and a fresh interpreter restart. Live data, credentials and USB were preserved.
 
 ## Checkpoint: G4F
 
@@ -73,7 +78,7 @@ A separate skeptical agent reviewed the cross-artifact hashes, sizes, paths,
 event order and history invariants and found the scoped acceptance supported.
 This was an internal review, not a review by the owner's separate ChatGPT chat.
 
-## Checkpoint: roadmap Stage 2 preparation
+## Historical checkpoint: roadmap Stage 2 preparation
 
 - **STAGE:** deploy backup-failure reporting — offline preparation only.
 - **OBJECTIVE:** prepare the already committed durable `failed_jobs` counter.
@@ -99,17 +104,18 @@ existing launcher at:
 
 `/opt/raspi-cloud-sync-pro/qa/mass-storage-worker-dev22/launcher.py`
 
-Its installed `site/raspi_cloud_sync_pro/staged_worker.py` exactly matches the
-parent of `665977b` and does not contain the new failure counter. The current
-worker report likewise lacks `failed_jobs`: absence means **unknown**, not zero.
-Read-only history confirms there are currently no failed jobs.
+The pre-deployment inspection found that its installed
+`site/raspi_cloud_sync_pro/staged_worker.py` exactly matched the parent of
+`665977b` and lacked the new counter. The then-current report likewise omitted
+`failed_jobs`: absence meant **unknown**, not zero. The later approved deployment
+below installed the fixed source and accepted a fresh explicit zero count.
 
 Observed source hashes for the future comparison:
 
 | Source | SHA-256 |
 | --- | --- |
-| Installed/pre-fix worker | `b4cd852d32f91ba78e0557696cbfdcfcc1d69da4e8b7d45c117fd46aaa292bf6` |
-| Existing fixed worker in `665977b` | `38e4ce0484b23af375fbdcc64eba7fed3e433e0eb44612dd2717ef85a7650679` |
+| Retained pre-fix rollback source | `b4cd852d32f91ba78e0557696cbfdcfcc1d69da4e8b7d45c117fd46aaa292bf6` |
+| Now-installed fixed worker from `665977b` | `38e4ce0484b23af375fbdcc64eba7fed3e433e0eb44612dd2717ef85a7650679` |
 
 The live source is root-owned, mode `0644`. The launcher adds only this fixed
 source directory to the module path; it has no per-file hash manifest to update.
@@ -123,7 +129,7 @@ Do not connect it to this report without a separately reviewed compatible reader
 The Rust reader ignores additional JSON fields and schedules pending work, not
 terminal failures; no Rust binary replacement is needed.
 
-### Exact proposed maintenance — not executed
+### Reviewed maintenance procedure — subsequently executed
 
 1. Recheck Pi health, host-owned USB state, no capture, no active rclone, idle
    worker, current history and the exact installed source/launcher hashes. Stop
@@ -155,52 +161,85 @@ terminal failures; no Rust binary replacement is needed.
    original owner/mode, restart it and verify fresh health. Never restore a
    history snapshot, rewind jobs, delete staged data or revoke authorization.
 
-The 57 local tests prove a permanent fake-provider failure stays counted after
+The 57 local preparation tests prove a permanent fake-provider failure stays counted after
 idle ticks and database reopen, with one attempt, no second upload and unchanged
 payload. They also cover destination scoping, retries, legacy/new report parsing,
 invalid failure counters and engine history behavior. These are isolated tests,
-not a live failed-job acceptance result. The installed change and its fresh
-status field must still be accepted after separately authorized maintenance.
+not a deliberately failed live backup. Installed-source and fresh-process native
+acceptance were subsequently completed as recorded below.
+
+## Checkpoint: roadmap Stage 2 approved deployment
+
+- **STAGE:** deploy backup-failure reporting.
+- **OBJECTIVE:** activate the existing durable terminal-failure counter.
+- **STATUS:** PASS for the reviewed worker-only maintenance.
+- **WORK COMPLETED:** confirmed the exact old source and healthy idle 19/95
+  baseline; stopped only the backup worker; created a fresh protected source/state
+  rollback; atomically installed only the reviewed module preserving root `0644`;
+  restarted only that worker and accepted its fresh stable report.
+- **FILES CHANGED:** one installed Pi module, the sanitized evidence below and
+  this existing cumulative report/progress page. No new application source.
+- **TESTS EXECUTED:** two local fixture interpreters before deployment and two
+  native Pi interpreters after deployment; prior 57 focused preparation tests.
+- **PASS/FAIL:** PASS. Live report: `pending_jobs=0`, `failed_jobs=0`.
+- **HARDWARE TESTS:** native fixture executed as `raspi-backup` using the exact
+  installed module, an explicitly fake provider, temporary state and Python
+  socket creation blocked. A permanent failure stayed `failed_jobs=1`, `pending_jobs=0`
+  after idle and fresh-process reopen, with one attempt, one fake upload call,
+  identical full job/event rows and unchanged payload hash. No live failed job.
+- **EVIDENCE:** [Pi deployment and isolated restart acceptance](acceptance/pi-failure-reporting-stage2-2026-11-15.json).
+- **RISKS:** this does not inject or demonstrate a real cloud outage. The older
+  dashboard remains unbound to the core report; no UI upgrade is claimed.
+- **COMMIT:** deployed existing source from `665977b`; this report's commit
+  records deployment evidence. Rollback was not needed.
+- **NEXT ACTION:** roadmap Stage 3 storage-capacity planning, before any approved
+  physical migration. No source, history or credential rollback was performed.
+
+All 19 live job rows, 95 events, receipts and rejection rows remained identical.
+Configuration, credentials, unit files and launcher hashes were unchanged, as
+were the Pi boot and controller/dashboard process IDs. The source tree comparison
+found only the intended module changed. USB remained configured and host-owned,
+with no capture or rclone activity. No new cloud operation or upload was run.
 
 The historical full baseline was 898 Python tests, 11 Rust tests and five CI
 jobs at the earlier source checkpoint. Those were not rerun locally here.
 No cargo executable was available on the current PATH or known earlier tool
 locations; no toolchain was installed. The existing Rust code/test was reviewed.
-Normal GitHub push checks are separate; inspect their actual result before
-claiming current CI success.
+Normal GitHub push checks are separate. The G4F checkpoint `fdb0c0e` was later
+observed passing all five jobs in [its completed development run](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions/runs/43680693940):
+Samba protocol, Rust, and Python 3.9/3.12/3.13. This is current CI evidence for
+that exact checkpoint, separate from the 57 focused local tests and Pi fixtures.
 
 ## Remaining work and approval boundary
 
-During G4F and Stage 2 offline preparation, no live service was stopped/restarted,
-no application source was deployed, no USB or network setting was changed, and
-no reboot, resize or formatting occurred. G4E's existing Production
-credentials/rollback remain intact. The G4F
+During G4F and Stage 2 offline preparation, no live service was stopped/restarted
+and no source was deployed. During the later specifically approved Stage 2
+maintenance, only the backup worker restarted and only its one reviewed module
+changed. USB/network settings, boot, storage size and formatting remained
+unchanged throughout. G4E's existing Production credentials/rollback remain intact. The G4F
 verifier made only read-only Drive operations and one in-memory access refresh;
 the already-running worker made the one specifically approved new backup.
 
 The 1 GiB storage limit remains. Reliability/endurance, practical storage
 capacity and later installation acceptance remain unfinished Version 1 work.
 No clinical deployment is authorized; organization/vendor and data-handling
-approvals remain prerequisites. Stage 3 and later were not started because
-Stage 2 reached a live-deployment approval boundary.
+approvals remain prerequisites. The Stage 2 approval gate was satisfied before
+maintenance. No live storage migration is authorized.
 
 No-eject operation remains unimplemented and unproven. No completed research was
 reopened, no experimental implementation was attempted, and no roadmap change
 is needed. Preserve Safe Eject as the accepted Version 1 completion contract.
 
-**Exactly one next major task:** approve and perform the minimal reporting-worker
-maintenance above, then stop for review. No fresh sign-in, USB cable move,
-network change or scanner access is required for this proposed maintenance.
+**Exactly one next major task:** roadmap Stage 3 storage-capacity planning and
+disposable simulation. No actual image resize/replacement, service restart,
+credential change, cloud operation or scanner access is authorized by that plan.
 
 ### Ready-to-paste next-stage prompt
 
-> Continue roadmap Stage 2 only. I approve stopping only the idle backup worker,
-> backing up its exact installed source/state, atomically deploying only the
-> existing three-line reporting fix from `665977b`, restarting that worker and
-> read-only live validation plus an isolated credential-free failed-job/restart
-> fixture using temporary data, with rollback on failure. Recheck the current Git HEAD,
-> live source hashes, USB ownership and actual history baseline first. Preserve
-> Production credentials, destination, history, staging, controller and network.
-> Do not restart the dashboard, inject live failed jobs, create uploads, resize
-> storage or begin Stage 3. Report actual installation, fresh counters, preserved
-> history and rollback results, then STOP.
+> Continue roadmap Stage 3 only: inspect current capacity read-only, calculate
+> image/staging/retention reserves, compare a new image with migration, and
+> simulate using disposable fixtures. Preserve the accepted Safe Eject system,
+> the deployed reporting fix, Production credentials and all 19 backups/95 events.
+> Do not resize, replace, mount or format live storage, restart services, change
+> USB/networking, create cloud operations or touch the clinical scanner. Prepare
+> the minimum safe migration/rollback proposal and stop before live changes.
