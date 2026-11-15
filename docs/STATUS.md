@@ -38,9 +38,20 @@ plus two local and two native fixture interpreters.
 [Deployment evidence](acceptance/pi-failure-reporting-stage2-2026-11-15.json) ·
 [Cumulative review and next-stage prompt](AUTONOMOUS_REVIEW_2026-11-15.md).
 
-**What remains before practical office use:** plan practical storage capacity
-with a separately approved physical migration, and validate longer
-workloads and recovery. The USB image is still the disposable **1 GiB** image.
+**Stage 3 — storage planning/simulation complete.** Read-only measurements found
+47.241 GiB available on the Pi and 815.281 MiB free on CLOUDSTICK. An **8 GiB**
+image is recommended, keeping space for capture, an interrupted batch and OS
+recovery margins. **15 disposable simulations and 73 existing focused tests
+passed.** No live storage or services changed; all 19 verified records and
+95 events remain intact. The simulations use opaque temporary files, not real
+larger exFAT volumes or physical power cuts.
+[Capacity report, limits and proposed migration prompt](STORAGE_CAPACITY_STAGE3.md).
+
+**What remains before practical office use:** separately approve reviewed support
+beyond the installed controller's hard 1 GiB limit, verified maintenance hold,
+real disposable exFAT tests and suitable low-space admission, then a controlled physical migration. Expected
+QA volume/retention still needs owner confirmation; longer workloads and recovery
+remain unaccepted. The USB image is still the disposable **1 GiB** image.
 **Safe Eject is required for each batch; no-eject capture is not implemented.**
 This one-file ordinary-PC test does not prove Siemens compatibility or authorize
 clinical use. The guarded Windows eject automation used an administrator token.
@@ -51,8 +62,8 @@ but no new outage, power-loss or endurance test was performed in G4F.
 [Earlier Windows acceptance](WINDOWS_ACCEPTANCE.md) remains historical evidence.
 
 The 898-Python/11-Rust/five-CI baseline belongs to the earlier source checkpoint;
-it is not a new full-suite claim. This session reused that code and ran the
-57 focused tests above. Public hardware gates remain disabled by default;
+it is not a new full-suite claim. Stage 2 ran 57 focused tests; Stage 3 ran
+88 focused local tests as described above. Public hardware gates remain disabled by default;
 the real Pi continues its separately approved protected trial builds.
 
 **Phone updates:** [follow the existing progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).

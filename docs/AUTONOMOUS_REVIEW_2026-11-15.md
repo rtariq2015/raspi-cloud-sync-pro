@@ -2,7 +2,8 @@
 
 Date: 15 November 2026 (America/New_York). Branch: `development`.
 Starting application source: `665977bd60e2f9afb6297ba2110b31157eb37f29`.
-Git changes in this session are documentation and acceptance evidence only.
+Git changes in this session are documentation, acceptance evidence, an offline
+storage simulation harness and its existing-workflow CI discovery command only.
 The separately approved Stage 2 maintenance installed the existing three-line
 worker fix from that baseline on the Pi; no new application code was written.
 The G4F documentation checkpoint is `fdb0c0eb2f774bdc1154cafcfcaab088785b4672`.
@@ -24,6 +25,44 @@ failure-reporting fix was installed in the protected worker source. Only the
 backup worker restarted. Its fresh report shows zero pending and zero failed
 jobs. An isolated native Pi fixture retained a terminal failure after idle ticks
 and a fresh interpreter restart. Live data, credentials and USB were preserved.
+
+**Stage 3 COMPLETE — planning/simulations only:** measured 47.241 GiB available
+to ordinary processes and 815.281 MiB free on Windows CLOUDSTICK. Recommend an
+8 GiB separate candidate under the conservative `3C + 5 GiB` additional-space
+budget; about 18.241 GiB remains for further retained data/overhead. Actual QA
+daily volume is unknown. **15 offline simulations and 73 existing focused
+regressions pass.** The current 1 GiB image, services and all 19/95 history rows
+remain unchanged. Larger-image controller support, verified maintenance hold,
+real disposable exFAT tests and reviewed low-space admission are prerequisites; no live migration was
+attempted. [Full Stage 3 report and future approval prompt](STORAGE_CAPACITY_STAGE3.md).
+
+## Checkpoint: Stage 3 storage planning and safe simulation
+
+- **STAGE:** practical capacity planning, read-only inventory and disposable tests.
+- **OBJECTIVE:** compare 4/8/16 GiB, preserve data/identity/history, prepare
+  conservative migration and rollback without changing the working appliance.
+- **STATUS:** authorized planning and simulation complete; live migration NOT DONE.
+- **WORK COMPLETED:** actual Pi/Windows capacity observation, retained-copy budget,
+  source identity/ownership review, 8 GiB recommendation, low-space/recovery plan,
+  15 generated temporary-file simulations and independent engineering review.
+- **FILES CHANGED:** `tools/acceptance/storage_capacity/test_capacity_simulation.py`,
+  one CI discovery command, Stage 3 report/evidence and these progress documents.
+  Production code, credentials and Pi services were not modified.
+- **TESTS EXECUTED:** 15 new simulations with ResourceWarning errors plus 73
+  existing storage/gadget/appliance tests: **88 local focused tests PASS**.
+- **HARDWARE TESTS:** read-only Pi metadata/status and ordinary Windows volume
+  queries only. No new copies/ejects, larger exFAT formatting/mount, uploads or
+  power interruptions. Process-crash fixtures are not physical power-loss proof.
+- **EVIDENCE:** [capacity baseline](acceptance/storage-capacity-stage3-2026-11-15.json)
+  and [complete report](STORAGE_CAPACITY_STAGE3.md).
+- **RISKS:** 1 GiB hard gate remains; 16 MiB existing capture reserve is smaller
+  than the proposed appliance margin; retained originals/versions grow without
+  automatic deletion. No real daily workload or larger-filesystem acceptance.
+- **COMMIT:** Stage 3 source-only checkpoint is the commit containing this report;
+  accepted parent `eeb0cc21458da4f28988ccdd6d9f9c200fece1be`.
+- **NEXT ACTION:** owner review, then separately authorize only the missing
+  size-capable/maintenance-hold/real-exFAT/admission preparation before cutover.
+  No further stage has begun.
 
 ## Checkpoint: G4F
 
