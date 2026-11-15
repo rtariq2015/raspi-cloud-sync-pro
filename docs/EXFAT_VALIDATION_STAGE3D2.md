@@ -1,5 +1,10 @@
 # Stage 3D2 — Real Disposable exFAT Validation Report
 
+**Historical preflight record.** The missing tools were subsequently installed
+with separate owner approval, followed by the separately approved disposable
+rehearsal. See the [actual Stage 3D2 acceptance report](EXFAT_REHEARSAL_STAGE3D2.md).
+The original preflight findings below are retained as dated evidence.
+
 15 November 2026. Accepted source checkpoint:
 `271c6770abc6e6301183acf6b30a77bb31fdbef6` on `development`.
 

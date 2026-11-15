@@ -2,12 +2,17 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
-**Stage 3D2 — real disposable exFAT validation: BLOCKED at preflight.**
-The development computer has sufficient scratch space, but `mkfs.exfat` and
-`fsck.exfat` are absent. No image was created, formatted or mounted; no Pi was
-accessed. Separate approval is needed to install the official `exfatprogs`
-package before real filesystem validation can proceed. No controller source
-changed. [Preflight evidence and proposed approval commands](EXFAT_VALIDATION_STAGE3D2.md).
+**Stage 3D2 — real disposable exFAT rehearsal: PASS on the development computer.**
+After separate tool-installation and filesystem-operation approvals, four new
+fully allocated 8 GiB filesystems formatted successfully. Five synthetic file
+hashes and empty/Unicode directories matched; corrupt metadata was refused
+without repair; a separate disposable volume reached real ENOSPC safely.
+The existing Stage 3D capture passed from RO exFAT into ext4 staging.
+**17 rehearsal checks and 301 focused automated tests passed.** All test mounts
+and loops were cleaned normally; approximately 32 GiB of detached test images
+are retained. No live Pi, Windows USB, cloud, credential or history operation.
+This is not physical USB or atomic live-migration acceptance.
+[Actual results, exact commands, cleanup and remaining limits](EXFAT_REHEARSAL_STAGE3D2.md).
 
 **Stage 3D — low-space admission: SOURCE-ONLY PASS; not deployed.**
 The explicit 8 GiB policy budgets remaining changed-file allocation, metadata,

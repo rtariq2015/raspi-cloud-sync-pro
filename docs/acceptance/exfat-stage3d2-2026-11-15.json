@@ -1,0 +1,1808 @@
+{
+  "architecture": "x86_64",
+  "available_bytes": 696397299712,
+  "checks": [
+    {
+      "name": "source-8gib-real-format-fsck-geometry",
+      "result": "PASS"
+    },
+    {
+      "name": "destination-8gib-real-format-fsck-geometry",
+      "result": "PASS"
+    },
+    {
+      "name": "file-migration-hashes-and-empty-directories",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "repeat-migration-refuses-overwrite",
+      "result": "PASS"
+    },
+    {
+      "name": "real-copy-process-interruption-retains-partial-and-source",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "incomplete-candidate-collision",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "changed-candidate-blocks-blind-rollback",
+      "result": "PASS"
+    },
+    {
+      "name": "stage3d-real-ro-exfat-to-ext4-capture",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "wrong-image-inode-refused",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "wrong-image-capacity-refused",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "unexpected-mbr-geometry-refused",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "dirty-exfat-flags-refused",
+      "result": "PASS"
+    },
+    {
+      "name": "corruption-fixture-real-format",
+      "result": "PASS"
+    },
+    {
+      "name": "corrupt-real-exfat-fsck-refuses-without-repair",
+      "result": "PASS"
+    },
+    {
+      "name": "enospc-fixture-real-format",
+      "result": "PASS"
+    },
+    {
+      "expected_refusal": true,
+      "name": "full-disposable-exfat-refuses-new-migration",
+      "result": "PASS"
+    },
+    {
+      "name": "bounded-real-exfat-enospc",
+      "result": "PASS"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/source.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/mkfs.exfat",
+        "-L",
+        "CLOUDSTICK",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\nCreating exFAT filesystem(/dev/loop1, cluster size=32768)\n\nWriting volume boot record: done\nWriting backup volume boot record: done\nFat table creation: done\nAllocation bitmap creation: done\nUpcase table creation: done\nWriting root directory entry: done\nSynchronizing...\n\nexFAT format complete!\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 1, files 0\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/dump.exfat",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n-------------- Dump Boot sector region --------------\nVolume Length(sectors): \t\t16775168\nFAT Offset(sector offset): \t\t2048\nFAT Length(sectors): \t\t\t2048\nCluster Heap Offset (sector offset): \t4096\nCluster Count: \t\t\t\t262048\nRoot Cluster (cluster offset): \t\t4\nVolume Serial: \t\t\t\t0x6fffbe72\nSector Size Bits: \t\t\t9\nSector per Cluster bits: \t\t6\n\n----------------- Dump Root entries -----------------\nVolume entry type: \t\t\t0x83\nVolume label: \t\t\t\tCLOUDSTICK\nVolume label character count: \t\t10\nBitmap entry type: \t\t\t0x20\nBitmap start cluster: \t\t\t0\nBitmap size: \t\t\t\t0\nUpcase table entry type: \t\t0x81\nUpcase table start cluster: \t\t2\nUpcase table size: \t\t\t32756\n\n---------------- Show the statistics ----------------\nCluster size:  \t\t\t\t32768\nTotal Clusters: \t\t\t262048\nFree Clusters: \t\t\t\t262048\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/destination.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/mkfs.exfat",
+        "-L",
+        "CLOUDSTICK",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\nCreating exFAT filesystem(/dev/loop1, cluster size=32768)\n\nWriting volume boot record: done\nWriting backup volume boot record: done\nFat table creation: done\nAllocation bitmap creation: done\nUpcase table creation: done\nWriting root directory entry: done\nSynchronizing...\n\nexFAT format complete!\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 1, files 0\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/dump.exfat",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n-------------- Dump Boot sector region --------------\nVolume Length(sectors): \t\t16775168\nFAT Offset(sector offset): \t\t2048\nFAT Length(sectors): \t\t\t2048\nCluster Heap Offset (sector offset): \t4096\nCluster Count: \t\t\t\t262048\nRoot Cluster (cluster offset): \t\t4\nVolume Serial: \t\t\t\t0x6ffdbe72\nSector Size Bits: \t\t\t9\nSector per Cluster bits: \t\t6\n\n----------------- Dump Root entries -----------------\nVolume entry type: \t\t\t0x83\nVolume label: \t\t\t\tCLOUDSTICK\nVolume label character count: \t\t10\nBitmap entry type: \t\t\t0x20\nBitmap start cluster: \t\t\t0\nBitmap size: \t\t\t\t0\nUpcase table entry type: \t\t0x81\nUpcase table start cluster: \t\t2\nUpcase table size: \t\t\t32756\n\n---------------- Show the statistics ----------------\nCluster size:  \t\t\t\t32768\nTotal Clusters: \t\t\t262048\nFree Clusters: \t\t\t\t262048\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/source.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 1, files 0\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/mount",
+        "-t",
+        "exfat",
+        "-o",
+        "rw,nosuid,nodev,noexec,uid=0,gid=0,fmask=0077,dmask=0077",
+        "/dev/loop1",
+        "/tmp/raspi-stage3d2-y_35xbka/source-mount-vajbxji0"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/umount",
+        "/tmp/raspi-stage3d2-y_35xbka/source-mount-vajbxji0"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 5, files 5\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--read-only",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/source.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 5, files 5\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/mount",
+        "-t",
+        "exfat",
+        "-o",
+        "ro,nosuid,nodev,noexec,uid=0,gid=0,fmask=0077,dmask=0077",
+        "/dev/loop1",
+        "/tmp/raspi-stage3d2-y_35xbka/source-mount-tqkxgoqs"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/destination.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop16\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop16"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop16: clean. directories 1, files 0\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/mount",
+        "-t",
+        "exfat",
+        "-o",
+        "rw,nosuid,nodev,noexec,uid=0,gid=0,fmask=0077,dmask=0077",
+        "/dev/loop16",
+        "/tmp/raspi-stage3d2-y_35xbka/destination-mount-ux3vqmu2"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/umount",
+        "/tmp/raspi-stage3d2-y_35xbka/destination-mount-ux3vqmu2"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop16"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop16: clean. directories 13, files 13\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop16"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/umount",
+        "/tmp/raspi-stage3d2-y_35xbka/source-mount-tqkxgoqs"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 5, files 5\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/corruption.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/mkfs.exfat",
+        "-L",
+        "CLOUDSTICK",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\nCreating exFAT filesystem(/dev/loop1, cluster size=32768)\n\nWriting volume boot record: done\nWriting backup volume boot record: done\nFat table creation: done\nAllocation bitmap creation: done\nUpcase table creation: done\nWriting root directory entry: done\nSynchronizing...\n\nexFAT format complete!\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 1, files 0\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/dump.exfat",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n-------------- Dump Boot sector region --------------\nVolume Length(sectors): \t\t16775168\nFAT Offset(sector offset): \t\t2048\nFAT Length(sectors): \t\t\t2048\nCluster Heap Offset (sector offset): \t4096\nCluster Count: \t\t\t\t262048\nRoot Cluster (cluster offset): \t\t4\nVolume Serial: \t\t\t\t0xfff9be74\nSector Size Bits: \t\t\t9\nSector per Cluster bits: \t\t6\n\n----------------- Dump Root entries -----------------\nVolume entry type: \t\t\t0x83\nVolume label: \t\t\t\tCLOUDSTICK\nVolume label character count: \t\t10\nBitmap entry type: \t\t\t0x20\nBitmap start cluster: \t\t\t0\nBitmap size: \t\t\t\t0\nUpcase table entry type: \t\t0x81\nUpcase table start cluster: \t\t2\nUpcase table size: \t\t\t32756\n\n---------------- Show the statistics ----------------\nCluster size:  \t\t\t\t32768\nTotal Clusters: \t\t\t262048\nFree Clusters: \t\t\t\t262048\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--read-only",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/corruption.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 8,
+      "stderr": "Bad fs_name in boot sector, which does not describe a valid exfat filesystem\n",
+      "stdout": "exfatprogs version : 1.2.2\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/low-space.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/mkfs.exfat",
+        "-L",
+        "CLOUDSTICK",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\nCreating exFAT filesystem(/dev/loop1, cluster size=32768)\n\nWriting volume boot record: done\nWriting backup volume boot record: done\nFat table creation: done\nAllocation bitmap creation: done\nUpcase table creation: done\nWriting root directory entry: done\nSynchronizing...\n\nexFAT format complete!\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 1, files 0\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/dump.exfat",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n-------------- Dump Boot sector region --------------\nVolume Length(sectors): \t\t16775168\nFAT Offset(sector offset): \t\t2048\nFAT Length(sectors): \t\t\t2048\nCluster Heap Offset (sector offset): \t4096\nCluster Count: \t\t\t\t262048\nRoot Cluster (cluster offset): \t\t4\nVolume Serial: \t\t\t\t0x6efbfe74\nSector Size Bits: \t\t\t9\nSector per Cluster bits: \t\t6\n\n----------------- Dump Root entries -----------------\nVolume entry type: \t\t\t0x83\nVolume label: \t\t\t\tCLOUDSTICK\nVolume label character count: \t\t10\nBitmap entry type: \t\t\t0x20\nBitmap start cluster: \t\t\t0\nBitmap size: \t\t\t\t0\nUpcase table entry type: \t\t0x81\nUpcase table start cluster: \t\t2\nUpcase table size: \t\t\t32756\n\n---------------- Show the statistics ----------------\nCluster size:  \t\t\t\t32768\nTotal Clusters: \t\t\t262048\nFree Clusters: \t\t\t\t262048\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--find",
+        "--show",
+        "--nooverlap",
+        "--offset",
+        "1048576",
+        "--sizelimit",
+        "8588886016",
+        "--sector-size",
+        "512",
+        "--",
+        "/tmp/raspi-stage3d2-y_35xbka/low-space.img"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "/dev/loop1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 1, files 0\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/mount",
+        "-t",
+        "exfat",
+        "-o",
+        "rw,nosuid,nodev,noexec,uid=0,gid=0,fmask=0077,dmask=0077",
+        "/dev/loop1",
+        "/tmp/raspi-stage3d2-y_35xbka/low-space-mount-kjieft9u"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/bin/umount",
+        "/tmp/raspi-stage3d2-y_35xbka/low-space-mount-kjieft9u"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/fsck.exfat",
+        "-n",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "exfatprogs version : 1.2.2\n/dev/loop1: clean. directories 1, files 1\n"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--detach",
+        "/dev/loop1"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    },
+    {
+      "argv": [
+        "/usr/sbin/losetup",
+        "--list",
+        "--json",
+        "--output",
+        "NAME,BACK-FILE,BACK-INO,BACK-MAJ:MIN,OFFSET,SIZELIMIT,RO,LOG-SEC"
+      ],
+      "exit": 0,
+      "stderr": "",
+      "stdout": "[unrelated inventory omitted]"
+    }
+  ],
+  "corruption": {
+    "fsck_exit": 8,
+    "metadata_sha256_after": "5fe903fce2e1a31413f0177f256d97878fd6e1296e5194683c71a18223bd5d08",
+    "metadata_sha256_before": "5fe903fce2e1a31413f0177f256d97878fd6e1296e5194683c71a18223bd5d08"
+  },
+  "destination_manifest": {
+    "directories": [
+      "empty-directory",
+      "nested",
+      "nested/QA \u0394"
+    ],
+    "files": {
+      "empty.txt": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      "large-64-MiB.bin": {
+        "sha256": "103f23a15401a701b73587902f16e3b5b3bf38a039d5c94b675a9a8e84dbd5b5",
+        "size": 67108864
+      },
+      "nested/QA \u0394/\u62a5\u544a-\u03b1.txt": {
+        "sha256": "1a6fc22b061a6bd5fc95c9532d3d68df45aaea0d5bae0321652dd85c81ce7d5b",
+        "size": 37
+      },
+      "nested/with spaces.csv": {
+        "sha256": "08a1cb06d7d9947306418799296c483730563d4175d366c3e20e8e14596df1c1",
+        "size": 27
+      },
+      "one-MiB.bin": {
+        "sha256": "4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56",
+        "size": 1048576
+      }
+    }
+  },
+  "error": null,
+  "finish_utc": "2026-11-15T13:07:07.132815+00:00",
+  "images": {
+    "corruption": {
+      "allocated_bytes": 8589938688,
+      "geometry": {
+        "cluster_bytes": 32768,
+        "cluster_count": 262048,
+        "cluster_heap_offset": 4096,
+        "cluster_shift": 6,
+        "fat_offset": 2048,
+        "fat_sectors": 2048,
+        "image_size": 8589934592,
+        "layout": {
+          "bytes_per_sector": 512,
+          "filesystem": "exfat",
+          "partition": 1,
+          "partition_sectors": 16775168,
+          "partition_table": "mbr",
+          "start_sector": 2048
+        },
+        "mbr_sha256": "060cd9074a9fc911a3a7b3ce8b2476a78e983ae17848c486975e86d5d953d745",
+        "partition_offset": 0,
+        "root_cluster": 4,
+        "sector_shift": 9,
+        "volume_flags": 0,
+        "volume_label": "CLOUDSTICK",
+        "volume_sectors": 16775168,
+        "volume_serial": "74bef9ff"
+      },
+      "identity": [
+        66306,
+        1706767,
+        8589934592
+      ]
+    },
+    "destination": {
+      "allocated_bytes": 8589938688,
+      "geometry": {
+        "cluster_bytes": 32768,
+        "cluster_count": 262048,
+        "cluster_heap_offset": 4096,
+        "cluster_shift": 6,
+        "fat_offset": 2048,
+        "fat_sectors": 2048,
+        "image_size": 8589934592,
+        "layout": {
+          "bytes_per_sector": 512,
+          "filesystem": "exfat",
+          "partition": 1,
+          "partition_sectors": 16775168,
+          "partition_table": "mbr",
+          "start_sector": 2048
+        },
+        "mbr_sha256": "d24baeb89633a7d82df2bc17121f0f223658740992d502668baf20fc03ddd849",
+        "partition_offset": 0,
+        "root_cluster": 4,
+        "sector_shift": 9,
+        "volume_flags": 0,
+        "volume_label": "CLOUDSTICK",
+        "volume_sectors": 16775168,
+        "volume_serial": "72befd6f"
+      },
+      "identity": [
+        66306,
+        1706752,
+        8589934592
+      ]
+    },
+    "low-space": {
+      "allocated_bytes": 8589938688,
+      "geometry": {
+        "cluster_bytes": 32768,
+        "cluster_count": 262048,
+        "cluster_heap_offset": 4096,
+        "cluster_shift": 6,
+        "fat_offset": 2048,
+        "fat_sectors": 2048,
+        "image_size": 8589934592,
+        "layout": {
+          "bytes_per_sector": 512,
+          "filesystem": "exfat",
+          "partition": 1,
+          "partition_sectors": 16775168,
+          "partition_table": "mbr",
+          "start_sector": 2048
+        },
+        "mbr_sha256": "48ca3a502aec3a84635e4dfdc9a92289123ff8fb75cbaaa7a6d86f2a19ab1339",
+        "partition_offset": 0,
+        "root_cluster": 4,
+        "sector_shift": 9,
+        "volume_flags": 0,
+        "volume_label": "CLOUDSTICK",
+        "volume_sectors": 16775168,
+        "volume_serial": "74fefb6e"
+      },
+      "identity": [
+        66306,
+        1706768,
+        8589934592
+      ]
+    },
+    "source": {
+      "allocated_bytes": 8589938688,
+      "geometry": {
+        "cluster_bytes": 32768,
+        "cluster_count": 262048,
+        "cluster_heap_offset": 4096,
+        "cluster_shift": 6,
+        "fat_offset": 2048,
+        "fat_sectors": 2048,
+        "image_size": 8589934592,
+        "layout": {
+          "bytes_per_sector": 512,
+          "filesystem": "exfat",
+          "partition": 1,
+          "partition_sectors": 16775168,
+          "partition_table": "mbr",
+          "start_sector": 2048
+        },
+        "mbr_sha256": "9ac2010abfff962732ad137b56e0440f385aa6ce330bd740eb3a3d0cece1bea5",
+        "partition_offset": 0,
+        "root_cluster": 4,
+        "sector_shift": 9,
+        "volume_flags": 0,
+        "volume_label": "CLOUDSTICK",
+        "volume_sectors": 16775168,
+        "volume_serial": "72beff6f"
+      },
+      "identity": [
+        66306,
+        1706751,
+        8589934592
+      ]
+    }
+  },
+  "kernel": "7.0.0-42-generic",
+  "mount_namespace_private": true,
+  "real_enospc": {
+    "available_after": 0,
+    "errno": 28,
+    "written_bytes": 8586690560
+  },
+  "residual_resources": [],
+  "scratch": "/tmp/raspi-stage3d2-y_35xbka",
+  "source_checkpoint": "6c7414e48119ede2bf6c39307b05b867e771fe6d",
+  "start_utc": "2026-11-15T13:06:58.303587+00:00",
+  "status": "PASS",
+  "synthetic_manifest": {
+    "directories": [
+      "empty-directory",
+      "nested",
+      "nested/QA \u0394"
+    ],
+    "files": {
+      "empty.txt": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      "large-64-MiB.bin": {
+        "sha256": "103f23a15401a701b73587902f16e3b5b3bf38a039d5c94b675a9a8e84dbd5b5",
+        "size": 67108864
+      },
+      "nested/QA \u0394/\u62a5\u544a-\u03b1.txt": {
+        "sha256": "1a6fc22b061a6bd5fc95c9532d3d68df45aaea0d5bae0321652dd85c81ce7d5b",
+        "size": 37
+      },
+      "nested/with spaces.csv": {
+        "sha256": "08a1cb06d7d9947306418799296c483730563d4175d366c3e20e8e14596df1c1",
+        "size": 27
+      },
+      "one-MiB.bin": {
+        "sha256": "4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56",
+        "size": 1048576
+      }
+    }
+  }
+}
