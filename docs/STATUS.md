@@ -2,6 +2,13 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
+**Stage 3D2 — real disposable exFAT validation: BLOCKED at preflight.**
+The development computer has sufficient scratch space, but `mkfs.exfat` and
+`fsck.exfat` are absent. No image was created, formatted or mounted; no Pi was
+accessed. Separate approval is needed to install the official `exfatprogs`
+package before real filesystem validation can proceed. No controller source
+changed. [Preflight evidence and proposed approval commands](EXFAT_VALIDATION_STAGE3D2.md).
+
 **Stage 3D — low-space admission: SOURCE-ONLY PASS; not deployed.**
 The explicit 8 GiB policy budgets remaining changed-file allocation, metadata,
 8 GiB recovery headroom and 4 GiB for operation. It rechecks available blocks
