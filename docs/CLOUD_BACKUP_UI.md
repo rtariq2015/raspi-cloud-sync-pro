@@ -1,17 +1,20 @@
 # Cloud Backup monitoring and optional administration
 
-**Source-only implementation — 15 November 2026. Not deployed.**
+**Monitoring deployed and validated — 15 November 2026.** The owner confirmed
+the real dashboard's 20 verified / 0 pending / 0 failed panel. See the
+[actual deployment and security results](CLOUD_BACKUP_UI_DEPLOYMENT.md).
 The accepted 8 GiB USB controller, Google credentials/destination and backup
-worker are unchanged. Safe Eject is still required. This work extends the
-existing authenticated dashboard; it does not start another backup engine.
+worker are unchanged. Safe Eject is still required. Optional rclone administration
+remains disabled; monitoring does not start another backup engine.
 
 ## Existing installation inspected
 
-A read-only SSH inspection verified the Raspberry Pi model and observed the
+Before deployment, a read-only SSH inspection verified the Raspberry Pi model and observed the
 existing dashboard and USB backup service running under different accounts:
-`raspi-dashboard` and `raspi-backup`. The live dashboard has no `--history`,
+`raspi-dashboard` and `raspi-backup`. The previous dashboard had no `--history`,
 `--worker-state` or status-bridge argument, explaining why it cannot currently
-display the working USB backup history.
+display the working USB backup history. The approved deployment now connects
+only the sanitized bridge, retaining private worker-file isolation.
 
 The backup service's explicit PATH selects
 `/opt/raspi-cloud-sync-pro/tools/mass-storage-bin/rclone`, a symlink to the
@@ -78,12 +81,12 @@ strict schema, finite timestamps, fixed provider labels and error allowlists.
 It recomputes both bridge and worker ages when reading. Unknown extra fields,
 private error strings and malformed reports cannot pass into the response.
 
-Prepared examples, deliberately without automatic enablement:
+Source examples, deliberately without automatic enablement:
 
 - [Reporter service](../deploy/systemd/raspi-cloud-backup-status.service.example)
 - [15-second timer](../deploy/systemd/raspi-cloud-backup-status.timer.example)
 
-Future approved dashboard configuration adds only:
+The approved dashboard configuration adds only:
 
 ```text
 --backup-status /run/raspi-cloud-backup-status
@@ -101,8 +104,8 @@ pause web-backup permission. It remains clearly separate from the working USB
 backup monitor. This milestone has initiated no real Google test or upload and
 adds no automatic connection-test button for the production USB account.
 
-The owner-only **Advanced Tools** section offers the actual official rclone GUI
-only after a separately approved, disabled-by-default installation. See
+The deployed owner-only **Advanced Tools** entry remains disabled. Opening the
+actual official rclone GUI requires a separately approved installation. See
 [rclone administration](RCLONE_ADMIN.md). Viewer accounts receive neither its
 navigation entry nor access to the readiness endpoint.
 
@@ -145,7 +148,7 @@ node --check src/raspi_cloud_sync_pro/static/dashboard.js
 git diff --check
 ```
 
-Before live deployment, the owner must approve installation of the tested
+For any future deployment, the owner must approve installation of the tested
 dashboard/reporter source and reviewed units, resolve the actual protected
 worker-state paths in the example, verify the reporter's group/output
 permissions, start its timer and restart **only the dashboard** with the bridge

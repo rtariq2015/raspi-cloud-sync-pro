@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-15",
+  "milestone": "Cloud Backup monitoring deployment",
+  "status": "PASS",
+  "deployed_source_commit": "12e74b440fc5c2b7bda094a76176f8decc6b32ec",
+  "owner_approvals": {
+    "monitoring_deployment_and_dashboard_only_rollback": true,
+    "one_time_private_re_sign_in": true,
+    "timer_boot_binding": true,
+    "corrected_port_checker_resume": true
+  },
+  "deployment": {
+    "dashboard_active_running_enabled": true,
+    "source_installed_separately": true,
+    "installed_manifest_entries_verified": 62,
+    "deployed_unit_and_override_files_match_reviewed_artifacts": true,
+    "previous_release_and_base_unit_preserved": true,
+    "existing_python_environment_reused": true,
+    "existing_dashboard_port_preserved": 8081,
+    "reporter_successful_oneshot": true,
+    "timer_enabled_active": true,
+    "timer_refresh_observed": true,
+    "new_rclone_installation": false
+  },
+  "security": {
+    "report_mode": "0640",
+    "runtime_directory_mode": "0750",
+    "dashboard_report_read_allowed": true,
+    "dashboard_report_write_denied": true,
+    "dashboard_private_worker_reads_denied": true,
+    "public_anonymous_monitoring_http_status": 401,
+    "public_anonymous_administration_status_http_status": 401,
+    "isolated_pi_owner_viewer_permission_fixtures_passed": true,
+    "existing_owner_private_sign_in_and_counts_confirmed_by_owner": true,
+    "existing_viewer_password_used": false
+  },
+  "preservation": {
+    "verified_jobs": 20,
+    "history_events": 100,
+    "pending_jobs": 0,
+    "failed_jobs": 0,
+    "full_job_and_event_row_digests_unchanged": true,
+    "accounts_and_google_credentials_unchanged": true,
+    "usb_controller_backup_worker_remote_access_processes_unchanged": true,
+    "usb_image_identity_and_configuration_unchanged": true,
+    "sqlite_quick_check": "ok"
+  },
+  "public_access": {
+    "https_login_http_status": 200,
+    "javascript_and_css_match_accepted_source": true,
+    "cache_control": "no-store",
+    "responsive_markup_and_css_checked": true,
+    "physical_android_visual_acceptance_confirmed": false
+  },
+  "first_attempt": {
+    "result": "STOPPED before live changes",
+    "reason": "Installer health check used default port instead of existing configured port",
+    "rollback_needed": false
+  },
+  "rollback_ready": true,
+  "successful_attempt_rolled_back": false,
+  "new_cloud_transfer_tested": false,
+  "new_usb_file_copy_tested": false,
+  "additional_reboot_tested": false,
+  "rclone_gui_installed_or_started": false,
+  "raw_private_evidence_published": false
+}
