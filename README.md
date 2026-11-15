@@ -16,12 +16,13 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 
 </div>
 
-> **The Windows USB-to-Google workflow passed — 14 November 2026.** Copy to
+> **The 8 GiB Windows USB-to-Google workflow passed — 15 November 2026.** Copy to
 > CLOUDSTICK, choose Eject, and keep the cable connected: the Pi captures, uploads
-> over Wi-Fi and verifies the backup. **17 file versions checked; local copies kept.**
-> A controlled outage also passed automatic reconnection. This remains a 1 GiB
-> development trial; no-eject capture and permanent Google authorization are not
-> complete. [Evidence and limits](docs/CORE_RECOVERY.md) ·
+> over Wi-Fi and verifies the backup. **20 verified backup versions; local copies kept.**
+> The approved Pi now uses an 8 GiB exFAT image with Google Production authorization;
+> its original 1 GiB image and all historical backups are retained. This is still
+> development software, and **Safe Eject remains required**.
+> [8 GiB acceptance and limits](docs/IMAGE_ENROLLMENT.md#physical-acceptance) ·
 > [Phone updates](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 
 ## The core product comes first

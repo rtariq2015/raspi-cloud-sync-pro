@@ -1,7 +1,8 @@
 # Stage 3 — Safe Image Enrollment
 
-**Source-only implementation. No Pi deployment or physical 8 GiB acceptance is
-claimed.** Safe Eject remains required. Public build gates remain disabled.
+**The separately approved Pi/Windows 8 GiB upgrade passed physical acceptance on
+15 November 2026.** Safe Eject remains required. Public build gates remain disabled.
+The source tests and the later live acceptance are distinguished below.
 
 This component enrolls an already created, separately approved 8 GiB exFAT image
 after the existing controller has accepted a genuine Windows Safe Eject, completed
@@ -142,7 +143,8 @@ gates or replace the image/hold approvals.
 Generic `HARDWARE_OPERATIONS_ENABLED` also stays False. Enabling a reviewed
 protected Pi copy, installing/pinning it, stopping/starting services, creating or
 formatting the candidate, performing real Eject/cutover/export and testing a new
-backup require separate owner approval. No such operation was performed here.
+backup require separate owner approval. The later approved live execution is
+recorded under Physical acceptance below; ordinary installation does not enable it.
 
 ## Test evidence and limits
 
@@ -204,6 +206,61 @@ integration. A missing global-inventory completeness check was corrected and
 tested; no further concrete safety blocker was found. New tests retain Python
 3.9 compatibility. This is source evidence, not physical 8 GiB acceptance.
 
-Process crashes and fsync checks do not prove physical microSD power-loss
-durability. Physical Windows behavior, actual Pi tooling/namespace and the full
-8 GiB capture/Google backup acceptance remain to be tested under separate approval.
+## Physical acceptance
+
+**Completed 15 November 2026, 12:34 EST (17:34 UTC).** The owner explicitly
+approved the protected deployment, genuine Windows Safe Eject, separate-image
+formatting/migration/enrollment/export and one synthetic Google backup test.
+This used the ordinary Windows test computer and the existing Pi Zero 2 W;
+no clinical scanner or patient data was used for the acceptance file.
+
+Deployed source: `8e3afad74acbb823d5180aeed3c5ab3f6ec18b2e`.
+The new protected controller contains 48 modules: the verified previous package
+with nine reviewed controller modules added/replaced and exactly the three
+approved appliance/maintenance/enrollment gates enabled. Generic hardware
+operations remain disabled. The existing backup-worker source, unit, Google
+configuration, destination and Production refresh grant were preserved.
+
+| Physical check | Observed result |
+| --- | --- |
+| Initial state | Original 1 GiB image and 19 verified jobs/95 events intact; healthy Wi-Fi, SSH and power; approximately 47.24 GiB available |
+| Protected deployment | Fresh private rollback records saved; new controller warm-adopted the unchanged original image; worker paused |
+| Genuine maintenance hold | Windows identity, exclusive lock, cache flush and ordinary media eject passed; Pi independently completed capture/handoff, detached and exited successfully into active hold |
+| Separate candidate | Exactly 8,589,934,592 bytes; 8,589,938,688 allocated bytes; exFAT formatting, nonrepairing filesystem and geometry checks passed |
+| Migration | All 18 files and 8 directories, totaling 214,963,601 file bytes, matched by path/size/SHA-256; old image strictly read-only and unchanged |
+| Resource cleanup | Verified normal unmount/detach; no image-owned loops/mounts remained; the unrelated active OS zram proof was unchanged |
+| Enrollment | Durable prepare/commit passed; original inode retained at its unique rollback path; new approval, journal and inventory binding validated |
+| Activation | Explicit export passed; pinned controller immediately restarted and verified warm adoption/polling |
+| Windows capacity | Healthy removable MBR/exFAT CLOUDSTICK on D:; disk 8,589,934,592 bytes, filesystem 8,586,788,864 bytes |
+| End-to-end test | One unique 1,048,576-byte synthetic Windows file; Safe Eject automatically captured it and returned the drive; only that new file was admitted for backup |
+| Google verification | Production upload verified on its first attempt; separate read-only download matched the Windows SHA-256 |
+| Historical preservation | All previous 19 job rows and 95 event rows remained identical; read-only remote listing confirmed all 19 previous objects plus the new object |
+| Final state | 20 verified jobs, 100 events, zero pending/failed/unexpected jobs; both services running and enabled; approximately 39.24 GiB available; healthy power and management access |
+
+The synthetic Windows, staged and independently downloaded object shared SHA-256:
+
+```text
+3bb9bc42efb83b3183c5a6b0ef2e0d6d609827fb3b3430964b91b85abee5ce5a
+```
+
+Operator-only corrections were needed during observation: a manifest query used
+the wrong field name, and a queue query initially compared batch paths instead
+of the existing `UNIQUE(destination, relative, sha256)` rule. The worker stayed
+paused until the existing deduplication rule proved exactly one new job. The
+separate downloader initially used an optional filter that rclone rejects for
+a single-file `cat`; removing that filter made the read-only download pass.
+These corrections changed no production code or credentials and caused no extra
+uploads, deletion, device recovery or rollback.
+
+The original image, private source/configuration/state rollback records,
+transaction evidence, retained staging and cloud versions remain preserved.
+After first export, the 8 GiB image may contain newer Windows writes: **never
+blindly restore the 1 GiB image or rewind history.** Preserve both and reconcile
+newer files first if recovery becomes necessary.
+
+This acceptance did not reboot the Pi, cut power, fill the drive to capacity,
+exercise every Windows version, or test a hospital scanner. Enabled services and
+their installed source/configuration were checked; reboot and power-loss behavior
+were not physically retested. Process crashes and fsync tests do not prove
+microSD power-loss durability. Safe Eject remains mandatory, originals are not
+automatically deleted, and development-release limitations remain.
