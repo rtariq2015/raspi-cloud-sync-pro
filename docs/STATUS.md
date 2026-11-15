@@ -1,85 +1,60 @@
 # Project progress
 
-**Updated: 14 November 2026. Dev22 development trial; no main merge or release.**
+**Updated: 15 November 2026. Development trial; no main merge or release.**
 
-**Version 1 reliability fix — source only.** Terminal backup failures now remain
-counted in worker status after idle ticks and restarts, instead of disappearing
-behind zero pending jobs. Existing reports remain compatible, and retry,
-verification and retention behavior are unchanged. **898 local Python tests and
-11 Rust tests pass**, including failure/restart, retained-data, destination-scope
-and report-compatibility checks. Rust formatting and Clippy also pass.
-This change has not been installed on the Pi; the physical result below concerns
-the existing accepted build.
+**G4F — Production Google backup acceptance: PASS.** One unique synthetic
+1 MiB file was created and SHA-256 checked on the ordinary Windows test PC,
+copied onto CLOUDSTICK, flushed and safely ejected. The Pi automatically
+captured it while USB storage was detached, returned the drive, uploaded once
+with the existing Production authorization and completed worker verification.
+A separate Google download matched the Windows original and staged copy.
+Windows confirmed the USB copy and local source remained intact afterward.
 
-**Google authorization remains the highest-priority blocker.** A read-only check
-of the existing project's Google console confirmed External/Testing mode and
-its instruction to complete Branding configuration before publishing. Production
-status and a fresh private authorization require owner approval; no account,
-scope, credential or service settings were changed. Google documents the
-[seven-day Testing limit](https://developers.google.com/identity/protocols/oauth2#expiration).
-The existing narrow `drive.file` permission is
-[non-sensitive](https://developers.google.com/workspace/drive/api/guides/api-specific-auth);
-full sensitive-scope verification must not be assumed necessary. Publishing
-status alone is not evidence that an already-issued grant lasts longer.
+**19 backup versions are verified, with 95 history events.** All previous
+18 full job records and 90 events remained unchanged. There are no pending or
+failed jobs and no unexpected new or duplicate jobs. USB/controller and backup
+services remain active and enabled. No service restart, software deployment,
+network change, credential replacement, reboot or storage resize occurred.
+[Physical acceptance and limits](acceptance/pi-windows-production-google-g4f-2026-11-15.json).
 
-**Latest acceptance — 6:36 PM EST: PASS.** The owner accepted safe Windows Eject
-for the first version. One fresh 1 MiB Windows file was copied, flushed and
-read-back checked. After ordinary safe Eject, an independent observer recorded
-release, detached read-only capture and automatic drive return. The existing
-worker uploaded and completed its download-based verification in one attempt.
-Windows and the staged file hashes match. **18 versions are now verified**;
-all previous 17 job records are unchanged, and no jobs are pending or failed.
-Wi-Fi and all three core/recovery units were active at completion, with the
-same Pi boot. No application, service, network or credential settings changed;
-no reboot occurred.
-[Fresh physical evidence](acceptance/pi-windows-safe-eject-repeat-2026-11-14.json).
-This single repeat does not resolve the earlier connectivity fault or establish
-endurance. The approved test is complete; secondary work remains paused.
+**Google authorization:** G4A–G4E are complete. The existing app is External /
+In production; its fresh Production grant was validated and activated without
+changing the Google account or exact backup folder. G4F tested that grant in the
+real USB-to-cloud pipeline. An expired short-lived access token was refreshed
+only in verifier memory for the separate download; stored credentials were
+unchanged. This is current working authorization, not a promise that a grant
+can never expire or be revoked.
 
-**The basic Windows USB-to-Google workflow passed.** CLOUDSTICK appeared as a
-normal removable drive on the tested Windows computer. Small and 64 MiB files
-copied successfully. After safe Eject, the Pi automatically captured them,
-returned the drive, uploaded to Google Drive and checked downloaded contents.
-Local copies stayed on the Pi. Repeating the same file caused no extra upload.
+**Next roadmap stage — reporting fix: prepared, awaiting deployment approval.**
+The existing `665977b` change keeps terminal failures visible after idle ticks
+and restarts. **57 focused local tests passed** in this session. Read-only
+inspection confirms the live worker still has the pre-fix source/report; the
+fix has not been deployed. The live dashboard is not connected to that worker
+report, so the minimum proposed maintenance affects only the backup worker.
+[One cumulative review, exact maintenance/rollback and next-stage prompt](AUTONOMOUS_REVIEW_2026-11-15.md).
 
-At the earlier outage milestone, **17 file versions were verified**, with one
-cloud attempt each. A Windows 1 MiB file stayed queued with zero attempts while
-Wi-Fi was disconnected.
-The tested reconnect timer restored the approved saved connection after three
-failed samples; the independent failsafe did not need to activate. That file then
-uploaded and verified. Follow-up checks covered 443 healthy seconds with the same
-Pi boot and core process IDs. [Windows results](WINDOWS_ACCEPTANCE.md) ·
-[Full evidence and limits](CORE_RECOVERY.md).
+**What remains before practical office use:** deploy and accept the reporting
+fix with separate approval, plan practical storage capacity, and validate longer
+workloads and recovery. The USB image is still the disposable **1 GiB** image.
+**Safe Eject is required for each batch; no-eject capture is not implemented.**
+This one-file ordinary-PC test does not prove Siemens compatibility or authorize
+clinical use. The guarded Windows eject automation used an administrator token.
 
-**One fault remains unexplained:** after the first Windows pass, Wi-Fi management
-stopped responding. The owner approved an unclean power cycle after Windows-only
-quiescence. USB data and all 16 then-verified versions survived, but the previous
-boot journal was unavailable, so the cause is unknown. The reconnect timer is a
-tested mitigation; it is not proof that every driver, router or power fault is
-fixed. The timer is enabled/active, but an additional reboot specifically testing
-its startup has not been performed. Earlier clean reboot recovery of the core
-USB/backup services passed separately.
+The earlier Wi-Fi management interruption's root cause remains **UNKNOWN**.
+Prior reconnect/recovery checks are documented in [CORE_RECOVERY.md](CORE_RECOVERY.md),
+but no new outage, power-loss or endurance test was performed in G4F.
+[Earlier Windows acceptance](WINDOWS_ACCEPTANCE.md) remains historical evidence.
 
-**What remains before permanent office use:** resolve the current Google
-External/Testing sign-in limit, which gives Drive refresh grants seven days.
-Longer real workloads, other managed Windows hosts and suspend/power behavior
-also need acceptance. The present installation uses a disposable 1 GiB image.
-**It requires Eject after copying each batch; no-eject capture is not implemented.**
-Website, extra providers and other secondary work remain paused.
+The 898-Python/11-Rust/five-CI baseline belongs to the earlier source checkpoint;
+it is not a new full-suite claim. This session reused that code and ran the
+57 focused tests above. Public hardware gates remain disabled by default;
+the real Pi continues its separately approved protected trial builds.
 
-**844 core Python tests, 28 USB operator tests and 26 Wi-Fi recovery tests pass.**
-Public hardware gates/configuration examples remain disabled. The Pi runs
-separately approved protected builds, with source data, older versions and
-rollback evidence retained. No SD reflash or real-disk formatting occurred.
-
-**Phone updates:** [follow this progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
-The GitHub Actions bot posts owner mentions. Inbox delivery was verified; email
-and phone push depend on account settings. Replies can be read during active
-work, but do not automatically resume an inactive coding session.
-
-Current source: [development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development).
-Remote checks: [GitHub Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions).
-This page records tested behavior rather than a percentage estimate.
+**Phone updates:** [follow the existing progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
+GitHub inbox/email/mobile delivery depends on notification settings. The
+[development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)
+is the current source; [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
+shows actual remote check results. No percentage estimate replaces acceptance.
 
 <details>
 <summary>Earlier supporting work and historical snapshots</summary>
