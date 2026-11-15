@@ -23,6 +23,7 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 > its original 1 GiB image and all historical backups are retained. This is still
 > development software, and **Safe Eject remains required**.
 > [8 GiB acceptance and limits](docs/IMAGE_ENROLLMENT.md#physical-acceptance) ·
+> [Clean-reboot acceptance](docs/RELIABILITY_ACCEPTANCE_STAGE4.md) ·
 > [Phone updates](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
 
 ## The core product comes first
@@ -73,10 +74,10 @@ automatically deletes originals or staged files.
 
 **Back up with evidence.** Koofr WebDAV, Google Drive and Dropbox use rclone adapters with
 separate jobs per destination. “Verified” means remote contents were downloaded
-and checked against SHA-256. The approved USB trial now has **17 Google-verified
+and checked against SHA-256. The approved USB trial has **20 Google-verified
 file versions**, including real Windows copies and an offline-queued recovery
-file. The persistent worker retains local copies and earlier versions. Permanent
-Google authorization still needs the owner to resolve the current testing limit.
+file. The persistent worker retains local copies and earlier versions. Google
+Production authorization is active and passed the approved backup test.
 Koofr/Dropbox real-account tests and the separate web folder/test/enable workflow
 remain deferred.
 
@@ -96,10 +97,10 @@ See [remote access](docs/REMOTE_ACCESS.md).
 
 | Working and tested | Next acceptance step |
 | --- | --- |
-| Approved Wi-Fi recovery, queued backup and healthy follow-up after 443 seconds | Original fault cause, longer workplace stability and guard startup after another reboot |
+| Approved Wi-Fi recovery, queued backup, 443-second healthy follow-up and automatic timer startup after the Stage 4 reboot | Original fault cause and longer workplace stability |
 | Dashboard, owner/viewer roles, password changes/recovery and file access | Invitations and broader file browsing |
 | Authenticated HTTPS preview; fixed-address login page and enabled services | Dashboard/tunnel reboot recovery, off-LAN phone and Android web-app installation |
-| Windows USB copy/Eject, retained versions and verified Google backup; earlier clean Pi reboot | Permanent Google authorization and longer workloads |
+| 8 GiB Windows USB copy/Eject, retained versions, verified Google Production backup and Stage 4 clean reboot | Longer workloads and additional hardware compatibility |
 | Optional web Google preparation through its persistent watcher | Separate web Test/Enable and recurring web backup acceptance |
 | Boot-enabled USB Google worker; separate optional web worker and Rust scheduler | Guided web enablement and sustained-load acceptance |
 | Guarded USB controller; optional Samba reader also tested separately | Other managed hosts, suspend/power-loss behavior and Windows Samba mapping |

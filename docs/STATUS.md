@@ -2,6 +2,23 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
+**Latest live acceptance — Stage 4: PASS for one controlled clean Pi reboot.**
+The existing 8 GiB exFAT CLOUDSTICK returned automatically on Windows D:.
+The USB controller, backup worker and Wi-Fi recovery timer started automatically;
+Wi-Fi/SSH returned without a second reboot or recovery action. All 19 Windows
+files matched their preboot hashes. All 20 verified backup records and 100 events,
+the Google Production configuration/grant, source/unit hashes, image identity and
+original rollback archive were preserved. No new upload or application change
+was needed. Safe Eject remains required; no-eject work has not begun.
+[Stage 4 evidence, procedure and limits](RELIABILITY_ACCEPTANCE_STAGE4.md).
+
+**Stage 3 live upgrade: PASS.** The separately approved 1 GiB → 8 GiB migration
+and one synthetic Google Production backup/download/hash test passed.
+[Stage 3 physical acceptance](IMAGE_ENROLLMENT.md#physical-acceptance).
+
+The earlier entries below retain their historical counts and source-only status
+at the time; the live checkpoints above supersede those deployment statements.
+
 **Stage 3D2 — real disposable exFAT rehearsal: PASS on the development computer.**
 After separate tool-installation and filesystem-operation approvals, four new
 fully allocated 8 GiB filesystems formatted successfully. Five synthetic file
@@ -55,7 +72,7 @@ with the existing Production authorization and completed worker verification.
 A separate Google download matched the Windows original and staged copy.
 Windows confirmed the USB copy and local source remained intact afterward.
 
-**Last accepted live checkpoint: 19 verified backup versions and 95 events.**
+**Historical G4F live checkpoint: 19 verified backup versions and 95 events.**
 All previous 18 full job records and 90 events remained unchanged. At that
 checkpoint there were no pending/failed or unexpected new/duplicate jobs;
 USB/controller and backup services were active and enabled. These are historical
