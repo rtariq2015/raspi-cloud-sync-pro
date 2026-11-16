@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/viveris/uMTP-Responder",
+  "commit": "8f20c6f8d47d1057c9793aa23bd0a678d54084e3",
+  "declared_version": "v1.10.2",
+  "license": "GPL-3.0-or-later",
+  "copyright": "2018-2026 Viveris Technologies",
+  "patch_sha256": "3e25391d98100a03067640889d058073777bf836a010b6d8456fe84df26668c8",
+  "completion_helper": "/opt/raspi-cloud-sync-pro/experimental/mtp/complete-object",
+  "max_file_bytes": 4294967282,
+  "hardware_tested": false,
+  "reserve_bytes": 2147483648
+}

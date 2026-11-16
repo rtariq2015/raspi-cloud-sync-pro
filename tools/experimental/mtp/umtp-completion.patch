@@ -1,0 +1,774 @@
+diff --git a/inc/mtp.h b/inc/mtp.h
+index 6bdfc16..bb39256 100644
+--- a/inc/mtp.h
++++ b/inc/mtp.h
+@@ -128,6 +128,14 @@ typedef struct mtp_ctx_
+ 	mtp_size SendObjInfoSize;
+ 	mtp_offset SendObjInfoOffset;
+ 
++	/* Raspi Cloud Sync Pro experimental full-object transaction binding. */
++	uint32_t rcsp_send_txid;
++	uint32_t rcsp_send_session;
++	uint64_t rcsp_session_epoch;
++	uint64_t rcsp_send_epoch;
++	uint64_t rcsp_info_epoch;
++	int rcsp_send_armed;
++
+ 	uint32_t SetObjectPropValue_Handle;
+ 	uint32_t SetObjectPropValue_PropCode;
+ 
+diff --git a/inc/rcsp_mtp_completion.h b/inc/rcsp_mtp_completion.h
+new file mode 100644
+index 0000000..643fefa
+--- /dev/null
++++ b/inc/rcsp_mtp_completion.h
+@@ -0,0 +1,13 @@
++/* Raspi Cloud Sync Pro experimental adapter; GPL-3.0-or-later. */
++#ifndef RCSP_MTP_COMPLETION_H
++#define RCSP_MTP_COMPLETION_H
++#include <stdint.h>
++/* 0xffffffff is the MTP unknown container-length sentinel, including header. */
++#define RCSP_MTP_MAX_OBJECT_SIZE (UINT32_MAX - UINT32_C(13))
++struct mtp_ctx_;
++void rcsp_mtp_reset_pending(struct mtp_ctx_ *ctx);
++void rcsp_mtp_invalidate(struct mtp_ctx_ *ctx);
++uint64_t rcsp_mtp_epoch(struct mtp_ctx_ *ctx);
++int rcsp_mtp_checkpoint(int fd, const char *relative, uint64_t size,
++                        uint32_t session, uint32_t transaction, uint32_t object);
++#endif
+diff --git a/src/mtp.c b/src/mtp.c
+index 569b65a..30f1979 100644
+--- a/src/mtp.c
++++ b/src/mtp.c
+@@ -54,6 +54,7 @@
+ #include "msgqueue.h"
+ 
+ #include "logs_out.h"
++#include "rcsp_mtp_completion.h"
+ 
+ mtp_ctx * mtp_init_responder()
+ {
+@@ -210,7 +211,13 @@ int parse_incoming_dataset(mtp_ctx * ctx,void * datain,int size,uint32_t * newha
+ 
+ 	ret_code = MTP_RESPONSE_GENERAL_ERROR;
+ 
++	if(size < (int)sizeof(MTP_PACKET_HEADER) + 0x35) return MTP_RESPONSE_INVALID_DATASET;
+ 	tmp_hdr = (MTP_PACKET_HEADER *)datain;
++	if(tmp_hdr->operation != MTP_CONTAINER_TYPE_DATA || tmp_hdr->code != MTP_OPERATION_SEND_OBJECT_INFO ||
++	   tmp_hdr->length != (uint32_t)size) return MTP_RESPONSE_INVALID_DATASET;
++	string_len = peek((unsigned char*)datain + sizeof(MTP_PACKET_HEADER), 0x34, 1);
++	if(!string_len || size < (int)sizeof(MTP_PACKET_HEADER) + 0x35 + 2 * string_len)
++		return MTP_RESPONSE_INVALID_DATASET;
+ 
+ 	if(parent_handle == 0xFFFFFFFF)
+ 		parent_handle = 0x00000000;
+@@ -239,6 +246,7 @@ int parse_incoming_dataset(mtp_ctx * ctx,void * datain,int size,uint32_t * newha
+ 			if(objectformat==MTP_FORMAT_ASSOCIATION)
+ 			{
+ 				objectsize = peek(dataset_ptr, 0x08, 4);   // Object Compressed Size
++				if(objectsize > RCSP_MTP_MAX_OBJECT_SIZE) return MTP_RESPONSE_OBJECT_TOO_LARGE;
+ 				//parent = peek(dataset_ptr,0x26, 4);      // Parent Object (NR)
+ #ifdef DEBUG
+ 				type = peek(dataset_ptr,0x2A, 2);          // Association Type
+@@ -337,6 +345,7 @@ int parse_incoming_dataset(mtp_ctx * ctx,void * datain,int size,uint32_t * newha
+ 			else
+ 			{
+ 				objectsize = peek(dataset_ptr, 0x08, 4);   // Object Compressed Size
++				if(objectsize > RCSP_MTP_MAX_OBJECT_SIZE) return MTP_RESPONSE_OBJECT_TOO_LARGE;
+ 				//parent = peek(dataset_ptr,0x26, 4);      // Parent Object (NR)
+ #ifdef DEBUG
+ 				type = peek(dataset_ptr,0x2A, 2);          // Association Type
+@@ -540,6 +549,14 @@ int process_in_packet(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr, int raws
+ 
+ 	size = rawsize;
+ 
++	/* No unrelated command may leave an earlier full-object DATA grant armed. */
++	if(ctx->rcsp_send_armed && !(mtp_packet_hdr->code == MTP_OPERATION_SEND_OBJECT &&
++	                           mtp_packet_hdr->operation == MTP_CONTAINER_TYPE_DATA)) {
++		if(pthread_mutex_lock(&ctx->inotify_mutex)) return -1;
++		rcsp_mtp_reset_pending(ctx);
++		pthread_mutex_unlock(&ctx->inotify_mutex);
++	}
++
+ 	switch( mtp_packet_hdr->code )
+ 	{
+ 		case MTP_OPERATION_OPEN_SESSION:
+@@ -591,7 +608,6 @@ int process_in_packet(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr, int raws
+ 			response_code = mtp_op_SendObjectInfo(ctx,mtp_packet_hdr,&size,(uint32_t*)&params,&params_size);
+ 		break;
+ 
+-		case MTP_OPERATION_SEND_PARTIAL_OBJECT:
+ 		case MTP_OPERATION_SEND_OBJECT:
+ 			response_code = mtp_op_SendObject(ctx,mtp_packet_hdr,&size,(uint32_t*)&params,&params_size);
+ 		break;
+@@ -624,16 +640,17 @@ int process_in_packet(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr, int raws
+ 			response_code = mtp_op_GetObjectReferences(ctx,mtp_packet_hdr,&size,(uint32_t*)&params,&params_size);
+ 		break;
+ 
++		case MTP_OPERATION_SEND_PARTIAL_OBJECT:
+ 		case MTP_OPERATION_BEGIN_EDIT_OBJECT:
+-			response_code = mtp_op_BeginEditObject(ctx,mtp_packet_hdr,&size,(uint32_t*)&params,&params_size);
++			response_code = MTP_RESPONSE_OPERATION_NOT_SUPPORTED; /* experimental full objects only */
+ 		break;
+ 
+ 		case MTP_OPERATION_END_EDIT_OBJECT:
+-			response_code = mtp_op_EndEditObject(ctx,mtp_packet_hdr,&size,(uint32_t*)&params,&params_size);
++			response_code = MTP_RESPONSE_OPERATION_NOT_SUPPORTED; /* experimental full objects only */
+ 		break;
+ 
+ 		case MTP_OPERATION_TRUNCATE_OBJECT :
+-			response_code = mtp_op_TruncateObject(ctx,mtp_packet_hdr,&size,(uint32_t*)&params,&params_size);
++			response_code = MTP_RESPONSE_OPERATION_NOT_SUPPORTED; /* experimental full objects only */
+ 		break;
+ 
+ 		default:
+@@ -683,6 +700,7 @@ int mtp_incoming_packet(mtp_ctx * ctx)
+ 
+ 		if(!size)
+ 			return 0; // ZLP
++		if(size < (int)sizeof(MTP_PACKET_HEADER)) return -1;
+ 
+ 		mtp_packet_hdr = (MTP_PACKET_HEADER *)ctx->rdbuffer;
+ 
+diff --git a/src/mtp_operations/mtp_op_closesession.c b/src/mtp_operations/mtp_op_closesession.c
+index ab39a14..ca1748d 100644
+--- a/src/mtp_operations/mtp_op_closesession.c
++++ b/src/mtp_operations/mtp_op_closesession.c
+@@ -34,9 +34,12 @@
+ #include "mtp_operations.h"
+ 
+ #include "logs_out.h"
++#include "rcsp_mtp_completion.h"
+ 
+ uint32_t mtp_op_CloseSession(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr, int * size,uint32_t * ret_params, int * ret_params_size)
+ {
++	rcsp_mtp_invalidate(ctx);
++	ctx->session_id = 0;
+ 	if(!ctx->fs_db)
+ 		return MTP_RESPONSE_SESSION_NOT_OPEN;
+ 
+diff --git a/src/mtp_operations/mtp_op_opensession.c b/src/mtp_operations/mtp_op_opensession.c
+index 6180e2a..70c9adb 100644
+--- a/src/mtp_operations/mtp_op_opensession.c
++++ b/src/mtp_operations/mtp_op_opensession.c
+@@ -34,12 +34,17 @@
+ #include "mtp_operations.h"
+ 
+ #include "logs_out.h"
++#include "rcsp_mtp_completion.h"
+ 
+ uint32_t mtp_op_OpenSession(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr, int * size,uint32_t * ret_params, int * ret_params_size)
+ {
+ 	int i;
+ 	uint32_t id;
+ 
++	rcsp_mtp_invalidate(ctx);
++	if(*size != (int)sizeof(MTP_PACKET_HEADER) + 4 || mtp_packet_hdr->length != (uint32_t)*size ||
++	   mtp_packet_hdr->operation != MTP_CONTAINER_TYPE_COMMAND) return MTP_RESPONSE_INVALID_PARAMETER;
++
+ 	id = peek(mtp_packet_hdr, sizeof(MTP_PACKET_HEADER), 4); // Get param 1
+ 
+ 	if(!id)
+diff --git a/src/mtp_operations/mtp_op_sendobject.c b/src/mtp_operations/mtp_op_sendobject.c
+index 5ba02f1..1557175 100644
+--- a/src/mtp_operations/mtp_op_sendobject.c
++++ b/src/mtp_operations/mtp_op_sendobject.c
+@@ -24,177 +24,166 @@
+  */
+ 
+ #include "buildconf.h"
+-
++#include <errno.h>
+ #include <inttypes.h>
+ #include <pthread.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+-#include <pthread.h>
+ #include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ #include <sys/stat.h>
+-
++#include <sys/statvfs.h>
+ #include "logs_out.h"
+-
+ #include "mtp.h"
+ #include "mtp_helpers.h"
+ #include "mtp_constant.h"
+ #include "mtp_operations.h"
+-
+ #include "usb_gadget_fct.h"
+-
+-uint32_t mtp_op_SendObject(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr, int * size,uint32_t * ret_params, int * ret_params_size)
++#include "rcsp_mtp_completion.h"
++
++/* Experimental full-object receiver: completion is exact protocol byte count,
++ * not a short packet, close event, unchanged size or a quiet period. */
++#ifndef RCSP_MTP_RESERVE_BYTES
++#define RCSP_MTP_RESERVE_BYTES UINT64_C(2147483648)
++#endif
++/* Logical admission, not a quota: unexpected concurrent consumption still
++ * fails each checked write/commit. Keep the reserve plus all unreceived bytes
++ * AND an independent full immutable snapshot budget on the source filesystem. */
++static int rcsp_space_admitted(int fd, uint64_t expected, uint64_t remaining)
+ {
+-	uint32_t response_code;
+-	fs_entry * entry;
+-	unsigned char * tmp_ptr;
+-	int file;
+-	int flags;
+-	mode_t mode;
+-	int sz;
+-
+-	if(!ctx->fs_db)
+-		return MTP_RESPONSE_SESSION_NOT_OPEN;
+-
+-	if( pthread_mutex_lock( &ctx->inotify_mutex ) )
+-		return MTP_RESPONSE_GENERAL_ERROR;
+-
+-	response_code = MTP_RESPONSE_GENERAL_ERROR;
+-
+-	if( mtp_packet_hdr->code == MTP_OPERATION_SEND_PARTIAL_OBJECT && mtp_packet_hdr->operation == MTP_CONTAINER_TYPE_COMMAND )
+-	{
+-		ctx->SendObjInfoHandle = peek(mtp_packet_hdr, sizeof(MTP_PACKET_HEADER), 4);         // Get param 1 - Object handle
+-		ctx->SendObjInfoOffset = peek64(mtp_packet_hdr, sizeof(MTP_PACKET_HEADER) + 4, 8);   // Get param 2 - Offset in bytes
+-		ctx->SendObjInfoSize = peek(mtp_packet_hdr, sizeof(MTP_PACKET_HEADER) + 12, 4);      // Get param 3 - Max size in bytes
+-	}
+-
+-	if( ctx->SendObjInfoHandle != 0xFFFFFFFF )
+-	{
+-		switch(mtp_packet_hdr->operation)
+-		{
+-			case MTP_CONTAINER_TYPE_DATA:
+-				entry = get_entry_by_handle(ctx->fs_db, ctx->SendObjInfoHandle);
+-				if(entry)
+-				{
+-					response_code = MTP_RESPONSE_GENERAL_ERROR;
+-
+-					if( check_handle_access( ctx, entry, 0x00000000, 1, &response_code) )
+-					{
+-						pthread_mutex_unlock( &ctx->inotify_mutex );
+-
+-						return response_code;
+-					}
+-
+-					if( mtp_packet_hdr->code == MTP_OPERATION_SEND_PARTIAL_OBJECT )
+-					{
+-						flags = O_RDWR | O_LARGEFILE;
+-						mode = 0;
+-					}
+-					else
+-					{
+-						flags = O_CREAT | O_WRONLY | O_TRUNC | O_LARGEFILE;
+-						mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+-					}
+-
+-					file = entry_open(ctx->fs_db, entry, flags, mode);
+-
+-					if( file != -1 )
+-					{
+-						ctx->transferring_file_data = 1;
+-
+-						lseek64(file, ctx->SendObjInfoOffset, SEEK_SET);
+-
+-						sz = *size - sizeof(MTP_PACKET_HEADER);
+-						tmp_ptr = ((unsigned char*)mtp_packet_hdr) ;
+-						tmp_ptr += sizeof(MTP_PACKET_HEADER);
+-
+-						if(sz > 0)
+-						{
+-							if( write(file, tmp_ptr, sz) != sz)
+-							{
+-								// TODO : Handle this error case properly
+-							}
+-
+-							ctx->SendObjInfoSize -= sz;
+-						}
+-
+-						tmp_ptr = ctx->rdbuffer2;
+-						if( sz == ( ctx->usb_rd_buffer_max_size - sizeof(MTP_PACKET_HEADER) ) )
+-						{
+-							sz = ctx->usb_rd_buffer_max_size;
+-						}
+-
+-						if( mtp_packet_hdr->code == MTP_OPERATION_SEND_PARTIAL_OBJECT && ctx->SendObjInfoSize )
+-						{
+-							sz = ctx->usb_rd_buffer_max_size;
+-						}
+-
+-						while( ( sz == ctx->usb_rd_buffer_max_size ) && ( !ctx->cancel_req ) && ( sz >= 0 ) )
+-						{
+-							sz = read_usb(ctx->usb_ctx, ctx->rdbuffer2, ctx->usb_rd_buffer_max_size);
+-
+-							if( sz >= 0 )
+-							{
+-								if( write(file, tmp_ptr, sz) != sz)
+-								{
+-									// TODO : Handle this error case properly
+-								}
+-
+-								ctx->SendObjInfoSize -= sz;
+-							}
+-						};
+-
+-						entry->size = lseek64(file, 0, SEEK_END);
+-
+-						ctx->transferring_file_data = 0;
+-
+-						if( mtp_packet_hdr->code != MTP_OPERATION_SEND_PARTIAL_OBJECT )
+-							entry_close(ctx->fs_db, entry);
+-
+-						if(ctx->cancel_req)
+-						{
+-							ctx->cancel_req = 0;
+-
+-							pthread_mutex_unlock( &ctx->inotify_mutex );
+-
+-							return MTP_RESPONSE_NO_RESPONSE;
+-						}
+-
+-						response_code = MTP_RESPONSE_OK;
+-					}
+-				}
+-				else
+-				{
+-					response_code = MTP_RESPONSE_INVALID_OBJECT_HANDLE;
+-				}
+-			break;
+-			case MTP_CONTAINER_TYPE_COMMAND:
+-				PRINT_DEBUG("SEND_OBJECT : Handle 0x%.8x, Offset 0x%"SIZEHEX", Size 0x%"SIZEHEX,ctx->SendObjInfoHandle,ctx->SendObjInfoOffset,ctx->SendObjInfoSize);
+-
+-				if( check_handle_access( ctx, NULL, ctx->SendObjInfoHandle, 1, &response_code) )
+-				{
+-					pthread_mutex_unlock( &ctx->inotify_mutex );
+-
+-					return response_code;
+-				}
+-
+-				// no response to send, wait for the data...
+-				response_code = MTP_RESPONSE_NO_RESPONSE;
+-			break;
+-			default:
+-			break;
+-		}
+-	}
+-	else
+-	{
+-		PRINT_WARN("MTP_OPERATION_SEND_OBJECT ! : Invalid Handle (0x%.8X)", ctx->SendObjInfoHandle);
+-
+-		response_code = MTP_RESPONSE_INVALID_OBJECT_HANDLE;
+-	}
++    struct statvfs space;
++    uint64_t available, required;
++    if(fstatvfs(fd, &space) || !space.f_frsize || space.f_bavail > UINT64_MAX / space.f_frsize ||
++       space.f_favail < 4 || space.f_flag & ST_RDONLY ||
++       RCSP_MTP_RESERVE_BYTES > UINT64_MAX - expected - remaining) return -1;
++    available = (uint64_t)space.f_bavail * space.f_frsize;
++    required = RCSP_MTP_RESERVE_BYTES + expected + remaining;
++    if(available < required) {errno = ENOSPC;return -1;}
++    return 0;
++}
+ 
+-	if( pthread_mutex_unlock( &ctx->inotify_mutex ) )
+-	{
+-		response_code = MTP_RESPONSE_GENERAL_ERROR;
+-	}
++static int rcsp_write_all(mtp_ctx *ctx, int fd, const unsigned char *data, size_t size,
++                          uint64_t expected, uint64_t remaining)
++{
++    while(size) {
++        ssize_t written;
++        if(ctx->cancel_req || rcsp_space_admitted(fd, expected, remaining)) return -1;
++        written = write(fd, data, size);
++        if(written < 0 && errno == EINTR) continue;
++        if(written <= 0 || (size_t)written > size) return -1;
++        data += written;
++        size -= (size_t)written;
++        remaining -= (uint64_t)written;
++    }
++    return 0;
++}
+ 
+-	return response_code;
++uint32_t mtp_op_SendObject(mtp_ctx *ctx, MTP_PACKET_HEADER *hdr, int *size,
++                         uint32_t *ret_params, int *ret_params_size)
++{
++    uint32_t response = MTP_RESPONSE_GENERAL_ERROR;
++    uint64_t expected, remaining;
++    fs_entry *entry = NULL;
++    int fd = -1, cancel_locked = 0;
++    struct stat held, named;
++    char *full = NULL, *root = NULL;
++    size_t rootlen;
++    (void)ret_params; (void)ret_params_size;
++    if(pthread_mutex_lock(&ctx->inotify_mutex)) return response;
++    if(!ctx->fs_db || !ctx->session_id) { response = MTP_RESPONSE_SESSION_NOT_OPEN; goto reset; }
++    if(hdr->code != MTP_OPERATION_SEND_OBJECT) { response = MTP_RESPONSE_OPERATION_NOT_SUPPORTED; goto reset; }
++    if(ctx->SendObjInfoHandle == UINT32_MAX || ctx->SendObjInfoSize < 0 ||
++       (uint64_t)ctx->SendObjInfoSize > RCSP_MTP_MAX_OBJECT_SIZE || ctx->SendObjInfoOffset != 0 ||
++       ctx->rcsp_info_epoch != rcsp_mtp_epoch(ctx)) {
++        response = MTP_RESPONSE_INVALID_PARAMETER; goto reset;
++    }
++    expected = (uint64_t)ctx->SendObjInfoSize;
++    if(*size < (int)sizeof(*hdr) || *size > ctx->usb_rd_buffer_max_size) {
++        response = MTP_RESPONSE_INVALID_DATASET; goto reset;
++    }
++    if(hdr->operation == MTP_CONTAINER_TYPE_COMMAND) {
++        if(*size != sizeof(*hdr) || hdr->length != sizeof(*hdr) || ctx->cancel_req) {
++            response = MTP_RESPONSE_INVALID_PARAMETER; goto reset;
++        }
++        if(check_handle_access(ctx, NULL, ctx->SendObjInfoHandle, 1, &response)) goto reset;
++        ctx->rcsp_send_txid = hdr->tx_id;
++        ctx->rcsp_send_session = ctx->session_id;
++        ctx->rcsp_send_epoch = rcsp_mtp_epoch(ctx);
++        ctx->rcsp_send_armed = 1;
++        response = MTP_RESPONSE_NO_RESPONSE;
++        goto done;
++    }
++    if(hdr->operation != MTP_CONTAINER_TYPE_DATA || !ctx->rcsp_send_armed ||
++       hdr->tx_id != ctx->rcsp_send_txid || ctx->session_id != ctx->rcsp_send_session ||
++       rcsp_mtp_epoch(ctx) != ctx->rcsp_send_epoch || ctx->rcsp_info_epoch != ctx->rcsp_send_epoch ||
++       hdr->length != expected + sizeof(*hdr) ||
++       (uint64_t)*size > hdr->length) {
++        response = MTP_RESPONSE_INVALID_DATASET; goto failed;
++    }
++    ctx->rcsp_send_armed = 0;
++    entry = get_entry_by_handle(ctx->fs_db, ctx->SendObjInfoHandle);
++    if(!entry || entry->flags & ENTRY_IS_DIR) {
++        response = MTP_RESPONSE_INVALID_OBJECT_HANDLE; goto failed;
++    }
++    if(check_handle_access(ctx, entry, 0, 1, &response)) goto failed;
++    /* SendObjectInfo has created the export-view object. It is NOT a ready
++     * batch. Never publish this pathname or reopen it after MTP accepts writes. */
++    fd = entry_open(ctx->fs_db, entry, O_RDWR | O_TRUNC | O_LARGEFILE | O_NOFOLLOW | O_CLOEXEC, 0600);
++    if(fd < 0 || fstat(fd, &held) || !S_ISREG(held.st_mode) || held.st_nlink != 1) goto failed;
++    if(rcsp_space_admitted(fd, expected, expected)) goto failed;
++    ctx->transferring_file_data = 1;
++    remaining = expected;
++    {
++        size_t first = (size_t)*size - sizeof(*hdr);
++        if(first > remaining || rcsp_write_all(ctx, fd, (unsigned char*)hdr + sizeof(*hdr), first, expected, remaining)) goto failed;
++        remaining -= first;
++    }
++    while(remaining) {
++        int got;
++        if(ctx->cancel_req || rcsp_mtp_epoch(ctx) != ctx->rcsp_send_epoch) goto failed;
++        got = read_usb(ctx->usb_ctx, ctx->rdbuffer2, ctx->usb_rd_buffer_max_size);
++        if(got <= 0 || (uint64_t)got > remaining || got > ctx->usb_rd_buffer_max_size ||
++           rcsp_write_all(ctx, fd, ctx->rdbuffer2, (size_t)got, expected, remaining)) goto failed;
++        remaining -= (uint64_t)got;
++    }
++    if(ctx->cancel_req || rcsp_mtp_epoch(ctx) != ctx->rcsp_send_epoch || fsync(fd) || fstat(fd, &held) ||
++       !S_ISREG(held.st_mode) || held.st_nlink != 1 || held.st_size != expected) goto failed;
++    full = build_full_path(ctx->fs_db, mtp_get_storage_root(ctx, entry->storage_id), entry);
++    root = realpath(mtp_get_storage_root(ctx, entry->storage_id), NULL);
++    if(!full || !root || lstat(full, &named) || !S_ISREG(named.st_mode) ||
++       named.st_dev != held.st_dev || named.st_ino != held.st_ino || named.st_size != held.st_size) goto failed;
++    rootlen = strlen(root);
++    if(rootlen < 2 || strncmp(full, root, rootlen) || full[rootlen] != '/' || !full[rootlen+1]) goto failed;
++    /* Linearize completion against already-observed MTP cancellation. A cancel
++     * that wins this mutex has no checkpoint. Once full durable commit wins,
++     * a later cancel cannot undo the acknowledged transfer or its backup. */
++    if(pthread_mutex_lock(&ctx->cancel_mutex)) goto failed;
++    cancel_locked = 1;
++    if(ctx->cancel_req || rcsp_mtp_epoch(ctx) != ctx->rcsp_send_epoch) goto failed;
++    if(rcsp_mtp_checkpoint(fd, full + rootlen + 1, expected, ctx->session_id,
++                           hdr->tx_id, entry->handle)) goto failed;
++    if(fstat(fd, &named) || named.st_dev != held.st_dev || named.st_ino != held.st_ino ||
++       named.st_size != held.st_size || named.st_mtim.tv_sec != held.st_mtim.tv_sec ||
++       named.st_mtim.tv_nsec != held.st_mtim.tv_nsec) goto failed;
++    entry->size = expected;
++    if(close(fd)) { fd = -1; entry->file_descriptor = -1; goto failed; }
++    fd = -1; entry->file_descriptor = -1;
++    response = MTP_RESPONSE_OK;
++    goto reset;
++failed:
++    /* Retain incomplete/canceled export-view bytes for owner inspection. They
++     * have no ready manifest and are never admitted by the backup worker. */
++    response = ctx->cancel_req ? MTP_RESPONSE_NO_RESPONSE :
++               errno == ENOSPC ? MTP_RESPONSE_STORAGE_FULL : MTP_RESPONSE_INCOMPLETE_TRANSFER;
++    if(fd >= 0) { close(fd); fd = -1; if(entry) entry->file_descriptor = -1; }
++reset:
++    rcsp_mtp_reset_pending(ctx);
++    ctx->transferring_file_data = 0;
++    ctx->cancel_req = 0;
++done:
++    if(cancel_locked) pthread_mutex_unlock(&ctx->cancel_mutex);
++    free(root); free(full);
++    if(pthread_mutex_unlock(&ctx->inotify_mutex)) return MTP_RESPONSE_GENERAL_ERROR;
++    return response;
+ }
+diff --git a/src/mtp_operations/mtp_op_sendobjectinfo.c b/src/mtp_operations/mtp_op_sendobjectinfo.c
+index 6aacada..97b8f9f 100644
+--- a/src/mtp_operations/mtp_op_sendobjectinfo.c
++++ b/src/mtp_operations/mtp_op_sendobjectinfo.c
+@@ -29,6 +29,7 @@
+ #include <inttypes.h>
+ 
+ #include "logs_out.h"
++#include "rcsp_mtp_completion.h"
+ 
+ #include "mtp.h"
+ #include "mtp_helpers.h"
+@@ -44,6 +45,7 @@ uint32_t mtp_op_SendObjectInfo(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr,
+ 	uint32_t parent_handle;
+ 	uint32_t new_handle;
+ 	int sz;
++	uint64_t incoming_epoch;
+ 
+ 	if(!ctx->fs_db)
+ 		return MTP_RESPONSE_SESSION_NOT_OPEN;
+@@ -51,6 +53,13 @@ uint32_t mtp_op_SendObjectInfo(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr,
+ 	if( pthread_mutex_lock( &ctx->inotify_mutex ) )
+ 		return MTP_RESPONSE_GENERAL_ERROR;
+ 
++	rcsp_mtp_reset_pending(ctx);
++	incoming_epoch = rcsp_mtp_epoch(ctx);
++	if(*size != (int)sizeof(MTP_PACKET_HEADER) + 8 || mtp_packet_hdr->length != (uint32_t)*size ||
++	   mtp_packet_hdr->operation != MTP_CONTAINER_TYPE_COMMAND) {
++		pthread_mutex_unlock(&ctx->inotify_mutex);
++		return MTP_RESPONSE_INVALID_PARAMETER;
++	}
+ 	storageid = peek(mtp_packet_hdr, sizeof(MTP_PACKET_HEADER), 4);         // Get param 1 - storage id
+ 	parent_handle = peek(mtp_packet_hdr, sizeof(MTP_PACKET_HEADER) + 4, 4); // Get param 2 - parent handle
+ 
+@@ -60,8 +69,17 @@ uint32_t mtp_op_SendObjectInfo(mtp_ctx * ctx,MTP_PACKET_HEADER * mtp_packet_hdr,
+ 	PRINT_DEBUG_BUF(ctx->rdbuffer2, sz);
+ 
+ 	new_handle = 0xFFFFFFFF;
++	if(sz < (int)sizeof(MTP_PACKET_HEADER) ||
++	   ((MTP_PACKET_HEADER*)ctx->rdbuffer2)->tx_id != mtp_packet_hdr->tx_id) {
++		pthread_mutex_unlock(&ctx->inotify_mutex);
++		return MTP_RESPONSE_INVALID_DATASET;
++	}
+ 
+ 	response_code = parse_incoming_dataset(ctx,ctx->rdbuffer2,sz,&new_handle,parent_handle,storageid);
++	if(incoming_epoch != rcsp_mtp_epoch(ctx)) {
++		rcsp_mtp_reset_pending(ctx);
++		response_code = MTP_RESPONSE_INVALID_DATASET;
++	} else if(response_code == MTP_RESPONSE_OK) ctx->rcsp_info_epoch = incoming_epoch;
+ 	if( response_code == MTP_RESPONSE_OK )
+ 	{
+ 		PRINT_DEBUG("MTP_OPERATION_SEND_OBJECT_INFO : Response - storageid: 0x%.8X, parent_handle: 0x%.8X, new_handle: 0x%.8X ",storageid,parent_handle,new_handle);
+diff --git a/src/mtp_support_def.c b/src/mtp_support_def.c
+index 6648155..93faacb 100644
+--- a/src/mtp_support_def.c
++++ b/src/mtp_support_def.c
+@@ -55,10 +55,6 @@ const unsigned short supported_op[]=
+ 	//MTP_OPERATION_GET_OBJECT_REFERENCES                  ,//0x9810
+ 	//MTP_OPERATION_SET_OBJECT_REFERENCES                  ,//0x9811
+ 	MTP_OPERATION_GET_PARTIAL_OBJECT_64                  ,//0x95C1
+-	MTP_OPERATION_SEND_PARTIAL_OBJECT                    ,//0x95C2
+-	MTP_OPERATION_TRUNCATE_OBJECT                        ,//0x95C3
+-	MTP_OPERATION_BEGIN_EDIT_OBJECT                      ,//0x95C4
+-	MTP_OPERATION_END_EDIT_OBJECT                         //0x95C5
+ };
+ 
+ const int supported_op_size=sizeof(supported_op);
+diff --git a/src/rcsp_mtp_completion.c b/src/rcsp_mtp_completion.c
+new file mode 100644
+index 0000000..051fd65
+--- /dev/null
++++ b/src/rcsp_mtp_completion.c
+@@ -0,0 +1,92 @@
++/* Raspi Cloud Sync Pro experimental adapter; GPL-3.0-or-later.
++ * No shell, USB setup, cloud configuration or host-owned block filesystem.
++ */
++#define _GNU_SOURCE
++#include <errno.h>
++#include <fcntl.h>
++#include <inttypes.h>
++#include <signal.h>
++#include <spawn.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/stat.h>
++#include <sys/wait.h>
++#include <time.h>
++#include <unistd.h>
++#include "rcsp_mtp_completion.h"
++
++#ifndef RCSP_MTP_COMPLETION_HELPER
++#define RCSP_MTP_COMPLETION_HELPER "/opt/raspi-cloud-sync-pro/experimental/mtp/complete-object"
++#endif
++#ifndef RCSP_MTP_HELPER_TIMEOUT
++#define RCSP_MTP_HELPER_TIMEOUT 300
++#endif
++
++static double monotonic_now(void)
++{
++    struct timespec now;
++    if(clock_gettime(CLOCK_MONOTONIC, &now)) return -1;
++    return now.tv_sec + now.tv_nsec / 1000000000.0;
++}
++
++int rcsp_mtp_checkpoint(int fd, const char *relative, uint64_t size,
++                        uint32_t session, uint32_t transaction, uint32_t object)
++{
++    int reader = -1, status, error = -1, actions_ready = 0;
++    char fd_path[64], size_arg[32], session_arg[16], tx_arg[16], object_arg[16];
++    struct stat source, duplicate;
++    posix_spawn_file_actions_t actions;
++    pid_t child = -1, waited;
++    double deadline, now;
++    struct timespec pause = {0, 10000000};
++    char *argv[] = {RCSP_MTP_COMPLETION_HELPER, "--fd", "3", "--relative", (char*)relative,
++                    "--size", size_arg, "--session", session_arg, "--transaction", tx_arg,
++                    "--object", object_arg, NULL};
++    /* The helper gets no ambient loader/Python/path environment or credentials.
++     * Its fixed launcher owns private broker configuration. */
++    char *env[] = {"PATH=/usr/bin:/bin", "LANG=C.UTF-8", "LC_ALL=C.UTF-8", NULL};
++    if(!relative || !relative[0] || relative[0] == '/' || !session || size > RCSP_MTP_MAX_OBJECT_SIZE ||
++       fstat(fd, &source) || !S_ISREG(source.st_mode) || source.st_nlink != 1 || source.st_size != size)
++        return -1;
++    snprintf(fd_path, sizeof(fd_path), "/proc/self/fd/%d", fd);
++    reader = open(fd_path, O_RDONLY | O_CLOEXEC);
++    if(reader < 0 || fstat(reader, &duplicate) || source.st_dev != duplicate.st_dev ||
++       source.st_ino != duplicate.st_ino || source.st_size != duplicate.st_size) goto done;
++    snprintf(size_arg, sizeof(size_arg), "%" PRIu64, size);
++    snprintf(session_arg, sizeof(session_arg), "%" PRIu32, session);
++    snprintf(tx_arg, sizeof(tx_arg), "%" PRIu32, transaction);
++    snprintf(object_arg, sizeof(object_arg), "%" PRIu32, object);
++    if(posix_spawn_file_actions_init(&actions)) goto done;
++    actions_ready = 1;
++    if(posix_spawn_file_actions_adddup2(&actions, reader, 3) ||
++       posix_spawn_file_actions_addopen(&actions, 0, "/dev/null", O_RDONLY, 0) ||
++       posix_spawn_file_actions_addopen(&actions, 1, "/dev/null", O_WRONLY, 0) ||
++       posix_spawn_file_actions_adddup2(&actions, 1, 2) ||
++       posix_spawn_file_actions_addclosefrom_np(&actions, 4)) goto done;
++    now = monotonic_now();
++    if(now < 0) goto done;
++    deadline = now + RCSP_MTP_HELPER_TIMEOUT;
++    if(posix_spawn(&child, RCSP_MTP_COMPLETION_HELPER, &actions, NULL, argv, env)) {child = -1; goto done;}
++    for(;;) {
++        waited = waitpid(child, &status, WNOHANG);
++        if(waited == child) {child = -1; error = WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 : -1; break;}
++        if(waited < 0 && errno != EINTR) goto done;
++        now = monotonic_now();
++        if(now < 0 || now >= deadline) goto done;
++        nanosleep(&pause, NULL);
++    }
++    if(fstat(fd, &duplicate) || source.st_dev != duplicate.st_dev || source.st_ino != duplicate.st_ino ||
++       source.st_size != duplicate.st_size || source.st_mtim.tv_sec != duplicate.st_mtim.tv_sec ||
++       source.st_mtim.tv_nsec != duplicate.st_mtim.tv_nsec) error = -1;
++done:
++    if(child > 0) {
++        /* Only this private helper child, never a service or gadget process. */
++        kill(child, SIGKILL);
++        do {waited = waitpid(child, &status, 0);} while(waited < 0 && errno == EINTR);
++    }
++    if(actions_ready) posix_spawn_file_actions_destroy(&actions);
++    if(reader >= 0) close(reader);
++    return error;
++}
+diff --git a/src/rcsp_mtp_lifecycle.c b/src/rcsp_mtp_lifecycle.c
+new file mode 100644
+index 0000000..dce984e
+--- /dev/null
++++ b/src/rcsp_mtp_lifecycle.c
+@@ -0,0 +1,35 @@
++/* Raspi Cloud Sync Pro experimental MTP session invalidation; GPL-3.0-or-later. */
++#include "buildconf.h"
++#include <stdint.h>
++#include <pthread.h>
++#include "mtp.h"
++#include "rcsp_mtp_completion.h"
++
++uint64_t rcsp_mtp_epoch(mtp_ctx *ctx)
++{
++    return __atomic_load_n(&ctx->rcsp_session_epoch, __ATOMIC_SEQ_CST);
++}
++/* Caller holds inotify_mutex or is the single session thread before opening DB. */
++void rcsp_mtp_reset_pending(mtp_ctx *ctx)
++{
++    ctx->rcsp_send_armed = 0;
++    ctx->rcsp_send_txid = 0;
++    ctx->rcsp_send_session = 0;
++    ctx->rcsp_send_epoch = 0;
++    ctx->rcsp_info_epoch = 0;
++    ctx->SendObjInfoHandle = UINT32_MAX;
++    ctx->SendObjInfoSize = 0;
++    ctx->SendObjInfoOffset = 0;
++}
++/* EP0 may race a blocked receive. Invalidate atomically first; never wait for
++ * inotify_mutex while the receiver could be waiting for USB data. The receiver
++ * detects the changed epoch and resets on exit. Idle pending state is cleared
++ * immediately. Already completed immutable batches are never removed. */
++void rcsp_mtp_invalidate(mtp_ctx *ctx)
++{
++    __atomic_add_fetch(&ctx->rcsp_session_epoch, UINT64_C(1), __ATOMIC_SEQ_CST);
++    if(!pthread_mutex_trylock(&ctx->inotify_mutex)) {
++        rcsp_mtp_reset_pending(ctx);
++        pthread_mutex_unlock(&ctx->inotify_mutex);
++    }
++}
+diff --git a/src/umtprd.c b/src/umtprd.c
+index 1fbf104..227e757 100644
+--- a/src/umtprd.c
++++ b/src/umtprd.c
+@@ -40,6 +40,7 @@
+ #endif
+ 
+ #include "mtp.h"
++#include "rcsp_mtp_completion.h"
+ 
+ #include "usb_gadget.h"
+ #include "usb_gadget_fct.h"
+@@ -129,6 +130,7 @@ static int main_thread(const char *conffile)
+ 		}
+ 
+ 		PRINT_MSG("uMTP Responder : Disconnected");
++		rcsp_mtp_invalidate(mtp_context);
+ 
+ 		if(mtp_context->fs_db)
+ 		{
+diff --git a/src/usb_gadget.c b/src/usb_gadget.c
+index 4558568..971d42d 100644
+--- a/src/usb_gadget.c
++++ b/src/usb_gadget.c
+@@ -59,6 +59,7 @@
+ #include "usb_gadget_fct.h"
+ 
+ #include "logs_out.h"
++#include "rcsp_mtp_completion.h"
+ 
+ #define CONFIG_VALUE 1
+ 
+@@ -528,6 +529,9 @@ static void handle_setup_request(usb_gadget * ctx, struct usb_ctrlrequest* setup
+ 
+ 		case MTP_REQ_RESET:
+ 			PRINT_DEBUG("MTP_REQ_RESET !");
++			rcsp_mtp_invalidate(mtp_context);
++			if(mtp_context->transferring_file_data && !ctx->thread_not_started)
++				pthread_kill(ctx->thread, SIGUSR1);
+ 
+ 			// Just ACK
+ 			status = read (ctx->usb_device, &status, 0);
+@@ -663,6 +667,7 @@ int handle_ep0(usb_gadget * ctx)
+ 
+ 				case GADGETFS_DISCONNECT:
+ 					PRINT_DEBUG("handle_ep0 : EP0 DISCONNECT event");
++					rcsp_mtp_invalidate(mtp_context);
+ 
+ 					// Set timeout for a reconnection during the enumeration...
+ 					timeout.tv_sec = 1;
+@@ -822,6 +827,7 @@ int handle_ffs_ep0(usb_gadget * ctx)
+ 				break;
+ 			case FUNCTIONFS_DISABLE:
+ 				PRINT_DEBUG("EP0 FFS DISABLE");
++				rcsp_mtp_invalidate(mtp_context);
+ 				// Set timeout for a reconnection during the enumeration...
+ 				timeout.tv_sec = 0;
+ 				timeout.tv_usec = 0;
+@@ -871,6 +877,9 @@ int handle_ffs_ep0(usb_gadget * ctx)
+ 				break;
+ 			case FUNCTIONFS_UNBIND:
+ 				PRINT_DEBUG("EP0 FFS UNBIND");
++				rcsp_mtp_invalidate(mtp_context);
++				if(mtp_context->transferring_file_data && !ctx->thread_not_started)
++					pthread_kill(ctx->thread, SIGUSR1);
+ 				break;
+ 			case FUNCTIONFS_SUSPEND:
+ 				PRINT_DEBUG("EP0 FFS SUSPEND");

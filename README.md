@@ -18,7 +18,7 @@ Copy files in Windows · Keep local originals · Back up over built-in Wi-Fi
 
 > **The 8 GiB Windows USB-to-Google workflow passed — 15 November 2026.** Copy to
 > CLOUDSTICK, choose Eject, and keep the cable connected: the Pi captures, uploads
-> over Wi-Fi and verifies the backup. **20 verified backup versions; local copies kept.**
+> over Wi-Fi and verifies the backup. **21 verified backup versions; local copies kept.**
 > The approved Pi now uses an 8 GiB exFAT image with Google Production authorization;
 > its original 1 GiB image and all historical backups are retained. This is still
 > development software, and **Safe Eject remains required**.
@@ -38,8 +38,9 @@ Windows copied small and 64 MiB test files; safe Eject automatically triggered
 capture, drive return, Google upload and downloaded-content verification. A
 repeat of the same file created no additional upload. The files remain locally.
 A quiet period cannot prove caches are flushed or files are complete: **this
-first workflow requires Eject after each batch**. No-eject capture is not
-implemented. The existing OS and stored files are preserved.
+first workflow requires Eject after each batch**. No-eject capture from the
+Windows-owned mass-storage filesystem is not implemented. The existing OS and
+stored files are preserved.
 
 An unexpected Wi-Fi management fault required a separately approved unclean
 power cycle; its cause remains unknown. A focused saved-profile reconnect guard
@@ -50,6 +51,16 @@ mitigation, not a guarantee that every Wi-Fi fault is fixed. See the
 The Zero 2 W's single USB OTG controller serves the Windows connection in gadget
 mode; a conventional USB Wi-Fi adapter cannot use that same controller as a host
 at the same time. Use built-in Wi-Fi for this design.
+
+## Experimental no-eject MTP path
+
+A separate source-tested prototype receives whole MTP objects, durably publishes
+existing ready batches, and reuses the unchanged backup worker. Windows would
+show **CLOUDSTICK as a portable device, without a drive letter**. This can support
+consecutive File Explorer copies without Eject; a drive-letter-only Siemens
+exporter cannot use it. The prototype is **not installed or physically accepted**.
+The working 8 GiB mass-storage mode remains available as the fallback.
+See [implementation, source tests and the one approved-test gate](docs/MTP_EXPERIMENT.md).
 
 ## Optional dashboard preview
 
@@ -79,7 +90,7 @@ automatically deletes originals or staged files.
 
 **Back up with evidence.** Koofr WebDAV, Google Drive and Dropbox use rclone adapters with
 separate jobs per destination. “Verified” means remote contents were downloaded
-and checked against SHA-256. The approved USB trial has **20 Google-verified
+and checked against SHA-256. The approved USB trial has **21 Google-verified
 file versions**, including real Windows copies and an offline-queued recovery
 file. The persistent worker retains local copies and earlier versions. Google
 Production authorization is active and passed the approved backup test.

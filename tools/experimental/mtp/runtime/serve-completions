@@ -1,0 +1,13 @@
+#!/usr/bin/python3 -I
+"""Fixed future-install broker launcher; not installed or enabled by this task."""
+import sys
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+site = Path("/opt/raspi-cloud-sync-pro/experimental/mtp/site")
+if not site.is_dir():
+    raise SystemExit("MTP experiment is not deployed")
+sys.path.insert(0, str(site))
+from raspi_cloud_sync_pro.mtp_broker import server_main
+
+raise SystemExit(server_main())

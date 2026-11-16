@@ -2,6 +2,20 @@
 
 **Updated: 15 November 2026. Development trial; no main merge or release.**
 
+**No-eject MTP experiment — source prototype; not deployed.** A patched pinned
+uMTP receiver publishes durable complete-object batches to the unchanged backup
+worker. Three consecutive synthetic transfers pass through the real receiver,
+descriptor broker and worker with independent local hashes. Windows would see a
+portable device, **not a drive letter**; Siemens compatibility is unknown.
+[Implementation, evidence and the single physical-test gate](MTP_EXPERIMENT.md).
+No live USB change or new cloud upload was made for this experiment.
+
+**Latest normal backup check — PASS.** One synthetic Windows copy → Safe Eject →
+automatic capture → Google upload → independent download/hash check raised totals
+to **21 verified backups / 105 events**, with zero pending/failed jobs. All earlier
+records and Windows files were preserved; services stayed running unchanged.
+[Recorded result](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2#issuecomment-6903535811).
+
 **Cloud Backup monitoring — deployed and validated.** The live dashboard now
 reads the sanitized USB-worker report. The owner confirmed **20 verified /
 0 pending / 0 failed**; all 20 backup records and 100 events were preserved.
@@ -19,7 +33,8 @@ Wi-Fi/SSH returned without a second reboot or recovery action. All 19 Windows
 files matched their preboot hashes. All 20 verified backup records and 100 events,
 the Google Production configuration/grant, source/unit hashes, image identity and
 original rollback archive were preserved. No new upload or application change
-was needed. Safe Eject remains required; no-eject work has not begun.
+was needed. Safe Eject remains required for the installed mass-storage mode;
+the separate MTP experiment above has not been deployed.
 [Stage 4 evidence, procedure and limits](RELIABILITY_ACCEPTANCE_STAGE4.md).
 
 **Stage 3 live upgrade: PASS.** The separately approved 1 GiB → 8 GiB migration

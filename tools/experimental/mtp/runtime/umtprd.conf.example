@@ -1,0 +1,26 @@
+# EXPERIMENT ONLY. Not installed; requires separately approved FunctionFS setup.
+# Export ONLY the disposable Pi-owned directory, never /, /home, worker state,
+# credentials, staging, or the Windows-owned exFAT backing image.
+storage "/var/lib/raspi-cloud-sync-pro/mtp-experiment/export" "CLOUDSTICK" "rw"
+umask 077
+loop_on_disconnect 1
+manufacturer "Raspi Cloud Sync Pro"
+product "CLOUDSTICK"
+serial "RCSP-MTP-DISPOSABLE"
+firmware_version "Experimental"
+mtp_extensions ""
+interface "MTP"
+# Upstream development identifiers: not a released product's assigned identity.
+usb_vendor_id 0x1D6B
+usb_product_id 0x0100
+usb_class 0x6
+usb_subclass 0x1
+usb_protocol 0x1
+usb_dev_version 0x0100
+usb_functionfs_mode 0x1
+usb_dev_path "/run/raspi-cloud-mtp-ffs/ep0"
+usb_epin_path "/run/raspi-cloud-mtp-ffs/ep1"
+usb_epout_path "/run/raspi-cloud-mtp-ffs/ep2"
+usb_epint_path "/run/raspi-cloud-mtp-ffs/ep3"
+usb_max_packet_size 0x200
+sync_when_close 0x1
