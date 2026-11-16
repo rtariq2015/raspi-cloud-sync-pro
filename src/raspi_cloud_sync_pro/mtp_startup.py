@@ -215,15 +215,26 @@ class LinuxStartupIO:
         self.prepared = None
 
     def _unit(self, unit):
+        # --all includes empty properties, not service-only properties on a
+        # target. Never synthesize a missing service PID to accommodate targets.
+        required = {"ActiveState", "SubState", "UnitFileState", "FragmentPath", "DropInPaths"}
+        properties = "ActiveState,SubState,UnitFileState,FragmentPath,DropInPaths"
+        if unit.endswith(".service"):
+            required.add("MainPID")
+            properties = "ActiveState,SubState,MainPID,UnitFileState,FragmentPath,DropInPaths"
+        else:
+            require(unit.endswith(".target"), "mtp_startup_unit_unverified")
         raw = _command(["/usr/bin/systemctl", "show", "--all", "--no-pager", unit,
-                        "--property=ActiveState,SubState,MainPID,UnitFileState,FragmentPath,DropInPaths"])
+                        "--property=" + properties])
         result = {}
         for line in raw.splitlines():
             key, separator, value = line.partition("=")
             require(separator and key not in result, "mtp_startup_unit_ambiguous")
             result[key] = value
-        require(set(result) == {"ActiveState", "SubState", "MainPID", "UnitFileState",
-                                "FragmentPath", "DropInPaths"}, "mtp_startup_unit_unverified")
+        require(set(result) == required, "mtp_startup_unit_unverified")
+        if "MainPID" in required:
+            require(result["MainPID"].isascii() and result["MainPID"].isdecimal(),
+                    "mtp_startup_unit_unverified")
         return result
 
     def preflight(self, settings):
