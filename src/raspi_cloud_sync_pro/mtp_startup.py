@@ -30,6 +30,12 @@ def require(value, code="mtp_startup_refused"):
         raise StartupError(code)
 
 
+def require_host_mount_namespace():
+    """Host inventory must never be authenticated through a sandbox mount view."""
+    require(Path("/proc/self/ns/mnt").readlink() == Path("/proc/1/ns/mnt").readlink(),
+            "mtp_startup_host_namespace_required")
+
+
 @dataclass(frozen=True)
 class StartupSettings:
     source_uid: int
@@ -47,6 +53,7 @@ class StartupSettings:
 PROFILE = "raspi-cloud-mtp-disposable"
 FALLBACK = "raspi-cloud-disposable-msc"
 BROKER = "raspi-cloud-mtp-completion.service"
+HOST_CHECK = "raspi-cloud-mtp-host-check.service"
 RESPONDER = "raspi-cloud-mtp-responder-experiment.service"
 CLAIMERS = ("raspi-cloud-mass-storage-appliance.service", "rpi-usb-gadget-ics.service")
 ROOT = Path("/var/lib/raspi-cloud-sync-pro")
@@ -241,8 +248,7 @@ class LinuxStartupIO:
         require(os.geteuid() == 0 and os.uname().machine == "aarch64"
                 and Path("/proc/device-tree/model").read_text().startswith("Raspberry Pi Zero 2 W"),
                 "mtp_startup_platform_required")
-        require(Path("/proc/self/ns/mnt").readlink() == Path("/proc/1/ns/mnt").readlink(),
-                "mtp_startup_host_namespace_required")
+        require_host_mount_namespace()
         value = _startup_configuration()
         require(value == self.approved and _digest(CONFIG) == self.configuration_hash,
                 "mtp_startup_configuration_changed")
@@ -282,7 +288,7 @@ class LinuxStartupIO:
                       for name in ("__init__.py", "config.py", "mtp_ingest.py", "mtp_broker.py",
                                    "mtp_startup.py", "errors.py")}
         require(mandatory <= set(files), "mtp_startup_runtime_unpinned")
-        for unit in (BROKER, RESPONDER, "raspi-cloud-mtp-prepare.service", "raspi-cloud-mtp-bind.service",
+        for unit in (BROKER, HOST_CHECK, RESPONDER, "raspi-cloud-mtp-prepare.service", "raspi-cloud-mtp-bind.service",
                      "raspi-cloud-mtp.target", CLAIMERS[0]):
             current = self._unit(unit)
             paths = [current["FragmentPath"]] + current["DropInPaths"].split()
@@ -445,6 +451,72 @@ class LinuxStartupIO:
         (GADGETS / PROFILE / "UDC").write_text(settings.udc + "\n")
 
 
+# Only reviewed fixed codes may reach the journal; never exception text or paths.
+_PUBLIC_FAILURE_CODES = frozenset({
+    'mtp_startup_approval_required',
+    'mtp_startup_binding_changed',
+    'mtp_startup_broker_config_changed',
+    'mtp_startup_broker_directory_changed',
+    'mtp_startup_broker_mask_missing',
+    'mtp_startup_broker_mount_mismatch',
+    'mtp_startup_command_failed',
+    'mtp_startup_competing_service',
+    'mtp_startup_component_not_running',
+    'mtp_startup_configfs_required',
+    'mtp_startup_configuration_changed',
+    'mtp_startup_directory_changed',
+    'mtp_startup_disabled',
+    'mtp_startup_dwc2_unverified',
+    'mtp_startup_endpoint_unsafe',
+    'mtp_startup_export_not_readonly',
+    'mtp_startup_ffs_mount_unverified',
+    'mtp_startup_host_namespace_required',
+    'mtp_startup_identity_changed',
+    'mtp_startup_legacy_owner',
+    'mtp_startup_lock_busy',
+    'mtp_startup_lock_unverified',
+    'mtp_startup_mount_ambiguous',
+    'mtp_startup_mount_unknown',
+    'mtp_startup_parent_inventory_changed',
+    'mtp_startup_partial_setup_requires_review',
+    'mtp_startup_platform_required',
+    'mtp_startup_process_unverified',
+    'mtp_startup_profile_changed',
+    'mtp_startup_profile_missing',
+    'mtp_startup_profiles_changed',
+    'mtp_startup_publication_mount_mismatch',
+    'mtp_startup_readiness_lost',
+    'mtp_startup_readiness_timeout',
+    'mtp_startup_receipt_changed',
+    'mtp_startup_refused',
+    'mtp_startup_responder_ffs_changed',
+    'mtp_startup_root_required',
+    'mtp_startup_runtime_changed',
+    'mtp_startup_runtime_identity_changed',
+    'mtp_startup_runtime_unpinned',
+    'mtp_startup_settings_invalid',
+    'mtp_startup_udc_ambiguous',
+    'mtp_startup_unit_ambiguous',
+    'mtp_startup_unit_unpinned',
+    'mtp_startup_unit_unverified',
+    'mtp_startup_usb_owned',
+})
+
+
+def _failure_code(error):
+    if isinstance(error, StartupError):
+        if isinstance(error.code, str) and error.code in _PUBLIC_FAILURE_CODES:
+            return error.code
+        return "mtp_startup_refused"
+    if isinstance(error, BackupError):
+        return "mtp_startup_dependency_refused"
+    if isinstance(error, OSError):
+        return "mtp_startup_os_error"
+    if isinstance(error, subprocess.SubprocessError):
+        return "mtp_startup_command_failed"
+    return "mtp_startup_input_invalid"
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Approved MTP cold-boot setup; never releases another owner")
     parser.add_argument("action", choices=("check", "prepare", "bind"))
@@ -456,8 +528,12 @@ def main(argv=None):
         with os.fdopen(fd, "r+") as lock:
             info = os.fstat(lock.fileno())
             require(stat.S_ISREG(info.st_mode) and info.st_uid == 0
-                    and stat.S_IMODE(info.st_mode) == 0o600 and info.st_nlink == 1)
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    and stat.S_IMODE(info.st_mode) == 0o600 and info.st_nlink == 1,
+                    "mtp_startup_lock_unverified")
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise StartupError("mtp_startup_lock_busy") from error
             io = LinuxStartupIO()
             v = io.approved
             settings = StartupSettings(v["source_uid"], v["source_gid"], v["max_power_ma"], v["udc"])
@@ -467,6 +543,6 @@ def main(argv=None):
                 getattr(MtpStartup(settings, io), args.action)()
         print("MTP startup check passed")
         return 0
-    except (BackupError, OSError, ValueError, TypeError, KeyError, UnicodeError, subprocess.SubprocessError):
-        print("MTP startup refused; preserve state for private inspection")
+    except (BackupError, OSError, ValueError, TypeError, KeyError, UnicodeError, subprocess.SubprocessError) as error:
+        print("MTP startup refused: " + _failure_code(error))
         return 1

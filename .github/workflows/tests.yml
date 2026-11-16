@@ -77,6 +77,11 @@ jobs:
           PY
       - name: Run hardware-free regression tests
         run: python -m unittest discover -s tests -v
+      - name: Verify MTP startup with isolated real systemd units (Python 3.12)
+        if: matrix.python-version == '3.12'
+        run: |
+          sudo -n env RCSP_TEST_SYSTEMD=1 PYTHONPATH="$GITHUB_WORKSPACE/src" \
+            /usr/bin/python3 -B -m unittest discover -s tests -p 'test_mtp_startup_systemd.py' -v
       - name: Run guarded USB and Wi-Fi operator tests
         env:
           PYTHONPATH: src

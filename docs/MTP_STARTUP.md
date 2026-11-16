@@ -18,9 +18,19 @@ backup versions and 120 history events. These are evidence from that observation
 not hardcoded expected totals for future deployment.
 
 The existing MTP broker and responder are static units with `Restart=no`.
-They do not yet reconstruct their ConfigFS gadget and FunctionFS mount at boot.
-The old mass-storage controller is inactive but still enabled, so simply
-enabling MTP startup would introduce a competing boot owner.
+The approved startup installation and one reboot subsequently prepared the
+unbound gadget, but the broker precheck failed; automatic MTP startup is **not
+accepted**. The old mass-storage boot activation was disabled during that
+approved installation. Do not infer current service state from this historical
+description: a future deployment requires a fresh protected inspection.
+
+The approved disposable comparison on Pi systemd `257.13-1~deb13u1` reproduced
+the defect: the privileged `+` broker precheck still received a separate mount
+namespace with `ReadWritePaths`, and refused with
+`mtp_startup_host_namespace_required`. The same read-only preflight passed in
+the host preparation context. The original boot's first refusal code was not
+logged; the later comparison reproduced the mechanism, not that lost log.
+The source correction below is not installed by editing these templates.
 
 The installed official `rpi-usb-gadget` package is not presently claiming USB:
 its ICS service is masked, its legacy Ethernet module-loader file contains only
@@ -38,16 +48,20 @@ The templates are in `tools/experimental/mtp/runtime/startup/`:
 2. `raspi-cloud-mtp-prepare.service` checks explicit approval, protected pins,
    kernel driver ownership, source/work/staging identities and competing USB
    owners before preparing a fresh **unbound** MTP profile and FunctionFS mount.
-3. The existing broker starts after preparation. Its new `ExecStartPre` calls
-   the same fixed launcher's read-only `check` action. Its explicit `+` prefix
-   runs only that guard as root in the host mount namespace, so the broker's
-   inaccessible-path masks cannot conceal the host inventory being checked.
-   This privileged precheck must be reviewed in the installation approval; the
-   existing long-running broker executable, account and sandbox remain pinned.
-4. The unchanged unprivileged responder starts after preparation and broker.
+3. `raspi-cloud-mtp-host-check.service` runs the same fixed launcher's read-only
+   `check` action as a short-lived root oneshot in the host mount namespace.
+   `RemainAfterExit=no` prevents caching a successful check. The broker has
+   ordered `Requires=` and `After=` dependencies on this check; a failure blocks
+   its startup. No condition may turn failed verification into a skipped success.
+   Cached successful preparation is insufficient: each new broker activation
+   must pull in a fresh check. No `BindsTo=` targets the short-lived check.
+4. The existing broker starts only after that successful check. Its executable,
+   account, credential masks and shared-publication sandbox remain unchanged;
+   it no longer tries to authenticate the host inventory inside its own sandbox.
+5. The unchanged unprivileged responder starts after preparation and broker.
    Its new dependency stops it if the broker disappears; it never restarts
    automatically.
-5. `raspi-cloud-mtp-bind.service` rechecks the prepared state, broker, responder
+6. `raspi-cloud-mtp-bind.service` rechecks the prepared state, broker, responder
    and FunctionFS readiness before binding the exact UDC once.
 
 The fixed root-owned launcher is
@@ -84,15 +98,19 @@ support to be present and verifies approved configuration and competing owners
 before loading `usb_f_fs`. Missing prerequisites cause refusal rather than a
 boot-setting repair. This does not depend on the old MSC service starting first.
 
-The prepare/bind units intentionally use the host mount namespace. Adding
+The prepare/host-check/bind units intentionally use the host mount namespace. Adding
 `ProtectSystem`, `PrivateDevices` or other mount-namespace sandbox options to
 them can hide the FunctionFS mount from the existing responder. The existing
 broker and responder retain their own separate reviewed restrictions.
 
-The short-lived root prepare/bind verifiers need `CAP_SYS_PTRACE` to inspect
+The short-lived root prepare/host-check/bind verifiers need `CAP_SYS_PTRACE` to inspect
 PID1's mount namespace and the unprivileged responder's `/proc/PID/root` through
 Linux's ptrace read-credential checks. It is not granted to either long-running
 MTP process. Prepare alone also needs `CAP_SYS_MODULE` for `usb_f_fs`.
+The read-only host check has only `CAP_SYS_PTRACE` and `CAP_DAC_OVERRIDE`;
+its fixed check action invokes no module loading, mount or USB setup operations.
+Only prepare/bind invoke lifecycle actions. Host namespace equality remains
+mandatory; this correction introduces no `nsenter` bypass.
 
 FunctionFS uses the existing `mtp` instance and `ffs.mtp` function, with the
 existing unprivileged UID/GID, root mode `0500` and endpoint mode `0600`.
@@ -133,6 +151,18 @@ executable, approval or identity requires review instead of an automatic rewrite
 The new drop-ins preserve the tested broker/responder `ExecStart` and sandbox;
 they do not embed private paths beyond the fixed public runtime roots.
 
+For this correction, a separately approved deployment must pin the added
+`raspi-cloud-mtp-host-check.service` fragment and **every** effective drop-in,
+the changed broker startup dependency drop-in, and changed `mtp_startup.py`.
+Preflight authenticates the host-check unit just like the other startup units.
+Review exact installed paths, modes and SHA-256 values before approving a new
+configuration hash and matching `MTP_STARTUP_APPROVED` record. Do not regenerate
+or replace either protected record automatically. Existing directory identities,
+parent inventory, runtime pins and historical data must remain protected.
+An old boot receipt is bound to its configuration hash; do not relabel it for
+the new configuration. Re-establish runtime receipt validity only through the
+separately approved lifecycle/recovery procedure.
+
 ## Refusal and interruption behavior
 
 - Do not mount, read or alter the old Windows-owned exFAT image during MTP
@@ -150,6 +180,12 @@ they do not embed private paths beyond the fixed public runtime roots.
 - These units have no automatic retry, cleanup, fallback or `ExecStop` unbind.
   Ordinary reboot discards volatile ConfigFS/FunctionFS state; durable source,
   staging, credentials and history remain on the microSD card.
+
+Startup refusals now log only a fixed allowlisted code, such as
+`mtp_startup_host_namespace_required` or `mtp_startup_lock_busy`, and retain exit
+status 1. Unknown/dependency/OS/input errors receive fixed generic codes. No
+exception message, traceback, command output, private path or credential is
+printed. The lock, approval, filesystem ownership and identity checks remain.
 
 The old producer has `Requires=` and `After=` on the broker: a normal explicit
 broker stop/restart propagates to it. The new startup dependency also deliberately
@@ -193,6 +229,15 @@ gadget owner, Windows portable-device availability, protected ready publication,
 unchanged credentials/destination/history and no unintended uploads/deletions.
 Source tests alone do not establish reboot or power-loss acceptance.
 
+The namespace correction adds an opt-in real-systemd regression using only
+uniquely named disposable units and synthetic private roots. It checks repeated
+broker activation/restart, cached preparation, refusal propagation, actual mount
+namespaces and the broker's masked credential fixture. It never contacts the Pi,
+binds USB or invokes the cloud worker. Ordinary local test discovery skips that
+privileged fixture; the Python 3.12 CI job runs it explicitly on its isolated
+GitHub runner. These results do not replace a separately approved Pi startup
+acceptance test.
+
 ## Source verification — 15 November 2026
 
 The final local regression run completed **1,155 tests: 1,152 passed and three
@@ -213,6 +258,19 @@ additional concrete source blocker. The tested broker/responder binaries,
 completion protocol and worker were not changed. Live installation, boot
 enablement, reboot and a new Google upload remain **unperformed** and require
 the separate approval described above.
+
+Reviewed source bytes for the namespace correction (not live approval records):
+
+| Runtime file | SHA-256 |
+| --- | --- |
+| mtp_startup.py | `b90262d77e305f2c1f3db7e691b115da6e2a2b39e021b18d2203cdbdda030651` |
+| broker startup drop-in | `44cd731753d0899547a92d029605e860f7bcf7242cd53e9a6b64cca4452841e5` |
+| new host-check unit | `8270c66afe10107de671372a5fff9fbe9ad54172c2c0e9d13c033accecac7b87` |
+
+Local regression before committing completed 1,186 tests: 1,182 passed and four
+optional integrations skipped. The guarded operator suites passed another
+97 tests (36 mass-storage, 26 Wi-Fi recovery, 35 storage-capacity). The privileged
+systemd fixture is a separate mandatory CI check, not part of those local passes.
 
 ## Rollback boundary
 
