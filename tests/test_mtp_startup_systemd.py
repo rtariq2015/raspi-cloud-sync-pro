@@ -222,6 +222,8 @@ class RealMtpStartupSystemdTests(unittest.TestCase):
         self.assertEqual(value["export_write_errno"], 30)  # EROFS
         self.assertEqual(value["work_mount_id"], value["staging_mount_id"])
         self.assertEqual(value["no_new_privileges"], "1")
+        self.assertEqual(int(value["effective_capabilities"], 16), 0xB,
+                         "Broker capability boundary changed from CHOWN/DAC_OVERRIDE/FOWNER")
         self.assertEqual(self.properties(BROKER)["ActiveState"], "active")
         preceding = [check for check in self.events("check")
                      if check["passed"] and check["monotonic_ns"] < value["monotonic_ns"]]

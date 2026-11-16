@@ -271,6 +271,12 @@ Local regression before committing completed 1,186 tests: 1,182 passed and four
 optional integrations skipped. The guarded operator suites passed another
 97 tests (36 mass-storage, 26 Wi-Fi recovery, 35 storage-capacity). The privileged
 systemd fixture is a separate mandatory CI check, not part of those local passes.
+The real-systemd CI comparison passed on Ubuntu systemd `255.4-1ubuntu8.18`:
+four broker activations received five fresh host checks while preparation ran
+once. The old privileged-precheck namespace refusal was reproduced, a synthetic
+approval refusal blocked downstream startup, and credential masking, read-only
+export and the shared publication mount remained intact. This is CI evidence,
+not acceptance of the corrected startup on the live Pi's systemd 257.13.
 
 ## Rollback boundary
 
