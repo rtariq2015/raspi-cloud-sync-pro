@@ -27,7 +27,6 @@ reviews:
   path_filters:
     - "!**/.trail/**"
     - "!**/graft/**"
-    - "!AGENTS.md"
     - "!**/.venv/**"
     - "!**/__pycache__/**"
     - "!**/*.egg-info/**"
