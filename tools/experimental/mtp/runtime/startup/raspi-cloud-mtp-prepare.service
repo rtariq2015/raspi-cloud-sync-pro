@@ -1,0 +1,25 @@
+[Unit]
+Description=Prepare the approved unbound CLOUDSTICK MTP gadget
+ConditionPathExists=/etc/raspi-cloud-sync-pro/MTP_STARTUP_APPROVED
+Requires=systemd-modules-load.service sys-kernel-config.mount
+After=local-fs.target systemd-modules-load.service sys-kernel-config.mount
+RequiresMountsFor=/var/lib/raspi-cloud-sync-pro /sys/kernel/config
+Before=raspi-cloud-mtp-completion.service raspi-cloud-mtp-responder-experiment.service raspi-cloud-mtp-bind.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+Group=root
+UMask=0077
+ExecStart=/opt/raspi-cloud-sync-pro/experimental/mtp/start-mtp prepare
+Restart=no
+TimeoutStartSec=90
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_SYS_MODULE CAP_SYS_PTRACE CAP_DAC_OVERRIDE CAP_CHOWN CAP_FOWNER
+# Needed only by the fixed verifier's authoritative PID1 mount-namespace check.
+# FunctionFS must be mounted in the host mount namespace for the existing
+# responder. Do not add sandbox settings that create a private mount namespace.
+PrivateMounts=no
+# No ExecStop: stopping this unit must never unbind a live Windows transfer.
+# No [Install]: only the separately approved MTP target pulls this unit in.

@@ -1,0 +1,49 @@
+{
+  "result": "PASS",
+  "completed_local": "2026-11-15T22:12:50-05:00",
+  "source_commit": "c2a748dd2176daa95f056db7a206d64057fb8be1",
+  "completed_no_eject_transfers": 3,
+  "safe_eject_or_usb_rebind_during_test": false,
+  "existing_history_preserved": 21,
+  "new_verified_versions": 3,
+  "verified_versions_total": 24,
+  "events_total": 120,
+  "actual_reproduced_old_errno": 18,
+  "old_errno_name": "EXDEV",
+  "noreplace_collision_errno": 17,
+  "approved_shared_parent_exception": true,
+  "project_parent_permissions_and_inventory_unchanged": true,
+  "unrelated_entries_inaccessible": 38,
+  "source_export_read_only_to_broker": true,
+  "google_grant_and_destination_unchanged": true,
+  "failed_prior_source_and_private_snapshot_retained": true,
+  "original_8gib_mass_storage_image_unchanged": true,
+  "mtp_enabled_at_boot": false,
+  "windows_interface": "Microsoft inbox MTP portable device, no drive letter",
+  "siemens_compatibility": "NOT TESTED",
+  "timing_note": "Measured parent monotonic copy-request to independent Google download SHA receipt, including queue/polling and verification. Worker history timestamps are sampled once per tick, so their zero deltas are not upload-duration measurements.",
+  "files": [
+    {
+      "case": 1,
+      "bytes": 1048576,
+      "sha256": "247953f30076543ca0c5bfa5d14041a70c4aabe2ce34bc324b6dd7bb65cad0d1",
+      "windows_local_google_sha256_match": true,
+      "copy_request_to_independent_google_hash_seconds": 26.933
+    },
+    {
+      "case": 2,
+      "bytes": 1048576,
+      "sha256": "833920f07beea535f620b25c49c9530a168813157389d3b450d263e2a56620ba",
+      "windows_local_google_sha256_match": true,
+      "copy_request_to_independent_google_hash_seconds": 18.114
+    },
+    {
+      "case": 3,
+      "bytes": 67108864,
+      "sha256": "53f71f655948a623d22ea4f6860f2e87ee1ae9e2704cac63a3ff793ff441753c",
+      "windows_local_google_sha256_match": true,
+      "copy_request_to_independent_google_hash_seconds": 123.879
+    }
+  ],
+  "scope": "Previously accepted physical test; no live operations performed by automatic-startup source preparation."
+}

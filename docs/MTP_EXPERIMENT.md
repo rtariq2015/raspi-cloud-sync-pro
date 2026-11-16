@@ -1,8 +1,16 @@
 # Isolated no-eject MTP prototype
 
+**Physical update — 15 November 2026:** three consecutive ordinary Windows MTP
+transfers passed without Safe Eject, with independent local and Google download
+SHA-256 matches. Windows used its built-in portable-device driver; this is not
+a drive-letter interface. The earlier source-only record below is retained as
+historical implementation evidence. See the [physical receipt](acceptance/mtp-windows-no-eject-2026-11-15.json)
+and [controlled automatic-startup preparation](MTP_STARTUP.md).
+
 This experiment implements a **whole-file MTP receive → durable ready batch →
 existing backup worker** path. It does not mount or inspect the Windows-owned
-8 GiB exFAT image. Nothing here has been installed or activated on the Pi.
+8 GiB exFAT image. The transfer path is physically accepted as recorded above;
+the new automatic-startup files remain uninstalled pending separate approval.
 
 **Windows interface changes:** the intended view is **This PC → CLOUDSTICK →
 CLOUDSTICK**, a portable device/storage exposed through Windows Portable Devices.
@@ -113,10 +121,11 @@ for exact results. Passing synthetic checks is not Windows hardware acceptance.
 - Official Raspberry Pi guidance lists the Zero 2 W USB data port as OTG-capable.
   Debian 13 provides an arm64 uMTP package, establishing userspace viability;
   this prototype instead builds its explicitly pinned patched upstream source.
-- A read-only check found `usb_f_fs` for the Pi's installed
+- The original read-only source check found `usb_f_fs` for the Pi's installed
   `6.18.60+rpt-rpi-v8` aarch64 kernel with matching version metadata. It was not
-  loaded. ConfigFS/FunctionFS descriptor initialization, endpoint permissions and
-  actual Windows driver binding remain physical gates.
+  loaded at that checkpoint. The later physical receipt establishes tested
+  ConfigFS/FunctionFS initialization, endpoint permissions and Windows binding;
+  automatic reconstruction after reboot is still a separate acceptance gate.
 - This prototype accepts **known-size full objects only**, at most
   **4,294,967,282 bytes** (32-bit container header/sentinel reserved). Unknown-size,
   partial-object editing and truncation are refused. This is an implementation
@@ -176,8 +185,9 @@ not permission to perform live operations:
    filesystem or roll back history/credentials. A successful ordinary Windows test
    still does not authorize clinical scanner use.
 
-No physical test, new Google upload, live service restart or USB change has been
-performed for this experiment. Stop for owner review before deployment.
+The original source checkpoint performed no live operations. The later approved
+physical test is recorded above. Stop for owner review before installing or
+activating the new automatic-startup configuration.
 
 ## Primary references and credits
 
