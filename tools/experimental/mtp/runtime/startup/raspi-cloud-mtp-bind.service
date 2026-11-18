@@ -1,0 +1,23 @@
+[Unit]
+Description=Bind CLOUDSTICK MTP after verified FunctionFS readiness
+ConditionPathExists=/etc/raspi-cloud-sync-pro/MTP_STARTUP_APPROVED
+Requires=raspi-cloud-mtp-prepare.service raspi-cloud-mtp-completion.service raspi-cloud-mtp-responder-experiment.service
+After=raspi-cloud-mtp-prepare.service raspi-cloud-mtp-completion.service raspi-cloud-mtp-responder-experiment.service
+BindsTo=raspi-cloud-mtp-completion.service raspi-cloud-mtp-responder-experiment.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+Group=root
+UMask=0077
+ExecStart=/opt/raspi-cloud-sync-pro/experimental/mtp/start-mtp bind
+Restart=no
+TimeoutStartSec=90
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_DAC_OVERRIDE CAP_CHOWN CAP_FOWNER
+# Cross-UID /proc/PID/root inspection requires ptrace READ_FSCREDS permission.
+# This is only the fixed, short-lived root verifier, never the responder/broker.
+PrivateMounts=no
+# No ExecStop or retry: a failed/interrupted start retains evidence for review.
+# No [Install]: only the separately approved MTP target pulls this unit in.

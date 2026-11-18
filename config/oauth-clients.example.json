@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "public_origin": "https://YOUR-DEVICE-HOST",
+  "providers": {
+    "google_drive": {
+      "client_id": "REPLACE_PRIVATELY_WITH_REGISTERED_CLIENT_ID",
+      "client_secret": "REPLACE_PRIVATELY_WITH_REGISTERED_CLIENT_SECRET"
+    },
+    "dropbox": {
+      "client_id": "REPLACE_PRIVATELY_WITH_REGISTERED_APP_KEY",
+      "client_secret": "REPLACE_PRIVATELY_WITH_REGISTERED_APP_SECRET"
+    }
+  }
+}

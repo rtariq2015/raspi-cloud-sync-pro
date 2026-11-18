@@ -1,0 +1,72 @@
+{
+  "guard_tests_sha256": "52cbc3724b7b9910686836994a97a631f02c8f4c5889b14bbe35ebc1e899a516",
+  "images": {
+    "corruption": {
+      "allocated_bytes": 8589938688,
+      "hard_links": 1,
+      "identity": [
+        66306,
+        1706767,
+        8589934592
+      ],
+      "path": "/tmp/raspi-stage3d2-y_35xbka/corruption.img",
+      "regular": true
+    },
+    "destination": {
+      "allocated_bytes": 8589938688,
+      "hard_links": 1,
+      "identity": [
+        66306,
+        1706752,
+        8589934592
+      ],
+      "path": "/tmp/raspi-stage3d2-y_35xbka/destination.img",
+      "regular": true
+    },
+    "low-space": {
+      "allocated_bytes": 8589938688,
+      "hard_links": 1,
+      "identity": [
+        66306,
+        1706768,
+        8589934592
+      ],
+      "path": "/tmp/raspi-stage3d2-y_35xbka/low-space.img",
+      "regular": true
+    },
+    "source": {
+      "allocated_bytes": 8589938688,
+      "hard_links": 1,
+      "identity": [
+        66306,
+        1706751,
+        8589934592
+      ],
+      "path": "/tmp/raspi-stage3d2-y_35xbka/source.img",
+      "regular": true
+    }
+  },
+  "independent_evidence_review": "PASS; root-run evidence plus current read-only mount/loop inventory",
+  "live_migration_performed": false,
+  "live_pi_accessed": false,
+  "local_regressions": {
+    "failed": 0,
+    "focused_main_subset_passed": 230,
+    "skipped": 0,
+    "storage_tests_passed": 35,
+    "total_distinct_passed": 301,
+    "usb_operator_tests_passed": 36
+  },
+  "observed_utc": "2026-11-15T13:19:54+00:00",
+  "raw_evidence_sha256": "f8e560acd0167c8ce9b55f38ad5a98a895dcfa1f4a791b17ee680b4c70b8a96e",
+  "rehearsal_source_sha256": "0089166387ccd2bf491f846ff9b7606df25e765b0431584d80d0e62f0b5bc6fb",
+  "retained_apparent_image_bytes": 34359738368,
+  "root_runner_reported_residual_resources": [],
+  "scope": "development computer; synthetic disposable files only",
+  "stage": "3D2",
+  "test_mounts_in_readonly_self_and_pid1_inventory": {
+    "1": [],
+    "self": []
+  },
+  "visible_test_loop_mappings": []
+}

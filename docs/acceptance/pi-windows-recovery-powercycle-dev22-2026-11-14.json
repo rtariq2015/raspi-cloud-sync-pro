@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "target": "Raspberry Pi Zero 2 W Rev 1.0",
+  "native_package": "0.1.0.dev22",
+  "release": false,
+  "scope": "owner_approved_unclean_pi_powercycle_after_windows_only_quiescence",
+  "owner_explicitly_approved_unclean_power_interruption": true,
+  "preparation": {
+    "windows_exact_device_identity_checked": true,
+    "exclusive_volume_lock": true,
+    "host_buffers_flushed": true,
+    "dismounted_while_lock_held": true,
+    "ordinary_media_eject_requested": false,
+    "reason_no_media_eject": "Retain loaded LUN so the Pi controller cannot start a new capture during preparation.",
+    "linux_clean_shutdown_confirmed": false,
+    "hold_live_process_start_time_and_deadline_checked": true,
+    "windows_usb_disconnect_observed": true,
+    "old_windows_lock_released": true
+  },
+  "results": {
+    "new_pi_boot_confirmed": "PASS",
+    "wifi_ssh_restored": "PASS",
+    "usb_mass_storage_returned_on_windows": "PASS",
+    "controller_and_backup_running_after_boot": "PASS",
+    "no_image_loop_or_pi_capture_mount_at_host_ownership": "PASS",
+    "all_existing_verified_versions_retained": "PASS",
+    "same_windows_copy_repeated_without_extra_job_or_upload": "PASS"
+  },
+  "verified_versions_before_and_after_repeat_and_recovery": 16,
+  "verified_bytes": 211817945,
+  "attempts_each": 1,
+  "original_12_versions_and_both_windows_versions_remain_verified": true,
+  "root_pending_capture_entries": 0,
+  "power_after_boot": "throttled=0x0",
+  "wifi_fault": {
+    "original_cause": "UNKNOWN",
+    "prior_boot_journal_available": false,
+    "logs_cannot_establish_original_failure": "The available journal contains only the recovery boot.",
+    "current_access_restored_but_original_cause_not_claimed_fixed": true,
+    "automatic_reconnection_guard_validation": "PASS_SEPARATE_NATIVE_ACCEPTANCE",
+    "automatic_reconnection_guard_record": "pi-wifi-recovery-guard-dev22-2026-11-14.json",
+    "guard_is_mitigation_not_established_root_cause_repair": true
+  },
+  "automatic_source_deletion": false,
+  "sd_card_reflashed_or_formatted": false,
+  "laptop_network_or_usb_settings_changed_by_test": false,
+  "limits": [
+    "This was an unclean Linux power interruption after explicit owner approval; Windows-only quiescence was not a clean Pi shutdown.",
+    "Successful recovery in this case does not prove arbitrary power-loss durability.",
+    "The exact Wi-Fi failure cause remains unproven; automatic recovery qualification is separate."
+  ],
+  "privacy": "No credentials, usernames, addresses, device GUIDs, boot IDs or private filenames/hashes are included.",
+  "record_scope": "Historical owner-approved unclean recovery; later automatic reconnection qualification is a separate controlled test.",
+  "later_verified_follow_up": {
+    "guard_test_same_boot_and_core_pids": true,
+    "fallback_activation_used": false,
+    "verified_versions_total": 17,
+    "verified_bytes_total": 212866521,
+    "native_acceptance_record": "pi-wifi-recovery-guard-dev22-2026-11-14.json",
+    "consecutive_healthy_guard_seconds": 443,
+    "tested_guard_timer_enabled_and_active": true,
+    "guard_timer_additional_reboot_acceptance": "NOT_TESTED"
+  }
+}

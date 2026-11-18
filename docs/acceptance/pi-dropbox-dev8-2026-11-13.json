@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0.dev8",
+  "hardware": "Raspberry Pi Zero 2 W",
+  "architecture": "aarch64",
+  "actual_arm64_rclone": true,
+  "fixture_backend": "local_alias",
+  "adapter_kind": "dropbox_rclone",
+  "local_verified_jobs_before_injected_corruption": 3,
+  "empty_and_unicode_files": true,
+  "injected_corruption_rejected": true,
+  "source_batches_retained": true,
+  "readiness_rejects_alias_as_dropbox_proof": true,
+  "example_worker_remains_disabled": true,
+  "actual_dropbox_api_or_chunk_buffer_behavior_tested": false,
+  "cloud_accounts_used": false,
+  "production_service_or_network_changed": false,
+  "wheel_sha256": "ce2cc75295dec88ddd95f5337ed5bd23d3fc1e02f80c1a78d4d28edebe58edfb",
+  "test_date": "2026-11-13",
+  "fixture_data_retained": true,
+  "helper_sha256": "9fec2f626e6677d3bad12a952f8504fbf7a44268e5de16b555ba216714359c26"
+}

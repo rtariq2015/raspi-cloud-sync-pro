@@ -1,0 +1,22 @@
+[Unit]
+Description=Verify the approved CLOUDSTICK MTP host state before broker activation
+Requires=raspi-cloud-mtp-prepare.service
+After=raspi-cloud-mtp-prepare.service
+Before=raspi-cloud-mtp-completion.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+User=root
+Group=root
+UMask=0077
+ExecStart=/opt/raspi-cloud-sync-pro/experimental/mtp/start-mtp check
+Restart=no
+TimeoutStartSec=90
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_SYS_PTRACE CAP_DAC_OVERRIDE
+# The fixed read-only guard must inspect PID1's host namespace and protected
+# inventory. Do not add filesystem sandbox settings that create a namespace.
+PrivateMounts=no
+# Do not cache success: each broker activation requires a fresh ordered check.
+# No BindsTo, ExecStop, or [Install]: this short-lived check never owns USB.

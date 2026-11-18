@@ -1,4 +1,7 @@
 #!/usr/bin/expect -f
+# Raspi Cloud Sync Pro: the password/host-key automation is retained for review only.
+puts stderr "Legacy SCP disabled; see docs/SAFETY.md."
+exit 2
 
 set password "MY_PASSWORD";
 set sshport 22

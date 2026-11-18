@@ -1,0 +1,20 @@
+{
+  "device": "Raspberry Pi Zero 2 W",
+  "package_version": "0.1.0.dev8",
+  "anonymous_denied": true,
+  "new_owner_uploads": 0,
+  "existing_qa_samples_retained": 3,
+  "oauth_setup_required_checked": true,
+  "byte_and_sha256_download_checks": 3,
+  "viewer_upload_denied": true,
+  "csrf_enforced": true,
+  "logout_revoked": true,
+  "wifi_connected": true,
+  "usb_nm_state_observed": 70,
+  "usb_ipv4_stability_not_established": true,
+  "account_form_accessible": true,
+  "cloud_claimed_configured": false,
+  "real_cloud_test": false,
+  "public_internet_test": true,
+  "test_date": "2026-11-13"
+}

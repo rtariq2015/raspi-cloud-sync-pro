@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "approval_file": "/etc/raspi-cloud-sync-pro-smb/SMB_CAPTURE_APPROVED",
+  "device_policy": "/etc/raspi-cloud-sync-pro-smb/device-policy.json",
+  "share_name": "CloudSync",
+  "share_root": "/srv/raspi-cloud-sync-pro/share",
+  "staging_directory": "/var/lib/raspi-cloud-sync-pro/smb-staging",
+  "state_directory": "/var/lib/raspi-cloud-sync-pro/smb-capture",
+  "credentials_file": "/var/lib/raspi-cloud-sync-pro/smb-capture/smb.json",
+  "usb_address": "172.19.80.1/28",
+  "usb_profile_uuid": "00000000-0000-0000-0000-000000000000",
+  "interval": 5,
+  "max_file_bytes": 104857600,
+  "capture_timeout": 300
+}

@@ -1,0 +1,24 @@
+[Unit]
+Description=Experimental MTP complete-object publication broker
+ConditionPathExists=/etc/raspi-cloud-sync-pro/MTP_EXPERIMENT_APPROVED
+After=local-fs.target
+
+[Service]
+Type=simple
+User=root
+Group=raspi-mtp
+UMask=0077
+RuntimeDirectory=raspi-cloud-mtp
+RuntimeDirectoryMode=0750
+ExecStart=/opt/raspi-cloud-sync-pro/experimental/mtp/serve-completions --config /etc/raspi-cloud-sync-pro/mtp-experiment.json
+Restart=no
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER
+PrivateNetwork=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+RestrictAddressFamilies=AF_UNIX
+ReadWritePaths=/run/raspi-cloud-mtp /var/lib/raspi-cloud-sync-pro/mtp-experiment /var/lib/raspi-cloud-sync-pro/mass-storage-staging
+InaccessiblePaths=/var/lib/raspi-cloud-sync-pro/mass-storage-backup
+# No [Install] section: this experiment is not enabled automatically.

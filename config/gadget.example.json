@@ -1,0 +1,11 @@
+{
+  "image": "/var/lib/raspi-cloud-sync-pro/images/disposable.img",
+  "mountpoint": "/run/raspi-cloud-sync-pro-mount",
+  "state_directory": "/var/lib/raspi-cloud-sync-pro/controller",
+  "staging_directory": "/var/lib/raspi-cloud-sync-pro/staging",
+  "udc": "REPLACE_WITH_OBSERVED_UDC",
+  "name": "raspi-cloud-sync-pro",
+  "serial": "REPLACE_WITH_UNIQUE_LAB_SERIAL",
+  "vendor_id": "0x1d6b",
+  "product_id": "0x0104"
+}

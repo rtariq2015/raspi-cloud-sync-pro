@@ -1,0 +1,27 @@
+{
+  "hardware": "Raspberry Pi Zero 2 W",
+  "architecture": "aarch64",
+  "kernel": "6.18.60+rpt-rpi-v8",
+  "poll_seconds": 5,
+  "comparison_window_seconds": 12,
+  "energy_measured": false,
+  "real_worker_or_cloud_used": false,
+  "usb_or_wifi_settings_changed": false,
+  "fixtures_retained": true,
+  "new_binary_sha256": "b559ae8a1056c387b8cfd336561984bceb75492b08e8a426c07cf4bf82c9a0e2",
+  "baseline": {
+    "steady_child_invocations": 3,
+    "VmRSS_KiB": 1784,
+    "VmHWM_KiB": 1784,
+    "threads": 1
+  },
+  "optimized": {
+    "steady_child_invocations": 1,
+    "VmRSS_KiB": 1784,
+    "VmHWM_KiB": 1784,
+    "threads": 1,
+    "new_ready_wake_seconds": 3.033,
+    "config_change_wake_seconds": 5.055
+  },
+  "accepted": true
+}

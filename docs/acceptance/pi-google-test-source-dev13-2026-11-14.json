@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "source_commit": "59d5c1413b99c918bade1513966f04b905c95db6",
+  "installed_version": "0.1.0.dev13",
+  "wheel_sha256": "998ef3e90e26bb7da617b88326b985ec8ae53b314ab72d4af9926c74f846cf32",
+  "trial": "Credential-free actual-source canaries and intentionally invalid gate",
+  "passed": true,
+  "native_checks": {
+    "actual_source_bootstrap_ready": true,
+    "ordinary_backup_identity_pid_argv_and_sandbox_verified": true,
+    "four_inherited_private_root_channels": true,
+    "private_dns_readonly_inode_and_content_verified": true,
+    "actual_source_held_kernel_programs_and_maps_verified": true,
+    "wifi_dns_udp_and_tcp_verified": true,
+    "official_https_bytes": 64,
+    "loopback_tcp_udp_denied_with_successful_surrounding_controls": true,
+    "canary_ack_and_eof_completed": true,
+    "fixed_invalid_gate_cli_refusal_and_exit_2": true,
+    "receipt_bytes": 0,
+    "qa_empty_state_metadata_and_contents_unchanged": true,
+    "no_qa_state_open_access_write_events_after_ready": true,
+    "metadata_only_syscalls_observable_by_inotify": false,
+    "mount_setup_accesses_before_ready_excluded": true
+  },
+  "authority_limits": {
+    "valid_gate_sent": false,
+    "credentials_read": false,
+    "real_prepared_state_used": false,
+    "provider_test_performed": false,
+    "credential_release_authorized": false,
+    "full_coordinator_api_or_service_accepted": false,
+    "valid_test_completion_handshake_accepted": false,
+    "physical_usb_denial_accepted": false,
+    "post_exit_confinement_claimed": false
+  },
+  "cleanup_and_preservation": {
+    "only_captured_qa_unit_stopped": true,
+    "no_remaining_worker_processes": true,
+    "all_fixture_data_and_old_prefixes_retained": true,
+    "live_dashboard_and_connector_invocations_preserved": true,
+    "account_and_private_configuration_metadata_preserved": true,
+    "wifi_routes_and_host_dns_preserved": true,
+    "usb_address_and_carrier_preserved": true,
+    "power_healthy_preserved": true,
+    "network_usb_account_or_boot_settings_changed": false,
+    "packet_capture_or_usb_data_sent": false,
+    "reboot_format_or_original_file_deletion_performed": false
+  },
+  "live_state": {
+    "dashboard_version": "0.1.0.dev11",
+    "google_preparation_and_control_flags_enabled": false,
+    "automatic_cloud_uploads_enabled": false
+  },
+  "remaining_acceptance": [
+    "Full coordinator service with current owner authority",
+    "Valid Google Test, refresh and completion acknowledgement",
+    "Explicit Enable and recurring completed-file backups",
+    "Physical USB host and Windows mapped share",
+    "Native capture-only runtime and dashboard file projection"
+  ],
+  "private_data_omitted": [
+    "Addresses and Wi-Fi profile UUID",
+    "Unit, invocation and worker identifiers",
+    "Private fixture and backup paths",
+    "Passwords, tokens and account identifiers"
+  ]
+}

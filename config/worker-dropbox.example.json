@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "state_directory": "/var/lib/raspi-cloud-sync-pro/dashboard",
+  "staging_directory": "/var/lib/raspi-cloud-sync-pro/dashboard/web-inbox",
+  "rclone_config": "/var/lib/raspi-cloud-sync-pro/dashboard/rclone.conf",
+  "destinations": [
+    {"kind": "dropbox_rclone", "remote": "dropbox:RaspiCloudSyncPro"}
+  ],
+  "approved_uplinks": ["wifi"],
+  "allow_metered": false,
+  "interval": 10
+}

@@ -1,0 +1,505 @@
+# Project progress
+
+**Updated: 15 November 2026. Development trial; no main merge or release.**
+
+**No-eject MTP experiment — source prototype; not deployed.** A patched pinned
+uMTP receiver publishes durable complete-object batches to the unchanged backup
+worker. Three consecutive synthetic transfers pass through the real receiver,
+descriptor broker and worker with independent local hashes. Windows would see a
+portable device, **not a drive letter**; Siemens compatibility is unknown.
+[Implementation, evidence and the single physical-test gate](MTP_EXPERIMENT.md).
+No live USB change or new cloud upload was made for this experiment.
+
+**Latest normal backup check — PASS.** One synthetic Windows copy → Safe Eject →
+automatic capture → Google upload → independent download/hash check raised totals
+to **21 verified backups / 105 events**, with zero pending/failed jobs. All earlier
+records and Windows files were preserved; services stayed running unchanged.
+[Recorded result](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2#issuecomment-6903535811).
+
+**Cloud Backup monitoring — deployed and validated.** The live dashboard now
+reads the sanitized USB-worker report. The owner confirmed **20 verified /
+0 pending / 0 failed**; all 20 backup records and 100 events were preserved.
+Permissions, isolated owner/viewer enforcement and public HTTPS checks passed.
+Only the dashboard restarted; the new read-only reporter/timer was installed
+and enabled. USB/backup/remote-access processes and Google configuration remained
+unchanged. The official rclone GUI stays uninstalled and disabled; its owner-only
+Advanced Tools entry is present for later approval. See
+[actual results, rollback and test limits](CLOUD_BACKUP_UI_DEPLOYMENT.md).
+
+**Latest live acceptance — Stage 4: PASS for one controlled clean Pi reboot.**
+The existing 8 GiB exFAT CLOUDSTICK returned automatically on Windows D:.
+The USB controller, backup worker and Wi-Fi recovery timer started automatically;
+Wi-Fi/SSH returned without a second reboot or recovery action. All 19 Windows
+files matched their preboot hashes. All 20 verified backup records and 100 events,
+the Google Production configuration/grant, source/unit hashes, image identity and
+original rollback archive were preserved. No new upload or application change
+was needed. Safe Eject remains required for the installed mass-storage mode;
+the separate MTP experiment above has not been deployed.
+[Stage 4 evidence, procedure and limits](RELIABILITY_ACCEPTANCE_STAGE4.md).
+
+**Stage 3 live upgrade: PASS.** The separately approved 1 GiB → 8 GiB migration
+and one synthetic Google Production backup/download/hash test passed.
+[Stage 3 physical acceptance](IMAGE_ENROLLMENT.md#physical-acceptance).
+
+The earlier entries below retain their historical counts and source-only status
+at the time; the live checkpoints above supersede those deployment statements.
+
+**Stage 3D2 — real disposable exFAT rehearsal: PASS on the development computer.**
+After separate tool-installation and filesystem-operation approvals, four new
+fully allocated 8 GiB filesystems formatted successfully. Five synthetic file
+hashes and empty/Unicode directories matched; corrupt metadata was refused
+without repair; a separate disposable volume reached real ENOSPC safely.
+The existing Stage 3D capture passed from RO exFAT into ext4 staging.
+**17 rehearsal checks and 301 focused automated tests passed.** All test mounts
+and loops were cleaned normally; approximately 32 GiB of detached test images
+are retained. No live Pi, Windows USB, cloud, credential or history operation.
+This is not physical USB or atomic live-migration acceptance.
+[Actual results, exact commands, cleanup and remaining limits](EXFAT_REHEARSAL_STAGE3D2.md).
+
+**Stage 3D — low-space admission: SOURCE-ONLY PASS; not deployed.**
+The explicit 8 GiB policy budgets remaining changed-file allocation, metadata,
+8 GiB recovery headroom and 4 GiB for operation. It rechecks available blocks
+and inodes during capture; failures retain evidence and prevent handoff/forced
+USB return. Legacy 1 GiB keeps its existing 16 MiB path. **982 local tests passed,
+3 optional rclone checks skipped** across the main/operator/simulation suites.
+No live Pi access, service change, Eject, upload or migration occurred.
+[Stage 3D calculation, configuration, tests and limits](LOW_SPACE_ADMISSION_STAGE3D.md).
+
+**Stage 3C — maintenance hold: SOURCE-ONLY PASS; disabled and not deployed.**
+A root-approved, session-bound request waits for genuine Windows Safe Eject,
+finishes capture and private handoff, then prevents USB reattachment. Unresolved
+or partial hold records block restart even with request admission disabled.
+Separate release requires the same image, exact hold ID, unchanged inventory,
+empty private staging and the existing read-only filesystem checks. No live Pi
+access, service change, Eject, upload or migration occurred.
+**950 local tests passed, 3 optional rclone checks skipped** across the main,
+operator and disposable-simulation suites. Actual hardware hold/release remains
+unverified; the installed CLOUDSTICK still uses its working **1 GiB** image.
+[Stage 3C implementation, commands, tests and limits](MAINTENANCE_HOLD_STAGE3C.md).
+
+**Stage 3B — source-level 8 GiB validation complete; not deployed.** Existing
+1 GiB configuration/approval behavior remains supported. A future 8 GiB image
+needs an explicit capacity/layout approval bound to the exact image identity;
+arbitrary sizes and stale identities are refused. Filesystem reads remain behind
+verified USB release and read-only checking. No live Pi access, service change
+or storage migration occurred. The installed image remains **1 GiB**.
+Local results: **861 main-suite tests passed, 3 optional rclone tests skipped;
+36 USB operator tests and 15 storage simulations passed**. Its maintenance-hold
+prerequisite is implemented in Stage 3C source above; Stage 3D adds low-space
+admission, while real 8 GiB acceptance remains separate.
+[Source changes, tests and next prerequisite](STORAGE_CAPACITY_STAGE3B.md).
+
+**G4F — Production Google backup acceptance: PASS.** One unique synthetic
+1 MiB file was created and SHA-256 checked on the ordinary Windows test PC,
+copied onto CLOUDSTICK, flushed and safely ejected. The Pi automatically
+captured it while USB storage was detached, returned the drive, uploaded once
+with the existing Production authorization and completed worker verification.
+A separate Google download matched the Windows original and staged copy.
+Windows confirmed the USB copy and local source remained intact afterward.
+
+**Historical G4F live checkpoint: 19 verified backup versions and 95 events.**
+All previous 18 full job records and 90 events remained unchanged. At that
+checkpoint there were no pending/failed or unexpected new/duplicate jobs;
+USB/controller and backup services were active and enabled. These are historical
+observations, not new measurements from source-only work. During G4F, no service restart, software deployment,
+network change, credential replacement, reboot or storage resize occurred.
+[Physical acceptance and limits](acceptance/pi-windows-production-google-g4f-2026-11-15.json).
+
+**Google authorization:** G4A–G4E are complete. The existing app is External /
+In production; its fresh Production grant was validated and activated without
+changing the Google account or exact backup folder. G4F tested that grant in the
+real USB-to-cloud pipeline. An expired short-lived access token was refreshed
+only in verifier memory for the separate download; stored credentials were
+unchanged. This is current working authorization, not a promise that a grant
+can never expire or be revoked.
+
+**Roadmap Stage 2 — reporting fix: deployed and accepted.** After explicit owner
+approval, the exact existing `665977b` worker change was installed and only the
+backup worker restarted. Its fresh status reports `pending_jobs=0`, `failed_jobs=0`.
+An isolated credential-free Pi fixture proved a failed job stays visible after
+idle ticks and a fresh process restart, with one attempt and unchanged data.
+All 19 live backup records, 95 events, scheduler rows and credential/configuration hashes
+were preserved. Controller and dashboard processes were unchanged; no new cloud
+operation occurred. Rollback was not needed. The dashboard remains unbound to
+this report; no UI upgrade is claimed. **57 focused local preparation tests passed**,
+plus two local and two native fixture interpreters.
+[Deployment evidence](acceptance/pi-failure-reporting-stage2-2026-11-15.json) ·
+[Cumulative review and next-stage prompt](AUTONOMOUS_REVIEW_2026-11-15.md).
+
+**Stage 3 — storage planning/simulation complete.** Read-only measurements found
+47.241 GiB available on the Pi and 815.281 MiB free on CLOUDSTICK. An **8 GiB**
+image is recommended, keeping space for capture, an interrupted batch and OS
+recovery margins. **15 disposable simulations and 73 existing focused tests
+passed.** No live storage or services changed; all 19 verified records and
+95 events remain intact. The simulations use opaque temporary files, not real
+larger exFAT volumes or physical power cuts.
+[Capacity report, limits and proposed migration prompt](STORAGE_CAPACITY_STAGE3.md).
+
+**What remains before practical office use:** capacity support, maintenance hold
+and low-space admission are source-only; the installed controller still has its
+1 GiB limit. The next recommendation is real disposable 8 GiB exFAT validation
+and migration rehearsal. Hardware hold/release/low-space acceptance and separately approved deployment/cutover
+remain. Expected
+QA volume/retention still needs owner confirmation; longer workloads and recovery
+remain unaccepted. The USB image is still the disposable **1 GiB** image.
+**Safe Eject is required for each batch; no-eject capture is not implemented.**
+This one-file ordinary-PC test does not prove Siemens compatibility or authorize
+clinical use. The guarded Windows eject automation used an administrator token.
+
+The earlier Wi-Fi management interruption's root cause remains **UNKNOWN**.
+Prior reconnect/recovery checks are documented in [CORE_RECOVERY.md](CORE_RECOVERY.md),
+but no new outage, power-loss or endurance test was performed in G4F.
+[Earlier Windows acceptance](WINDOWS_ACCEPTANCE.md) remains historical evidence.
+
+The 898-Python/11-Rust/five-CI baseline belongs to the earlier source checkpoint;
+it is not a new full-suite claim. Stage 2 ran 57 focused tests; Stage 3 ran
+88 focused local tests as described above. Public hardware gates remain disabled by default;
+the real Pi continues its separately approved protected trial builds.
+
+**Phone updates:** [follow the existing progress thread](https://github.com/rtariq2015/raspi-cloud-sync-pro/issues/2).
+GitHub inbox/email/mobile delivery depends on notification settings. The
+[development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)
+is the current source; [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
+shows actual remote check results. No percentage estimate replaces acceptance.
+
+<details>
+<summary>Earlier supporting work and historical snapshots</summary>
+
+The entries below are historical supporting-work records for earlier builds.
+They are not claims that the current USB worker is disabled. Further dashboard,
+provider, enterprise-network and image-building work remains paused.
+
+This page records evidence, not a percentage estimate. Follow the
+[development branch](https://github.com/rtariq2015/raspi-cloud-sync-pro/tree/development)
+for the current source and [Actions](https://github.com/rtariq2015/raspi-cloud-sync-pro/actions)
+for remote automated checks.
+
+The following entries describe earlier web-coordinator snapshots. At that time,
+the separate operator-authorized USB worker had passed its first file/process
+restart test, while a physical reboot was still untested. Current core results
+above supersede those historical acceptance limits.
+
+**Earlier supporting work:** 769 Python tests passed, including real rclone against
+temporary local storage. Dev18 connects one selected completed web-file transfer
+to the guarded upload dispatcher in source, requiring both transfer children to
+finish successfully first. It remains undeployed and unscheduled.
+Dev17 adds a pending-control runner and a
+selected-file upload coordinator. A protected dev17 prefix is now installed
+inactive; no new control or upload service is activated. Temporary
+failures before a cloud test starts can retry; completed controls and later
+failures are not automatically repeated. The Pi accepted the service-template
+syntax, and its restricted root inspection context passed a credential-free
+native test. A separate read-only follow-up confirms retained records, stopped
+QA units and current pinned live processes/network fields. Actual Google
+Test/Enable, automatic uploads and Windows drive mapping still require acceptance.
+[Native prerequisite evidence](acceptance/pi-google-root-context-dev14-2026-11-14.json)
+and [integration details](GOOGLE_CONTROLS.md).
+[Inactive Pi installation](acceptance/pi-inactive-install-dev17-2026-11-14.json).
+Both source-check workflows pass for
+[`780dee3`](https://github.com/rtariq2015/raspi-cloud-sync-pro/commit/780dee341a3ce0d2009571899db972e731782394).
+
+**Upload repair:** the owner reported a 122.7 KB file rejected as exceeding
+100 MiB. This was reproduced: a 32 KiB multipart parser buffer cap rejected
+normal file chunks before staging. Development now uses a bounded 128 KiB
+parser cap, retaining the 100 MiB file and 102 MiB request limits. Real HTTP
+regressions pass through exactly 100 MiB. The protected dev11 update is now live.
+Isolated authenticated Waitress tests on the Pi accepted 122,700-byte,
+125,645-byte and 1 MiB files with matching downloaded bytes/SHA-256. Parser field
+and part limits still reject oversized requests. Only the dashboard restarted;
+accounts, existing files, connector and network settings were preserved. Users
+need to sign in again. The owner's own retry remains to be observed.
+[Native acceptance](acceptance/pi-dashboard-upload-dev11-2026-11-14.json).
+
+**Latest access update:** a Pi reboot removed the transient preview services and
+the old Quick Tunnel returned error 1033. The preview was restored behind a fixed
+free ngrok address and subsequently upgraded to dev11. Local/public login HTTP checks and
+the actual Chrome login form pass; stored credentials and uploads were preserved.
+The dashboard and connector now run as persistent, enabled system services;
+unit syntax, runtime health and disk/manager enablement checks pass. A physical
+reboot has not been performed or accepted.
+The changed Google callback and Pi client origin are now reconciled, preserving
+credentials and retaining private backups/rollback. Preparation is now restored
+with persistent units, a protected dev14 broker and the live dev11 Prepare flag.
+Fresh owner sign-in and actual preparation now pass, including the HTTPS form,
+persistent broker and independent offline source/backup configuration bindings.
+Previous preparation stays historical. Test/Enable controls and uploads remain off.
+[Preparation restoration](acceptance/pi-google-prepare-restoration-dev14-2026-11-14.json),
+[fresh owner flow](acceptance/pi-google-prepare-fresh-dev14-2026-11-14.json),
+[recovery evidence](acceptance/pi-fixed-https-recovery-2026-11-13.json)
+and [remote access guide](REMOTE_ACCESS.md).
+
+## Working on the Pi
+
+- Home Wi-Fi and authenticated SSH access. USB Ethernet carrier is present;
+  stable USB addressing remains an outstanding acceptance item.
+- Dashboard login with owner/viewer accounts, phone-friendly screens, QA-file
+  upload, bounded text preview and downloads with byte/SHA-256 checks.
+- Restricted dev11 dashboard service candidate with NoNewPrivileges and home/system
+  filesystem restrictions. The upgraded service passed process/HTTP health checks
+  and public HTTPS access checks; dev8 is retained for rollback. Login and authenticated file access also passed through
+  a temporary public HTTPS tunnel; no router ports or VPN app were needed.
+- Rust watcher fixture trial: 398,048-byte ARM64 binary, 1,796 KiB parent idle RSS,
+  incomplete batches ignored and completed unchanged work not retriggered.
+- Rust paused-worker comparison on the Pi: three child launches reduced to one
+  in separate twelve-second fixture windows; new files/configuration still wake
+  at the next poll. This measures launches, not electrical power consumption.
+- End-to-end Rust → Python → ARM64 rclone trial: three files, two temporary local
+  destinations, six read-back verified jobs, blocked-policy queueing, deduplication
+  and retained data after controlled process interruption. No cloud account used.
+- First controlled real Google Drive backup on dev8: browser owner/session/PKCE
+  authorization passed, then one known QA file uploaded to a unique app-owned
+  folder and passed independent downloaded-content SHA-256 verification. The
+  original and private QA configuration are retained; background uploads remain
+  disabled. [Sanitized evidence](acceptance/pi-google-drive-2026-11-13.json).
+- Dev9 private Google preparation passed a synthetic CLI handoff between two
+  restricted QA identities on the Pi. Actual kernel permissions prevented each
+  from reading the other's private state; unsafe permissions and overwrite
+  attempts were rejected. No real credentials or live service settings changed.
+  [Handoff evidence](acceptance/pi-google-handoff-dev9-2026-11-13.json).
+- Real encrypted Samba protocol fixture in an isolated Linux container: active
+  writers defer capture; snapshot handles block new writes/deletes. This is
+  separate from actual Pi/Windows/USB acceptance.
+- The same locking contract now passes with actual Samba 4.22.11 on the Pi,
+  using an isolated encrypted loopback share. Active writes defer capture,
+  snapshots block writes/deletes, interrupted reads retain incomplete data,
+  and old versions remain intact. The temporary server stopped after the test;
+  Windows/USB transfers remain unaccepted.
+- A credential-free native Wi-Fi restriction trial passes on the Pi: actual
+  kernel ingress/egress allowlists, denied loopback TCP/UDP with successful
+  surrounding controls, and direct Wi-Fi DNS/HTTPS. The four temporary services
+  stopped and working access was preserved. This is partial platform proof;
+  USB-path exclusion and each credentialed executor still require acceptance.
+  [Native evidence](acceptance/pi-wifi-rni-partial-2026-11-13.json).
+
+![Actual dashboard on the Pi](images/dashboard-desktop.png)
+
+## Implemented and tested locally
+
+- **769 Python tests and 11 Rust tests pass locally.** Python includes real rclone
+  against temporary local storage; this is not a real cloud-account test.
+- Completed-batch backup worker with per-destination jobs, retries, network policy,
+  restart reconciliation and source retention. Disabled by default.
+- Rust staged-file scheduler, upload wrapper, ARM64 cross-build and inactive unit.
+- Non-secret enterprise Wi-Fi plans including PEAP/MSCHAPv2, anonymous identity,
+  CA/server validation and EAP-TLS references. Planning does not activate Wi-Fi.
+- USB/Samba ownership, staging, controller and recovery simulations from Phase 2.
+- Local-only cloud backend checks: missing/mismatched/alias configurations are
+  distinguished without claiming account access or making a cloud request.
+- Dev7 Google Drive/Dropbox Connect foundation: owner-only consent initiation,
+  PKCE, one-use session-bound returns and private token storage. Missing registered
+  clients show setup-required; authorization never enables uploads. Eighteen new
+  tests use fake OAuth responses, not real accounts. These controls are now in the live dev10 preview.
+- Dev8 Dropbox rclone adapter with synchronous commits, smaller upload chunks and
+  independent read-back verification. Local-alias integration passes; real
+  Dropbox authorization/backup and the guided runtime integration remain pending.
+- Dev9 source adds a private Google authorization handoff into a disabled
+  backup-owned configuration. Dedicated inherited channels, credential/client/scope
+  bindings, private permissions, atomic no-replace publication and retained
+  incomplete transactions have focused tests. No cloud request or upload
+  activation occurs during preparation. [Operator guide](GOOGLE_HANDOFF.md).
+- Dev10 adds owner-only preparation requests, a separately gated local broker,
+  and historical preparation status in the dashboard. Source and configuration
+  bindings, owner revocation, expiration, private channels, retained interrupted
+  work, and bounded browser status retries have automated tests. The protected
+  dev10 dashboard and request watcher ran on the Pi. A real owner HTTPS
+  request prepared one private backup configuration successfully. Neither
+  preparation nor its status enables automatic backups.
+  [Live acceptance](acceptance/pi-google-setup-live-dev10-2026-11-13.json).
+  The original watcher disappeared on reboot. Its replacement is now persistent,
+  with fresh disk/manager enablement and preservation checks. A new actual owner
+  preparation and independent offline checks now pass; reboot acceptance remains.
+- The dev10 synthetic Pi trial now passes owner HTTP-handler requests, the actual
+  root broker, separate ordinary service identities, historical status and
+  recovery from a prepared destination whose receipt was not recorded. Existing
+  configuration inodes/bytes and source files were retained; actual kernel reads
+  across private identity boundaries were denied. A separate backed-up setup step
+  created the locked backup identity with its own group, preserving every old
+  account entry/password. The trial changed no live service or network settings.
+  [Dev10 evidence](acceptance/pi-google-setup-dev10-2026-11-13.json).
+
+- Actual Pi systemd event/recovery tests now pass with synthetic credentials:
+  a blocked owner lock recovers on retry, persistent failures stop after three
+  starts, and deliberate recovery preserves earlier configurations. The separate
+  slow-failure trial observed three 25-second executions over 78.5 seconds and
+  refused a fourth start. Kernel sandbox/identity checks passed. Temporary QA
+  units are stopped. These synthetic checks have separate evidence from the
+  accepted live preparation. [Event/recovery evidence](acceptance/pi-google-setup-systemd-2026-11-13.json),
+  [slow-failure evidence](acceptance/pi-google-setup-slow-retries-2026-11-13.json).
+
+- The next operational-config foundation passes 24 local filesystem/history
+  tests. It preserves preparation proof, separates future mutable token writes,
+  retains failures and prevents a new destination generation from reusing old
+  verified jobs. It is disabled, untested against a provider and not connected
+  to the live worker. Test/Enable and automatic file backup remain unfinished.
+
+- New owner-only Test/Enable/Disable dashboard controls and the private Google
+  Test worker pass local tests. The worker creates a separate generation, checks
+  the app-owned folder, forces operational-token refresh and verifies downloaded
+  fixture content. It refuses credentials until a root-authorized per-run gate;
+  fake cloud transport tests do not establish live refresh or Wi-Fi confinement.
+  Test/Enable controls are not activated on the Pi. Preparation requests are now
+  available through the restored broker; automatic uploads remain off.
+- Dev11 now adds a default-disabled root Test coordinator, ordinary-identity
+  bootstrap and held kernel-policy inspector in source. They check fresh owner,
+  Wi-Fi, worker and canary evidence, keep the completed worker alive for final
+  verification and report failures conservatively. Local fault tests pass;
+  source-worker/DNS-mount and real Google acceptance remain pending. The native
+  four-channel handoff and post-exit cgroup lifecycle were tested separately.
+  [Native evidence](acceptance/pi-openfile-handoff-2026-11-13.json),
+  [source contracts](GOOGLE_CONTROLS.md).
+- The first actual-source native trial refused startup before creating a worker:
+  systemd omitted empty properties from its default `show` output. The source
+  now requests `--all` and can confirm that a refused start created no unit or
+  cgroup processes. Three regression tests pass. The next protected build must
+  repeat native worker testing; no canary or Google acceptance is claimed from
+  this failed attempt. [Preflight evidence](acceptance/pi-google-test-source-preflight-2026-11-14.json).
+- Dev12 adds a private one-shot Google coordinator command, fixed public error
+  projection, disabled config and an uninstalled systemd example. Ten new CLI
+  tests pass. This route is not in the live dev11 wheel; no watcher or automatic
+  activation is added. [Operator contract](GOOGLE_CONTROLS.md).
+- A default-disabled capture-only SMB API publishes private completed batches
+  without cloud providers. Twenty-four new tests cover active writers, failed
+  reads/CLOSE, restart/retention, private state, revoked authority, file limits,
+  bounded memory and fair scanning past busy/oversized files. It preserves the
+  existing default hardware gate. This runtime has no installed service or CLI
+  and has not passed native USB/Windows acceptance. [Capture contract](SMB_CAPTURE.md).
+- A Rust CI fixture race was reproduced as Linux `ETXTBSY` and corrected with
+  test-only isolation. The eleven-test suite, formatting/clippy and 1,000 repeated
+  unit/CLI runs pass; the ARM64 production binary is byte-identical to the prior
+  build. [Rust evidence](RUST_EVALUATION.md).
+- Dev12 is now installed in a separate inactive prefix, preserving the live dev11
+  dashboard. Its native trial created a worker but the parent rejected repeated
+  `OpenFile` properties in the manager output. The worker exited with a fixed
+  startup refusal; its separate cause is not established. The owned failed unit
+  was independently stopped after verifying its exact identity and empty cgroup.
+  Dev13 source queries only the 21 consumed single-valued fields, retaining
+  strict parsing and empty-value checks. Its follow-up is recorded below.
+  [Dev12 preflight](acceptance/pi-google-test-source-dev12-preflight-2026-11-14.json).
+- The protected dev13 source-worker negative-gate trial now passes on the Pi.
+  The actual ordinary-identity bootstrap, four inherited root channels, private
+  read-only DNS mount, held kernel policy, Wi-Fi DNS/HTTPS and denied loopback
+  controls passed. An intentionally invalid gate returned the fixed refusal and
+  no receipt; empty QA state remained untouched after READY. The owned unit
+  stopped and working services/network/private metadata were preserved. This
+  used no cloud credentials and does not accept a valid Google Test, root
+  coordinator service, completion handshake or physical USB denial test.
+  At that trial the live dashboard stayed dev11 with both request flags off.
+  Preparation was subsequently restored as recorded above; controls remain off.
+  [Dev13 native evidence](acceptance/pi-google-test-source-dev13-2026-11-14.json).
+
+- Dev5/dev6 password change/recovery: actual Pi loopback HTTP, private interactive
+  recovery prompt, own-session revocation, preserved viewer session and private
+  hash backups. Only disposable test accounts changed.
+- Five-minute Pi retention trial: ten more files, twenty more verified local
+  copies, 20/20 Wi-Fi gateway probes and no reported power throttling.
+
+The protected dev11 dashboard upgrade has completed. Its Prepare flag and a
+persistent preparation watcher are now enabled, preserving passwords, private
+files, connector and networking. Control requests and automatic uploads remain
+off. Only the preparation path's new boot link was added; existing boot links
+were preserved. USB currently presents Ethernet; a working mapped Samba
+drive and classic mass-storage mode have not been accepted on the host.
+
+**Dev14 source integration:** a sanitized one-scan SMB capture command now has
+disabled configuration and uninstalled service/timer examples. The Google
+coordinator can record existing Enable/Disable decisions through the source
+identity's independent checks. A separate private batch-upload API uses a fresh
+batch-bound owner admission and root release, retains generation-wide history,
+and distinguishes newly verified files from historical reuse. These additions
+are not running services and do not enable automatic backups.
+The protected dev14 prefix now passes inactive installation, exact code/dependency
+and ordinary identity checks, preserving the live dev11 dashboard. Its actual
+coordinator returned the expected idle JSON. The test helper refused post-exit
+ownership when systemd cleared the terminal invocation ID; an independent
+read-only reconciliation confirmed the exact unit inactive, zero PIDs and no
+cgroup. Full service/worker acceptance is still pending.
+[Dev14 observations](acceptance/pi-google-test-broker-idle-dev14-2026-11-14.json).
+
+The isolated dev13 coordinator idle trial failed before processing an intent.
+Read-only follow-up identified a concrete Debian path mismatch: `/usr/sbin/ip`
+is a symlink, which the strict executable check refuses. Dev14 uses the verified
+regular `/usr/bin/ip` binary without weakening that check. Kernel sandbox
+observations from the failed trial are recorded separately from startup
+acceptance. The owned test service stopped and existing access was preserved.
+[Trial and finding](acceptance/pi-google-test-broker-idle-dev13-2026-11-14.json).
+
+Dev15 connects the private batch-upload API to a strict operator CLI. Fifteen
+new tests cover channel ownership/aliases, malformed frames, default refusal,
+private receipts, result bindings and sanitized output. It is source-only;
+the per-batch dispatcher is still being implemented. Dev16 adds the ordinary
+upload bootstrap: matching owner-request IDs precede API work, and valid retry
+or failure receipts require the same live completion barrier as success. Sixteen
+new tests pass with explicit fake native activation/canaries and a stub provider;
+they do not establish Pi confinement or a live upload service.
+
+The current USB auto-switcher is active and enabled, and its profile does not
+meet the capture runtime's manual local-network contract. The protected dev14
+prefix also lacks the optional SMB client. These read-only findings leave
+capture gated; no USB or network setting was changed to force a test through.
+
+A separate QA environment now qualifies the actual dev14 reader/stager with
+smbprotocol 1.17.0 and encrypted SMB 3.1.1 on this Pi. The old production prefix
+and global packages stayed unchanged. Active writers deferred capture, snapshot
+handles blocked new writes/deletes, the read-only backup account could not write,
+and changed/interrupted copies retained two verified snapshots plus one incomplete.
+The server was stopped afterward. Independent read-only checks verified the
+installed bytes, fixture data, empty/absent service cgroup and preserved live
+data/accounts/network. This does not activate the full capture runtime or accept
+Windows USB drive mapping.
+[Current reader evidence](acceptance/pi-smb-sdk17-core-dev14-2026-11-14.json).
+
+## Being worked on
+
+1. Accept persistent startup through a controlled reboot and an off-LAN phone
+   connection using the installed fixed free HTTPS address.
+2. Extend the accepted Pi loopback Samba contract to actual Windows/USB host
+   transfers after stable USB addressing is established.
+3. Complete the guided Google Drive folder/test/enable workflow and persistent
+   worker after the first controlled real-account proof. Extend account trials
+   to refresh, outages, large/changed files and the other providers.
+4. Resolve the observed existing USB profile auto-switcher/DHCP loop without
+   interrupting Wi-Fi management, then accept actual Pi Samba and host transfers.
+
+## Still requires acceptance
+
+- Google Drive refresh/outage/large-file acceptance and recurring worker setup;
+  Koofr and Dropbox real-account authorization and backup tests.
+- A phone on an outside network and physical Android PWA installation.
+- Enterprise Wi-Fi on the intended network with its approved CA/server identity.
+- Captive-portal sign-in for the Pi's own session; no universal automatic acceptance.
+- USB power/endurance/recovery tests and installation on another physical Pi.
+- A ready-to-flash appliance image and signed in-device updates with rollback.
+
+Bluetooth setup/status is an optional future addition. It is not enabled by this
+work. The chosen architecture stays lightweight: Rust watcher, Python control/UI,
+and rclone/Samba for their protocols.
+
+The Google trial used approved Wi-Fi before and after, with rclone bound to the
+Wi-Fi IPv4 address; it does not establish an egress-firewall guarantee. Firmware
+reported no throttling afterward. The OAuth application stays External/Testing,
+where Drive refresh tokens expire after seven days. This one-file proof does not
+complete automatic consumer setup or indefinite unattended backup.
+
+## Guides
+
+- [What the product will do](PRODUCT_PLAN.md)
+- [Dashboard and Android web app](DASHBOARD.md)
+- [Backup worker](STAGED_WORKER.md)
+- [Private cloud setup and acceptance](CLOUD_SETUP.md)
+- [Rust decision and measurements](RUST_EVALUATION.md)
+- [Another Pi](REPLICATION.md)
+- [Custom appliance image and updates](APPLIANCE_IMAGE.md)
+- [Detailed test record](VALIDATION.md)
+
+Original files remain retained. The current SD card has not been reflashed.
+Main-branch merge and release publication still require owner approval.
+
+The current USB carrier stays present, but a follow-up observed its existing
+auto-switcher cycling between DHCP attempts and local addressing. This trial
+changed no USB profile; stable USB addressing is an outstanding acceptance item.
+
+Dev6 also refuses CLI password entry when no secure terminal is available.
+The private PTY path and no-terminal refusal both passed on the Pi. GitHub
+checks now include ARM64 cross-builds and an isolated real Samba protocol job.
+
+</details>

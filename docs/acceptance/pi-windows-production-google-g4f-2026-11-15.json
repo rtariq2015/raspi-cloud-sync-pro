@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "stage": "G4F",
+  "status": "PASS",
+  "date": "2026-11-15",
+  "timezone": "America/New_York",
+  "source_commit": "665977bd60e2f9afb6297ba2110b31157eb37f29",
+  "scope": "One actual synthetic 1 MiB file on the existing ordinary Windows test computer using the active Production Google grant. No clinical workstation.",
+  "hardware": {
+    "pi": "Raspberry Pi Zero 2 W",
+    "windows_edition": "Windows 11 Home",
+    "development_image_bytes": 1073741824,
+    "filesystem": "exFAT",
+    "ordinary_test_host_identity_verified": true,
+    "not_boot_or_system_disk": true
+  },
+  "windows": {
+    "source_size_bytes": 1048576,
+    "synthetic_data_only": true,
+    "source_sha256_equals_usb_readback": true,
+    "copy_flushed_and_all_handles_closed": true,
+    "original_and_usb_copy_retained_after_return": true,
+    "safe_eject": {
+      "IdentityChecked": true,
+      "ExclusiveVolumeLock": true,
+      "CachedDataFlushed": true,
+      "DismountedWhileLocked": true,
+      "MediaEjectAccepted": true,
+      "ForceOrPowerOffRequested": false
+    },
+    "eject_automation_used_admin_token_on_test_pc": true,
+    "normal_media_eject_no_force_or_power_off": true,
+    "drive_returned_healthy": true
+  },
+  "automatic_capture": {
+    "fresh_loaded_then_configured_empty_lun": true,
+    "staging_observed_while_detached": true,
+    "capture_inventory_advanced": true,
+    "host_owned_configured_return": true,
+    "observer_hardware_mutations": false,
+    "events": [
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 0.002,
+        "phase": "host",
+        "usb_state": "configured"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": true,
+        "elapsed_seconds": 52.627,
+        "phase": "host",
+        "usb_state": "configured"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": true,
+        "elapsed_seconds": 53.564,
+        "phase": "eject_observed",
+        "usb_state": "configured"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 53.601,
+        "phase": "eject_observed",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 53.652,
+        "phase": "loop_attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 53.702,
+        "phase": "checking_image",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 53.93,
+        "phase": "mount_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 54.114,
+        "phase": "staging",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 63.925,
+        "phase": "unmount_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 64.026,
+        "phase": "loop_detach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 64.115,
+        "phase": "returnable",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 64.182,
+        "phase": "loop_attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 64.221,
+        "phase": "checking_image",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 64.414,
+        "phase": "loop_detach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": true,
+        "backing_loaded": false,
+        "bound": false,
+        "elapsed_seconds": 64.593,
+        "phase": "attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": false,
+        "elapsed_seconds": 64.618,
+        "phase": "attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 64.632,
+        "phase": "attach_intent",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 64.671,
+        "phase": "host",
+        "usb_state": "not attached"
+      },
+      {
+        "backing_empty": false,
+        "backing_loaded": true,
+        "bound": true,
+        "elapsed_seconds": 64.834,
+        "phase": "host",
+        "usb_state": "configured"
+      }
+    ],
+    "timed_out": false,
+    "detached_capture_observed": true,
+    "read_only_safety_basis": "The existing accepted controller implements read-only capture. This passive observer recorded detachment/staging/return phases, not a new independent loop or mount read-only-flag check."
+  },
+  "google": {
+    "grant": "Existing active Production authorization",
+    "same_account_and_exact_destination_folder": true,
+    "production_refresh_token_unchanged": true,
+    "new_file_uploaded_once": true,
+    "worker_download_verification_passed": true,
+    "separate_independent_download_objects": 1,
+    "independent_download_bytes": 1048576,
+    "independent_download_sha256_equals_windows_original": true,
+    "staged_payload_manifest_and_job_sha256_equal_windows_original": true,
+    "verification_drive_gets": 7,
+    "verifier_uploads_or_deletions": 0,
+    "verifier_access_refresh": "An expired short-lived access token was renewed in verifier memory only; existing scope, refresh token and operational credential bytes were preserved.",
+    "operational_credentials_unchanged_during_verifier": true
+  },
+  "history": {
+    "previous_full_jobs_unchanged": 18,
+    "previous_full_events_unchanged": 90,
+    "new_jobs": 1,
+    "new_job_state": "verified",
+    "new_job_attempts": 1,
+    "new_job_error": null,
+    "new_events": [
+      "queued",
+      "uploading",
+      "uploaded",
+      "verifying",
+      "verified"
+    ],
+    "total_verified_jobs": 19,
+    "total_events": 95,
+    "pending_or_failed_jobs": 0,
+    "unexpected_or_duplicate_jobs": 0
+  },
+  "final_health": {
+    "controller_active_enabled": true,
+    "worker_active_enabled": true,
+    "controller_host_owned_configured": true,
+    "private_capture_staging_empty": true,
+    "boot_unchanged": true,
+    "current_power_ok": true
+  },
+  "changes": {
+    "application_source": false,
+    "service_restart_or_reconfiguration": false,
+    "network_or_wifi": false,
+    "oauth_client_scope_callback_or_stored_credentials": false,
+    "manual_usb_configuration": false,
+    "resize_or_format": false,
+    "reboot_or_power_cycle": false,
+    "new_test_uploads": 1
+  },
+  "limitations": [
+    "One file on one ordinary Windows host; not endurance or Siemens acceptance.",
+    "The independent new download covers the new object only; historical cloud objects were not reverified in G4F.",
+    "Unchanged old job/event records do not establish global absence of cloud deletions or retention of every historical local file.",
+    "Safe Eject remains required; no-eject operation is not implemented.",
+    "The USB image remains a 1 GiB development image.",
+    "The guarded automated eject used an administrator token; scanner-side/no-admin compatibility is untested.",
+    "No source-only failed-backup reporting update was deployed."
+  ],
+  "privacy": "Private account/folder IDs, host identity, addresses, MACs, volume GUIDs, credentials, retained private filenames and hashes are excluded."
+}

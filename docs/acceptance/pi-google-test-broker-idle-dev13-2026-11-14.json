@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "component": "google_test_broker",
+  "installed_version": "0.1.0.dev13",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie aarch64",
+  "kernel": "6.18.60+rpt-rpi-v8",
+  "systemd": "257.13-1~deb13u1",
+  "scope": "Isolated empty-state coordinator startup; no owner intent or cloud operation",
+  "accepted": false,
+  "observed": {
+    "copied_interpreter_and_installed_source_pins_verified": true,
+    "actual_root_process_identity_and_capabilities_sampled": true,
+    "no_new_privileges_and_seccomp_observed": true,
+    "expected_read_only_and_writable_mounts_observed": true,
+    "unchanged_cli_exit_status": 2,
+    "safe_result_code": "google_test_broker_unavailable",
+    "owned_test_service_stopped": true,
+    "live_services_accounts_configuration_and_network_preserved": true,
+    "usb_address_and_carrier_preserved": true
+  },
+  "read_only_follow_up": {
+    "failure_reproduced_outside_service_sandbox": true,
+    "source_and_backup_identity_checks_passed": true,
+    "failing_stage": "fixed executable no-follow open in _gates",
+    "errno": 40,
+    "legacy_ip_executable_is_symlink": true,
+    "legacy_ip_executable": "/usr/sbin/ip",
+    "resolved_ip_executable": "/usr/bin/ip",
+    "finding": "The strict no-symlink executable check rejects Debian's legacy ip path. Keep that check and use the verified canonical executable."
+  },
+  "not_tested": [
+    "Corrected source startup",
+    "BPF inspection capability sufficiency in the coordinator service",
+    "Source child identity drop",
+    "Valid credential-release gate",
+    "Credentialed Google Test, refresh and completion",
+    "Recurring uploads or Windows USB sharing"
+  ],
+  "google_authorization_payloads_read": false,
+  "worker_started": false,
+  "provider_request_performed": false,
+  "boot_enablement_changed": false,
+  "network_settings_changed": false,
+  "automatic_backups_enabled": false,
+  "notes": "The source account gate reads the protected local locked-account database. No passwords, tokens, account identifiers, private state paths or service invocation identifiers are included here. Private test artifacts were retained."
+}

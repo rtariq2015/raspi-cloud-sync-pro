@@ -1,0 +1,46 @@
+name: Progress notification
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: Plain progress message (1 to 3500 characters; no secrets)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  notify:
+    if: github.repository == 'rtariq2015/raspi-cloud-sync-pro' && github.ref == 'refs/heads/development'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Mention the owner on the fixed progress issue
+        env:
+          PROGRESS_MESSAGE: ${{ inputs.message }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -I -B - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          message = os.environ["PROGRESS_MESSAGE"].strip()
+          if not 1 <= len(message) <= 3500:
+              raise SystemExit("Progress message must contain 1 to 3500 characters.")
+          request = urllib.request.Request(
+              "https://api.github.com/repos/rtariq2015/raspi-cloud-sync-pro/issues/2/comments",
+              data=json.dumps({"body": "@rtariq2015\n\n" + message}).encode("utf-8"),
+              headers={"Accept": "application/vnd.github+json", "Content-Type": "application/json",
+                       "Authorization": "Bearer " + os.environ["GITHUB_TOKEN"],
+                       "X-GitHub-Api-Version": "2022-11-28"}, method="POST")
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  if response.status != 201:
+                      raise RuntimeError()
+          except Exception:
+              raise SystemExit("Progress notification failed.") from None
+          PY

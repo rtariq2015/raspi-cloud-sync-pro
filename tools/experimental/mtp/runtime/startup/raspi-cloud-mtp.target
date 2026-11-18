@@ -1,0 +1,8 @@
+[Unit]
+Description=Explicitly approved CLOUDSTICK MTP startup
+Requires=raspi-cloud-mtp-bind.service
+After=raspi-cloud-mtp-bind.service
+
+[Install]
+WantedBy=multi-user.target
+# Template only. Do not enable or start without live-deployment approval.

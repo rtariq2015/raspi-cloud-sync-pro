@@ -1,0 +1,8 @@
+# REVIEW TEMPLATE ONLY. Merge with the Pi's firewall after checking existing rules.
+table inet raspi_cloud_usb {
+    chain input {
+        type filter hook input priority -5; policy accept;
+        tcp dport 445 iifname != "usb0" iifname != "lo" drop
+        udp dport 67 iifname != "usb0" drop
+    }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "fixture_kind": "credential_free_partial_systemd_rni_ipv4_platform_v1",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie 64-bit",
+  "kernel": "6.18.60+rpt-rpi-v8",
+  "systemd": "257.13-1~deb13u1",
+  "rclone": "1.76.0",
+  "rclone_binary_sha256": "ee07f4d157b53d7b3e4f428aa292b30c1958525eb43afa49291b9b6e988a0ea3",
+  "private_probe_sha256": "ed3e0d2e08c2cf7ce5fdf67b452b3716f4c999dcdd26bf5bc986e40bb4e01e07",
+  "private_probe_tests_sha256": "bcef367bc8da0d44e5cf93a29fc917a078a7fb9dffd26ed3cccf67d5d6ba31e5",
+  "private_probe_tests_passed": 20,
+  "independent_reviews_passed": true,
+  "partial_platform_qualification_passed": true,
+  "native_observations": {
+    "fresh_scoped_transient_units": 4,
+    "root_private_plan_flushed_before_any_start": true,
+    "actual_ordinary_identity_all_capabilities_zero_and_no_new_privileges": true,
+    "actual_seccomp_and_no_inherited_network_descriptors": true,
+    "actual_ipv6_unix_netlink_packet_socket_creation_denied": true,
+    "actual_io_uring_denied": true,
+    "exact_held_strict_cgroup_ingress_and_egress_programs_observed": true,
+    "same_single_wlan0_interface_map_shared_by_both_programs": true,
+    "same_readonly_allowlist_flag_true_shared_by_both_programs": true,
+    "held_maps_unchanged_before_and_after_probes": true,
+    "loopback_tcp_and_udp_positive_before_and_after": true,
+    "strict_loopback_tcp_and_udp_denied": true,
+    "configured_direct_wifi_dns_udp_and_tcp_succeeded": true,
+    "official_readonly_rclone_https_succeeded": true,
+    "bounded_public_response_bytes": 64,
+    "all_owned_qa_units_stopped": true
+  },
+  "preservation": {
+    "wifi_addresses_identity_defaults_and_all_wifi_routes": true,
+    "host_dns_configuration": true,
+    "usb_carrier_and_observed_addresses": true,
+    "account_and_private_configuration_metadata": true,
+    "network_profile_metadata": true,
+    "live_dashboard_and_connector_processes": true,
+    "protected_probe_binaries": true,
+    "power_healthy_before_and_after": true
+  },
+  "limits": {
+    "full_usb_denial_accepted": false,
+    "strict_egress_accepted": false,
+    "credential_release_authorized": false,
+    "credentials_read": false,
+    "provider_called": false,
+    "usb_data_sent": false,
+    "packet_capture_or_peer_discovery_performed": false,
+    "network_routes_firewall_interfaces_or_accounts_changed": false,
+    "boot_enablement_changed": false,
+    "unrelated_units_stopped": false,
+    "production_executor_implemented": false,
+    "memory_limit_enforcement_claimed": false
+  },
+  "remaining": [
+    "Full USB-path negative test bracketed by successful USB positive controls",
+    "Actual per-run credentialed executor confinement and release gate",
+    "Live Google Test and explicit Enable acceptance"
+  ]
+}

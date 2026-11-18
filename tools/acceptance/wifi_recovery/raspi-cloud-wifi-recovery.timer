@@ -1,0 +1,11 @@
+[Unit]
+Description=Sample approved Wi-Fi recovery conditions
+
+[Timer]
+OnBootSec=60
+OnUnitInactiveSec=30
+AccuracySec=1
+Unit=raspi-cloud-wifi-recovery.service
+
+[Install]
+WantedBy=timers.target

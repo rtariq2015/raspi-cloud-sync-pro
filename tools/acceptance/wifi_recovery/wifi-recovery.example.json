@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "interface": "wlan0",
+  "approved_uuid": "00000000-0000-0000-0000-000000000000",
+  "grace_failures": 3,
+  "cooldown_seconds": 300
+}

@@ -1,0 +1,224 @@
+{
+  "stage": "Stage 3 storage capacity planning and safe simulation",
+  "accepted_start_commit": "eeb0cc21458da4f28988ccdd6d9f9c200fece1be",
+  "branch": "development",
+  "scope": "Read-only real-device inventory; disposable offline simulations; no live migration",
+  "observations": {
+    "pi_utc": "2026-11-15T10:39:35Z",
+    "windows_utc": "2026-11-15T10:39:33.0550980Z",
+    "final_pi_utc": "2026-11-15T10:53:40Z"
+  },
+  "pi_storage_bytes": {
+    "allocation_block_bytes": 4096,
+    "available_to_unprivileged_bytes": 50725036032,
+    "boot_partition_bytes": 536870912,
+    "card_device_bytes": 63864569856,
+    "free_including_reserved_bytes": 53332152320,
+    "reserved_or_unavailable_bytes": 2607116288,
+    "root_filesystem_bytes": 62254190592,
+    "root_partition_bytes": 63319310336,
+    "root_used_bytes": 8922038272
+  },
+  "live_image": {
+    "allocated_bytes": 1073745920,
+    "apparent_bytes": 1073741824,
+    "identity_matches_existing_approval": true,
+    "mode": "0600",
+    "opened_or_mounted": false,
+    "owner_uid": 0
+  },
+  "directory_usage": {
+    "backup_worker_state": {
+      "allocated_bytes": 69632,
+      "apparent_bytes": 46648,
+      "directories": 1,
+      "files": 7,
+      "present": true,
+      "skipped_links_or_mounts": 0
+    },
+    "logs": {
+      "allocated_bytes": 1454080,
+      "apparent_bytes": 1663880,
+      "directories": 10,
+      "files": 19,
+      "present": true,
+      "skipped_links_or_mounts": 1
+    },
+    "package_archive_cache": {
+      "allocated_bytes": 624259072,
+      "apparent_bytes": 623970156,
+      "directories": 2,
+      "files": 141,
+      "present": true,
+      "skipped_links_or_mounts": 0
+    },
+    "private_capture_staging": {
+      "allocated_bytes": 4096,
+      "apparent_bytes": 0,
+      "directories": 1,
+      "files": 0,
+      "present": true,
+      "skipped_links_or_mounts": 0
+    },
+    "project_rollback_records": {
+      "allocated_bytes": 172032,
+      "apparent_bytes": 95216,
+      "directories": 4,
+      "files": 19,
+      "present": true,
+      "skipped_links_or_mounts": 0
+    },
+    "project_total": {
+      "allocated_bytes": 1635086336,
+      "apparent_bytes": 1627914646,
+      "directories": 230,
+      "files": 3103,
+      "present": true,
+      "skipped_links_or_mounts": 0
+    },
+    "published_staging": {
+      "allocated_bytes": 536219648,
+      "apparent_bytes": 535857742,
+      "directories": 47,
+      "files": 54,
+      "present": true,
+      "skipped_links_or_mounts": 0
+    }
+  },
+  "live_ready_batches": 15,
+  "verified_job_payload_bytes": 214963673,
+  "windows": {
+    "filesystem": "exFAT",
+    "free_bytes": 854884352,
+    "capacity_bytes": 1070596096,
+    "partition_bytes": 1072693248,
+    "disk_bytes": 1073741824,
+    "drive_type": "Removable",
+    "health_status": "Healthy",
+    "operational_status": "Online",
+    "exact_usb_disk_identity_matches": true,
+    "volume_identity_matches_previous_test": true,
+    "not_boot_or_system_disk": true,
+    "ordinary_windows_test_computer": true,
+    "writes_performed": false,
+    "eject_requested": false
+  },
+  "capacity_model": {
+    "policy": "Conservative additional-space envelope; planning only, no live admission limit installed.",
+    "available_bytes": 50725036032,
+    "fixed_reserve_bytes": 5368709120,
+    "rows": [
+      {
+        "candidate_gib": 4,
+        "new_image_bytes": 4294967296,
+        "one_full_capture_bytes": 4294967296,
+        "one_retained_incomplete_capture_bytes": 4294967296,
+        "os_log_margin_bytes": 4294967296,
+        "migration_workspace_bytes": 1073741824,
+        "required_additional_bytes": 18253611008,
+        "retention_runway_bytes": 32471425024,
+        "fits_conservative_envelope": true
+      },
+      {
+        "candidate_gib": 8,
+        "new_image_bytes": 8589934592,
+        "one_full_capture_bytes": 8589934592,
+        "one_retained_incomplete_capture_bytes": 8589934592,
+        "os_log_margin_bytes": 4294967296,
+        "migration_workspace_bytes": 1073741824,
+        "required_additional_bytes": 31138512896,
+        "retention_runway_bytes": 19586523136,
+        "fits_conservative_envelope": true
+      },
+      {
+        "candidate_gib": 16,
+        "new_image_bytes": 17179869184,
+        "one_full_capture_bytes": 17179869184,
+        "one_retained_incomplete_capture_bytes": 17179869184,
+        "os_log_margin_bytes": 4294967296,
+        "migration_workspace_bytes": 1073741824,
+        "required_additional_bytes": 56908316672,
+        "retention_runway_bytes": -6183280640,
+        "fits_conservative_envelope": false
+      }
+    ],
+    "recommended_gib": 8,
+    "expected_qa_daily_bytes": "UNKNOWN; synthetic acceptance sizes do not establish workload",
+    "retention_examples_mib_per_day": [
+      10,
+      100,
+      500
+    ]
+  },
+  "preservation": {
+    "verified_versions": 19,
+    "history_events": 95,
+    "full_jobs_events_and_scheduler_rows_match_stage2": true,
+    "boot_unchanged": true,
+    "service_processes_and_states_unchanged": true,
+    "image_metadata_unchanged": true,
+    "history_rows_unchanged_at_final_check": true,
+    "available_space_unchanged": true,
+    "final_usb_host_owned": true,
+    "final_no_capture_loop_or_mount": true,
+    "pending_jobs": 0,
+    "failed_jobs": 0,
+    "rclone_processes": 0,
+    "active_enabled_services": {
+      "raspi-cloud-mass-storage-appliance.service": {
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled"
+      },
+      "raspi-cloud-mass-storage-backup.service": {
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled"
+      }
+    }
+  },
+  "local_tests": {
+    "disposable_simulations": {
+      "passed": 15,
+      "failed": 0,
+      "resource_warnings_are_errors": true,
+      "fixture": "4 MiB opaque regular files with generated MBR; not real exFAT",
+      "command": "PYTHONPATH=src .venv/bin/python -W error::ResourceWarning -m unittest discover -s tools/acceptance/storage_capacity -p 'test_*.py' -v"
+    },
+    "existing_storage_gadget_appliance": {
+      "passed": 73,
+      "failed": 0,
+      "command": "PYTHONPATH=src:tests .venv/bin/python -m unittest test_storage test_gadget_controller test_mass_storage_appliance"
+    },
+    "total_focused_tests_passed": 88,
+    "historical_full_suite_rerun": false,
+    "independent_harness_review": "PASS after no-clobber publication and explicit changed-candidate rollback guards",
+    "independent_plan_review": "Capacity and preservation confirmed; maintenance-hold prerequisite added because service stop does not detach USB"
+  },
+  "not_tested": [
+    "Actual larger exFAT creation/fsck/copy and metadata preservation",
+    "Larger-volume Windows enumeration",
+    "Physical power-loss durability",
+    "Live image migration or rollback",
+    "New cloud uploads or historical cloud-object download"
+  ],
+  "prerequisites_before_live_migration": [
+    "Reviewed size-capable controller/creation support; current gate is 1 GiB",
+    "Reviewed maintenance hold with clean host release and verified detachment",
+    "Real disposable exFAT tool/filesystem validation",
+    "Reviewed low-space admission appropriate to chosen capacity",
+    "Owner usage and retention confirmation",
+    "Explicit live maintenance approval"
+  ],
+  "operations_performed": {
+    "live_image_open_or_mount": false,
+    "live_resize_or_replace": false,
+    "real_disk_format_or_partition": false,
+    "service_restart": false,
+    "network_changes": false,
+    "credential_changes": false,
+    "cloud_calls": false,
+    "data_or_history_deletion": false,
+    "windows_copy_or_eject": false
+  }
+}

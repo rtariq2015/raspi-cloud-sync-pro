@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "platform": "Raspberry Pi Zero 2 W, Raspberry Pi OS Trixie aarch64",
+  "dashboard_version": "0.1.0.dev11",
+  "preparation_version": "0.1.0.dev14",
+  "fresh_owner_preparation_accepted": true,
+  "scope": "Real owner HTTPS preparation through the restored persistent broker, followed by independent offline configuration validation",
+  "browser": {
+    "real_owner_session_http_status": 200,
+    "actual_backups_form_observed": true,
+    "default_folder_label_unchanged": true,
+    "actual_prepare_button_clicked": true,
+    "prepare_http_status": 202,
+    "observed_states": [
+      "stale_receipt",
+      "requested",
+      "prepared_untested"
+    ],
+    "eventual_prepared_test_required_label_rendered": true,
+    "prepare_button_enabled_after_completion": true,
+    "test_enable_control_form_absent": true,
+    "automatic_uploads_enabled": false
+  },
+  "independent_offline_verification": {
+    "passed": true,
+    "ordinary_source_checks": 2,
+    "ordinary_backup_receipt_checks": 1,
+    "source_owner_binding_verified": true,
+    "actual_config_binding_matches": true,
+    "request_created_after_restoration": true,
+    "disabled_untested_flags_verified": true,
+    "persistent_enabled_watcher_verified": true,
+    "dashboard_connector_invocations_preserved": true,
+    "broker_inactive_and_pid_zero": true,
+    "last_zero_broker_exit_observed": true
+  },
+  "review": {
+    "read_only_verifier_tests_passed": 11,
+    "independent_peer_review_passed": true,
+    "python39_grammar_and_ruff_passed": true,
+    "initial_verifier_refusal_retained": true,
+    "confirmed_initial_snapshot_bytes": 8773,
+    "original_snapshot_read_limit_bytes": 8192,
+    "corrected_limit_for_only_fixed_snapshot_file_bytes": 16384
+  },
+  "limits": {
+    "cloud_requests_or_token_refresh_performed": false,
+    "google_account_verified": false,
+    "cloud_folder_exists_verified": false,
+    "current_cloud_worker_checked": false,
+    "test_enable_or_automatic_uploads_accepted": false,
+    "actual_reboot_accepted": false,
+    "windows_usb_share_accepted": false
+  },
+  "notes": "The source identity validated current owner, grant, request and stored receipt under existing shared locks without creating new lock files. The separate backup identity exported a private receipt derived from the actual prepared config bytes; Root received only framed metadata and required complete EOF and zero child exits. A second source check bracketed the backup export and matched the same authority. The first read-only verifier refused an 8773-byte restoration metadata snapshot under its 8192-byte bound; only that fixed metadata file received a tested 16384-byte identity-checked unique-JSON reader. Original failed evidence remains retained. No owner request was repeated for this repair, no config or credential was rewritten by the verifiers, and no cloud access or upload was authorized. Passwords, tokens, account/request identifiers, private paths and service invocation identifiers are omitted."
+}

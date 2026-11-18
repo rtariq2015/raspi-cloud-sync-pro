@@ -1,0 +1,17 @@
+{
+  "environment": "isolated Linux container; not Pi, Windows or USB acceptance",
+  "samba": "Version 4.22.11-Debian-4.22.11+dfsg-0+deb13u1",
+  "encrypted_smb3_session": true,
+  "dialect": "0x311",
+  "active_writer_defers_before_batch_creation": true,
+  "snapshot_blocks_new_write_and_delete": true,
+  "backup_account_cannot_write": true,
+  "post_close_staged_bytes_and_sha256_match": true,
+  "injected_read_failure_retains_incomplete_not_ready": true,
+  "original_retained": true,
+  "changed_version_keeps_previous_snapshot": true,
+  "cloud_accounts_used": false,
+  "hardware_gate_changed": false,
+  "date": "2026-11-13",
+  "schema_version": 1
+}

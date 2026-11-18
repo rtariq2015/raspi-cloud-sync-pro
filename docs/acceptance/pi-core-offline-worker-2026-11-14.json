@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "target": "Raspberry Pi Zero 2 W Rev 1.0",
+  "scope": "real_captured_usb_file_queued_across_two_fresh_workers_in_isolated_network_namespace_then_real_google_verified",
+  "worker_native_version": "0.1.0.dev17",
+  "release": false,
+  "results": {
+    "usb_capture_and_staged_retention": "PASS",
+    "no_network_queueing": "PASS",
+    "offline_worker_restart_queue_retention": "PASS",
+    "zero_offline_attempts_spent": "PASS",
+    "network_restored_google_upload": "PASS",
+    "downloaded_sha256_verification": "PASS",
+    "previous_verified_jobs_retained_without_reupload": "PASS",
+    "wifi_ssh_preserved": "PASS",
+    "physical_wifi_radio_outage": "NOT_TESTED",
+    "physical_pi_reboot": "NOT_TESTED"
+  },
+  "offline_fresh_worker_runs": 2,
+  "queued_files": 1,
+  "file_bytes": 72,
+  "offline_attempts": 0,
+  "restored_network_attempts": 1,
+  "verified_jobs_after": 5,
+  "verified_bytes_after": 77599349,
+  "normal_worker_unit_unchanged": true,
+  "normal_worker_restored": true,
+  "independent_recovery_timer_stopped": true,
+  "qa_unit_boot_enabled": false,
+  "physical_wifi_radio_disconnected": false,
+  "system_network_settings_changed": false,
+  "automatic_deletion": false,
+  "source_retained": true,
+  "staged_copy_retained": true,
+  "native_operator_sha256": {
+    "prepare_core_offline_namespace_test.py": "653e8b8d8acbdee9c3079c9d4bf82c09c3e73d9f8a1fea05dcc66a9e71546f7e",
+    "run_core_offline_namespace_test.py": "1c884c9541e541f3c2f21b0208992992945e3db8fd9cdffe3f3694f65bcc7726",
+    "restore_core_worker_after_offline_test.py": "6195f934393d73c41dc06c59275584a7fe0d4419c510d5d504b188088e1dfc7f"
+  },
+  "limits": "PrivateNetwork isolated only the QA backup worker. The Pi radio/router and SSH were not disconnected. This verifies queue policy and real cloud resumption, not a physical Wi-Fi failure or reboot. Retryable provider-failure persistence beyond the old three-attempt limit is a separate source improvement.",
+  "privacy": "Private filenames, user file hashes and credentials are omitted."
+}

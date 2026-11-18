@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+early_access: false
+enable_free_tier: true
+tone_instructions: >-
+  Keep feedback concise and actionable. Prioritize correctness, security,
+  data integrity, and missing regression coverage. Explain concrete failure
+  scenarios and avoid speculative or style-only rewrites.
+
+reviews:
+  profile: chill
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  collapse_walkthrough: true
+  sequence_diagrams: false
+  in_progress_fortune: false
+  poem: false
+  auto_approvals:
+    enabled: false
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - "^development$"
+      - "^main$"
+  path_filters:
+    - "!**/.trail/**"
+    - "!**/graft/**"
+    - "!**/.venv/**"
+    - "!**/__pycache__/**"
+    - "!**/*.egg-info/**"
+    - "!**/node_modules/**"
+    - "!**/target/**"
+    - "!**/dist/**"
+  path_instructions:
+    - path: "src/raspi_cloud_sync_pro/**"
+      instructions: >-
+        Preserve Python 3.9 compatibility in the core package and the project's
+        explicit capability and authorization gates. Prioritize storage ownership,
+        genuine host-eject evidence, read-only capture, crash recovery, bounded
+        uploads, and accurate backup verification states. Unknown or stale evidence
+        must not become permission or a claim of success. Check authentication,
+        authorization, CSRF protection, path traversal, symlink races, subprocess
+        boundaries, and credential redaction. Flag concrete regressions rather
+        than proposing unrelated architecture changes.
+    - path: "**/test_*.py"
+      instructions: >-
+        Use the existing unittest framework and hardware-free fixtures. Cover
+        meaningful failure, recovery, authorization, and boundary cases. Tests
+        must not require a real Pi, production credentials, real cloud uploads,
+        or changes to the developer machine's network or storage configuration.
+    - path: "rust/**"
+      instructions: >-
+        Check resource ownership, error propagation, concurrency, and cancellation
+        behavior. Preserve the pinned toolchain and locked dependency workflow.
+        Changes to staged-file handling must preserve path and identity checks.
+    - path: "tools/**"
+      instructions: >-
+        Preserve operator opt-in and preflight checks for device or system changes.
+        Check quoting, subprocess return codes, bounded waits, cleanup, and
+        isolation. Distinguish hardware-free fixtures from real-device acceptance.
+    - path: ".github/workflows/**"
+      instructions: >-
+        Preserve least-privilege workflow permissions and isolated test execution.
+        Check dependency integrity and untrusted pull-request inputs. CI success
+        must not be described as proof of Raspberry Pi hardware acceptance.
+    - path: "docs/**"
+      instructions: >-
+        Keep capability, validation, and deployment claims consistent with the
+        implementation and recorded evidence. Distinguish planned behavior,
+        automated checks, real-device acceptance, and current runtime health.
+
+knowledge_base:
+  automatic_linking_mode: disabled
+  learnings:
+    scope: local
+  issues:
+    scope: local
+  pull_requests:
+    scope: local
+
+chat:
+  auto_reply: true

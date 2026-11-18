@@ -1,0 +1,34 @@
+[Unit]
+Description=Raspi Cloud Sync Pro approved disposable mass-storage capture
+Requires=systemd-modules-load.service sys-kernel-config.mount
+After=local-fs.target systemd-modules-load.service sys-kernel-config.mount
+RequiresMountsFor=/var/lib/raspi-cloud-sync-pro
+ConditionPathExists=/etc/raspi-cloud-sync-pro/MASS_STORAGE_APPLIANCE_APPROVED
+
+[Service]
+Type=simple
+# This is a protected, separately approved test build, not the public package.
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B /opt/raspi-cloud-sync-pro/qa/mass-storage-appliance-dev22/launcher.py
+WorkingDirectory=/
+Environment=PATH=/usr/sbin:/usr/bin:/sbin:/bin HOME=/nonexistent LANG=C LC_ALL=C
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE CAP_SYS_PTRACE
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+PrivateMounts=no
+# Loop/mount observation requires PID1's host mount namespace. PrivateTmp,
+# PrivateDevices, ProtectSystem and filesystem namespace restrictions are not
+# compatible with this prototype. The Root controller has no network/provider API.
+# CAP_SYS_PTRACE permits the required read of PID1's mount-namespace link; without
+# it the native startup guard refuses before any device or filesystem mutation.
+LimitCORE=0
+Restart=no
+TimeoutStopSec=30
+
+# Only the separately approved cold-capable test launcher may be boot-enabled.
+# Runtime never loads/unloads drivers: backed-up OS preparation must supply
+# libcomposite and configfs, with competing legacy gadget loaders disabled.
+# No ExecStop unbind: stopping while host-owned must not eject its loaded LUN.
+[Install]
+WantedBy=multi-user.target

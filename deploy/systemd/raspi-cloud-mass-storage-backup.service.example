@@ -1,0 +1,41 @@
+[Unit]
+Description=Raspi Cloud Sync Pro captured USB files to Google Drive
+After=NetworkManager.service
+ConditionPathExists=/var/lib/raspi-cloud-sync-pro/mass-storage-backup/WORKER_APPROVED
+
+[Service]
+Type=simple
+User=raspi-backup
+Group=raspi-backup
+# The core trial reuses the protected interpreter with a fixed reviewed package
+# launcher. Re-pin both paths for another tested build; never use /current.
+ExecStart=/opt/raspi-cloud-sync-pro/releases/0.1.0.dev17/venv/bin/python3 -I -B /opt/raspi-cloud-sync-pro/qa/mass-storage-worker-dev22/launcher.py backup-staged --config /var/lib/raspi-cloud-sync-pro/mass-storage-backup/worker.json
+WorkingDirectory=/
+Environment=PATH=/opt/raspi-cloud-sync-pro/tools/mass-storage-bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=HOME=/nonexistent LANG=C LC_ALL=C
+UnsetEnvironment=HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy RCLONE_CONFIG RCLONE_CONFIG_PASS REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE SSL_CERT_DIR
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+ReadWritePaths=/var/lib/raspi-cloud-sync-pro/mass-storage-backup
+LimitCORE=0
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+
+[Install]
+# Copying this example never enables it. Validate a real backup before enabling.
+WantedBy=multi-user.target

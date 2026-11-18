@@ -1,0 +1,10 @@
+[Unit]
+Description=Observe new owner Google preparation requests
+ConditionPathExists=/etc/raspi-cloud-sync-pro/GOOGLE_SETUP_APPROVED
+
+[Path]
+# Atomic pointer replacement triggers one preparation attempt. Existing pointers
+# need a deliberate manual service start after the watcher is started.
+PathChanged=/var/lib/raspi-cloud-sync-pro/dashboard/google-setup/current.json
+Unit=raspi-cloud-google-setup.service
+# No Install section and no PathExists retrigger loop.

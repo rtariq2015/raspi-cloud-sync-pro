@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "socket_path": "/run/raspi-cloud-mtp/completion.sock",
+  "source": "/var/lib/raspi-cloud-sync-pro/mtp-experiment/export",
+  "work": "/var/lib/raspi-cloud-sync-pro/mtp-experiment/private",
+  "staging": "/var/lib/raspi-cloud-sync-pro/mass-storage-staging",
+  "source_uid": null,
+  "target_uid": null,
+  "target_gid": null,
+  "reserve_bytes": 2147483648,
+  "max_bytes": 4294967282
+}

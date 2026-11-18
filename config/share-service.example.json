@@ -1,0 +1,12 @@
+{
+  "device_policy": "/etc/raspi-cloud-sync-pro/device.json",
+  "share_root": "/srv/raspi-cloud-sync-pro/share",
+  "staging_directory": "/var/lib/raspi-cloud-sync-pro/smb-staging",
+  "history": "/var/lib/raspi-cloud-sync-pro/smb-state/history.sqlite3",
+  "credentials_file": "/etc/raspi-cloud-sync-pro/smb-credentials.json",
+  "rclone_config": "/var/lib/raspi-cloud-sync-pro/smb-state/rclone.conf",
+  "destinations": [
+    {"kind": "koofr_webdav", "remote": "koofr:RaspiCloudSyncPro"},
+    {"kind": "google_drive_rclone", "remote": "gdrive:RaspiCloudSyncPro"}
+  ]
+}

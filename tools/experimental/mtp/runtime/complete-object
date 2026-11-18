@@ -1,0 +1,13 @@
+#!/usr/bin/python3 -I
+"""Fixed future-install client; no USB/cloud operations or configuration input."""
+import sys
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+site = Path("/opt/raspi-cloud-sync-pro/experimental/mtp/site")
+if not site.is_dir():
+    raise SystemExit("MTP experiment is not deployed")
+sys.path.insert(0, str(site))
+from raspi_cloud_sync_pro.mtp_broker import client_main
+
+raise SystemExit(client_main())

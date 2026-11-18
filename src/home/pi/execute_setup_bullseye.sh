@@ -1,4 +1,9 @@
 #! /bin/sh
+# Raspi Cloud Sync Pro: retained upstream setup is quarantined before any command.
+echo "Setup disabled: creates/formats an image and enables unsafe legacy services. See docs/SAFETY.md." >&2
+exit 2
+
+# Original upstream setup follows for source review only.
 echo "-----------------------------------------------------------------"
 echo "Create configuration for loading otg usb drivers on boot"
 echo "-----------------------------------------------------------------"

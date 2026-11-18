@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "state_directory": "/var/lib/raspi-cloud-sync-pro/mass-storage-backup",
+  "staging_directory": "/var/lib/raspi-cloud-sync-pro/mass-storage-staging",
+  "rclone_config": "/var/lib/raspi-cloud-sync-pro/mass-storage-backup/rclone.conf",
+  "destinations": [
+    {"kind": "google_drive_rclone", "remote": "rcsp_google:RaspiCloudSyncPro"}
+  ],
+  "approved_uplinks": ["wifi"],
+  "allow_metered": false,
+  "interval": 5
+}

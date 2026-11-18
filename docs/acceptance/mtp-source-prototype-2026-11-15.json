@@ -1,0 +1,152 @@
+{
+  "baseline_commit": "92e032f5e4371aefcaff6531c5db0dac7228a12e",
+  "date": "2026-11-15",
+  "integrated_pipeline": {
+    "consecutive_transfers_without_eject": 3,
+    "existing_staged_worker": true,
+    "metrics": [
+      {
+        "completion_publish_ms": 33.775,
+        "publish_to_first_worker_tick_upload_ms": 26.101,
+        "sha256": "58c93e5c772e5152dd15d95e71ba9cacb1a0d6c6490f8c53d8a87068341d6dd6",
+        "size": 10000,
+        "snapshot_and_download_hash_match": true
+      },
+      {
+        "completion_publish_ms": 39.429,
+        "publish_to_first_worker_tick_upload_ms": 25.825,
+        "sha256": "b2c5c944fac390b50645d6bbf2552d42aac0ddadfe269d3b52bd3ea27843ac75",
+        "size": 12000,
+        "snapshot_and_download_hash_match": true
+      },
+      {
+        "completion_publish_ms": 38.116,
+        "publish_to_first_worker_tick_upload_ms": 26.23,
+        "sha256": "54b8fd5c8ad4a3c7db8108ed7b05faa1ed17b295e0f9e674c19afa27abc86ed0",
+        "size": 13000,
+        "snapshot_and_download_hash_match": true
+      }
+    ],
+    "real_fd_broker": true,
+    "real_google_calls": false,
+    "real_patched_receiver": true,
+    "real_windows_test": false,
+    "status": "PASS",
+    "timing_scope": "Development computer synthetic IO and first manual worker tick, not USB/cloud latency",
+    "upstream_commit": "8f20c6f8d47d1057c9793aa23bd0a678d54084e3",
+    "usb_or_gadget_operations": false,
+    "verified_synthetic_backups": 3
+  },
+  "limitations": {
+    "arm64_patched_build_tested": false,
+    "leading_double_dash_top_level_name": "Refused by helper argument parser",
+    "max_known_object_bytes": 4294967282,
+    "mtp_google_cloud_acceptance_tested": false,
+    "siemens_compatibility": "UNKNOWN; incompatible if drive-letter-only or WPD/MTP denied",
+    "unknown_length_or_partial_edit_supported": false,
+    "windows_driver_binding_tested": false,
+    "windows_interface": "Portable MTP device/storage named CLOUDSTICK; no native drive letter"
+  },
+  "native_tests": {
+    "cases": 38,
+    "daemon_started": false,
+    "full_patched_daemon_build": true,
+    "scenarios": [
+      "complete",
+      "zero-file",
+      "short-write",
+      "eintr",
+      "consecutive",
+      "enospc",
+      "zero-write",
+      "fsync-failure",
+      "open-failure",
+      "disconnect",
+      "cancel",
+      "cancel-before-data",
+      "early-zlp",
+      "early-short",
+      "path-replaced",
+      "symlink",
+      "wrong-transaction",
+      "wrong-length",
+      "unarmed",
+      "unknown-size",
+      "too-large",
+      "above-ceiling",
+      "ceiling-metadata",
+      "oversized-first-packet",
+      "partial-edit",
+      "helper-failure",
+      "helper-timeout",
+      "session-replay",
+      "session-closed",
+      "close-open-same-session",
+      "usb-reset-before-data",
+      "usb-reset-during-read",
+      "malformed-command-replay",
+      "unsupported-command-replay",
+      "low-space-start",
+      "low-space-mid",
+      "stale-info-epoch",
+      "reset-between-info-command"
+    ],
+    "synthetic_usb_reads": true
+  },
+  "next_gate": "Separate explicit approval for one disposable ordinary-Windows physical MTP acceptance; no live execution in this milestone.",
+  "objective": "Isolated no-eject MTP completed-object prototype",
+  "platform_readonly": {
+    "aarch64": true,
+    "dwc2_currently_loaded": false,
+    "functionfs_currently_loaded": false,
+    "functionfs_module_present_for_installed_kernel": true,
+    "functionfs_module_vermagic_matches": true,
+    "kernel": "6.18.60+rpt-rpi-v8",
+    "libcomposite_currently_loaded": true,
+    "model": "Raspberry Pi Zero 2 W Rev 1.0",
+    "read_only": true
+  },
+  "preservation": {
+    "clinical_system_accessed": false,
+    "cloud_uploads_or_deletions": 0,
+    "google_credentials_or_destination_changed": false,
+    "live_8gib_image_read_or_mounted": false,
+    "live_gadget_changed": false,
+    "live_services_restarted_or_installed": false,
+    "stable_controller_worker_upload_engine_modified": false
+  },
+  "python_tests": {
+    "command": "PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -q",
+    "errors": 0,
+    "initial_environment_note": "System Python lacked optional dashboard dependencies; complete suite passed in the existing project virtual environment. No packages installed.",
+    "larger_streaming_fixture_bytes": 16777216,
+    "new_mtp_tests": 42,
+    "optional_skipped": 3,
+    "passed": 1085,
+    "run": 1088
+  },
+  "security_review": {
+    "credential_access_by_responder": false,
+    "early_and_per_write_space_reserve": true,
+    "failed_or_canceled_before_commit_published": false,
+    "held_descriptor_and_distinct_snapshot": true,
+    "postcommit_ack_loss": "Retain possibly-published ready batch; existing worker deduplication handles retry; never delete or infer rollback.",
+    "publication": "Linux RENAME_NOREPLACE followed by both parent-directory fsyncs",
+    "root_owned_source_group_runtime": true,
+    "root_socket_path_race_corrected": true,
+    "session_epoch_lifecycle_refusal": true
+  },
+  "status": "SOURCE_TESTED_NOT_DEPLOYED",
+  "upstream": {
+    "commit": "8f20c6f8d47d1057c9793aa23bd0a678d54084e3",
+    "completion_helper": "/opt/raspi-cloud-sync-pro/experimental/mtp/complete-object",
+    "copyright": "2018-2026 Viveris Technologies",
+    "declared_version": "v1.10.2",
+    "hardware_tested": false,
+    "license": "GPL-3.0-or-later",
+    "max_file_bytes": 4294967282,
+    "patch_sha256": "3e25391d98100a03067640889d058073777bf836a010b6d8456fe84df26668c8",
+    "repository": "https://github.com/viveris/uMTP-Responder",
+    "reserve_bytes": 2147483648
+  }
+}

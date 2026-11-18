@@ -1,0 +1,29 @@
+[Unit]
+Description=Raspi Cloud Sync Pro authenticated dashboard
+After=network.target
+ConditionPathExists=/etc/raspi-cloud-sync-pro/DASHBOARD_APPROVED
+
+[Service]
+Type=simple
+User=raspi-dashboard
+Group=raspi-dashboard
+WorkingDirectory=/var/lib/raspi-cloud-sync-pro/dashboard
+# Review the HTTPS hostname before using this template behind a public proxy.
+Environment=DASHBOARD_ORIGIN=https://replace-with-your-hostname.example
+ExecStart=/opt/raspi-cloud-sync-pro/current/venv/bin/raspi-cloud-sync-pro dashboard --state /var/lib/raspi-cloud-sync-pro/dashboard --port 8080 --public-origin ${DASHBOARD_ORIGIN}
+Restart=no
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/raspi-cloud-sync-pro/dashboard
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+# ip route observations use Netlink; the service retains no network-admin capability.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+CapabilityBoundingSet=
+MemoryMax=160M

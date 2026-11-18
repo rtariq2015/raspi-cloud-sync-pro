@@ -1,0 +1,45 @@
+{
+  "server_version": "Version 4.22.11-Debian-4.22.11+dfsg-0+deb13u1",
+  "archives": [
+    {
+      "package": "liburing2",
+      "version": "2.9-1",
+      "architecture": "arm64",
+      "source_filename": "pool/main/libu/liburing/liburing2_2.9-1_arm64.deb",
+      "download_filename": "liburing2_2.9-1_arm64.deb",
+      "sha256": "523dfbe829acf3aeae6df81528426a75995944923fd6bd35f6ccd0332034c713"
+    },
+    {
+      "package": "samba-common-bin",
+      "version": "2:4.22.11+dfsg-0+deb13u1",
+      "architecture": "arm64",
+      "source_filename": "pool/main/s/samba/samba-common-bin_4.22.11+dfsg-0+deb13u1_arm64.deb",
+      "download_filename": "samba-common-bin_2%3a4.22.11+dfsg-0+deb13u1_arm64.deb",
+      "sha256": "183ab39ff873215275c0567d1f69623ed625bfaff916d2e065fe7b60308b4992"
+    },
+    {
+      "package": "samba-common",
+      "version": "2:4.22.11+dfsg-0+deb13u1",
+      "architecture": "all",
+      "source_filename": "pool/main/s/samba/samba-common_4.22.11+dfsg-0+deb13u1_all.deb",
+      "download_filename": "samba-common_2%3a4.22.11+dfsg-0+deb13u1_all.deb",
+      "sha256": "d23f8db2eaa4b5d2f23b16299231b9496f2082f738d7e3555f2f77456688c84d"
+    },
+    {
+      "package": "samba",
+      "version": "2:4.22.11+dfsg-0+deb13u1",
+      "architecture": "arm64",
+      "source_filename": "pool/main/s/samba/samba_4.22.11+dfsg-0+deb13u1_arm64.deb",
+      "download_filename": "samba_2%3a4.22.11+dfsg-0+deb13u1_arm64.deb",
+      "sha256": "053145cd071f6ac5cccf7963ceb20c2de7469c1eebdae067473051e1f0ddc3fc"
+    }
+  ],
+  "global_package_state_changed": false,
+  "maintainer_scripts_run": false,
+  "global_samba_config_created": false,
+  "services_started_or_enabled": false,
+  "usb_wifi_firewall_boot_changed": false,
+  "schema_version": 1,
+  "date": "2026-11-13",
+  "context": "Privately extracted ARM64 QA binaries; not a global Samba installation or a protocol acceptance result."
+}

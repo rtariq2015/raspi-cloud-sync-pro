@@ -1,0 +1,25 @@
+[Unit]
+Description=Recover one explicitly approved saved Wi-Fi profile
+After=NetworkManager.service
+ConditionPathExists=/etc/raspi-cloud-sync-pro/wifi-recovery.json
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/bin/python3 -I -B /opt/raspi-cloud-sync-pro/operators/wifi-recovery/recover.py
+TimeoutStartSec=150
+UMask=0077
+StateDirectory=raspi-cloud-sync-pro/wifi-recovery
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET
+ReadWritePaths=/var/lib/raspi-cloud-sync-pro/wifi-recovery
