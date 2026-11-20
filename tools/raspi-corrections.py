@@ -119,7 +119,7 @@ def run_worker(objective, config, cycle, evidence):
     prompt.write_text(config["prompts"][cycle - 1] + "\n")
     with (evidence / "worker.log").open("xb") as log:
         result = subprocess.run(
-            [str(WORKER), "coding", "--milestone", objective, "--task-file", str(prompt)],
+            [str(WORKER), "coding", "--isolated", "--milestone", objective, "--task-file", str(prompt)],
             cwd=config["worktree"], stdout=log, stderr=subprocess.STDOUT, check=False,
         )
     return result.returncode
@@ -253,6 +253,9 @@ def main():
         if not any(group.startswith(prefix) and group.endswith("/raspi-omx-specialist.scope")
                    for group in groups):
             raise GateError("Use the exclusive specialist scope through tools/raspi-ai-team")
+        version = subprocess.check_output([CODEX, "--version"], text=True).strip()
+        if version != "codex-cli 0.165.0":
+            raise GateError("The fixed verifier Codex version changed; reverify before launching")
         import runpy
         validate = runpy.run_path(str(WORKER))["validate_milestone"]
         evidence = STATE / "correction-evidence"
@@ -260,7 +263,7 @@ def main():
         if args.action == "recover":
             return recover(LEDGER, args.objective, validate, evidence, args.reservation_id)
         return execute(LEDGER, args.objective, validate, evidence)
-    except (GateError, OSError, ValueError, KeyError, TypeError) as exc:
+    except (GateError, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as exc:
         print(f"Correction gate stopped: {exc}", file=sys.stderr)
         return 1
 

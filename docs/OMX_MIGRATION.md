@@ -138,10 +138,14 @@ See [Orca orchestration](https://orca.dev/docs/cli/orchestration).
 
 The existing milestone key is the objective identity. Record one approved
 objective per key. Add a `correction_gate` record only for a scoped correction
-whose known failure can be reproduced deterministically. Record the finding,
+whose known failure can be reproduced deterministically. The private laptop launcher must support
+`raspi-agent coding --isolated`. This retains the coding model and workspace
+sandbox while disabling hooks, apps, plugins, browser and computer control,
+MCP servers, Web search, extra writable roots and shell network access.
+Regular specialist launches keep their existing profiles. Record the finding,
 absolute approved `worktree`, absolute `check_file` under private Raspi setup
 state outside the specialist's writable checkout, `check_sha256`,
-`worker_sha256` for the installed `raspi-agent`, the verifier's distinct
+`worker_sha256` for the installed launcher that supports `--isolated`, the verifier's distinct
 `failure_exit`, and one or two exact ordered coding `prompts`. Review the
 verifier and its inputs before approval. The verifier runs with the read-only Codex
 permission profile, with network disabled. A passing preflight consumes no
@@ -174,7 +178,8 @@ For rollback, stop and verify the specialist scope, then remove the guarded entr
 from coordinator routing. Compare the exact candidate against the activation
 backup before selectively restoring the launcher. Preserve later edits and all
 ledger reservations. The existing leader, `--specialist`, `--stop-specialist`
-and exact resume remain available.
+and exact resume remain available. Restore the matching private launcher backup
+only if the active launcher still matches its verified hash.
 
 In the disposable fixture, one invocation launched two authenticated Sol/medium
 coding workers. The first exited zero while the external verifier returned its
@@ -187,6 +192,11 @@ objective reruns the verifier without starting a worker. If the configuration
 or verified artifacts have drifted, the command stops for reassessment. A separate
 authenticated fixture kept its test failure through two attempts, exhausted its
 budget and rejected a fresh invocation. Local ledger tests cover renaming,
-result replay, worker failure and recovery of already passing artifacts. This verifies the guarded correction route. Whole-objective
+result replay, worker failure and recovery of already passing artifacts. These
+checks verify the guarded correction route. A separate inventory-label fixture
+also verified the final isolated writer configuration. It denied a canary write
+outside the approved checkout and started both scoped corrections with optional
+tool surfaces disabled. The independent verifier accepted three cases after the
+second correction. Whole-objective
 planning, research, testing, review, documentation and GitHub handoffs are still
 coordinator-supervised.

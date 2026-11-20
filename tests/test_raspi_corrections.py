@@ -1,8 +1,10 @@
 import contextlib
 import io
 import json
+import os
 from pathlib import Path
 import runpy
+from subprocess import CompletedProcess
 import sys
 import tempfile
 import unittest
@@ -146,6 +148,17 @@ class RaspiCorrectionTests(unittest.TestCase):
         self.assertEqual((attempt["status"], attempt["worker_exit"], attempt["check_exit"]),
                          ("blocked", 17, None))
 
+    def test_guarded_worker_uses_the_isolated_fixed_route(self):
+        evidence = self.evidence / "attempt"
+        evidence.mkdir()
+        with patch("subprocess.run", return_value=CompletedProcess([], 0)) as run:
+            self.assertEqual(GATE["run_worker"](OBJECTIVE, self.config, 1, evidence), 0)
+        self.assertEqual(run.call_args.args[0], [
+            str(RUNTIME["WORKER"]), "coding", "--isolated", "--milestone", OBJECTIVE,
+            "--task-file", str(evidence / "task.txt"),
+        ])
+        self.assertEqual(run.call_args.kwargs["cwd"], self.config["worktree"])
+
     def test_drift_or_unexpected_preflight_does_not_reserve(self):
         with patch.dict(RUNTIME, run_worker=lambda *_: self.fail("unexpected dispatch"),
                         run_check=lambda *_: 127):
@@ -177,6 +190,42 @@ class RaspiCorrectionTests(unittest.TestCase):
                 with self.assertRaises(SystemExit) as caught:
                     GATE["main"]()
         self.assertEqual(caught.exception.code, 2)
+
+    def test_rejected_objective_cannot_check_or_dispatch(self):
+        before = self.ledger.read_bytes()
+        blocked = self.fail
+
+        def reject(*_):
+            raise ValueError("Milestone authorization rejected")
+
+        with patch.dict(RUNTIME, run_check=blocked, run_worker=blocked):
+            with self.assertRaisesRegex(ValueError, "Milestone authorization rejected"):
+                GATE["execute"](self.ledger, OBJECTIVE, reject, self.evidence)
+        self.assertEqual(self.ledger.read_bytes(), before)
+        self.assertEqual(list(self.evidence.iterdir()), [])
+
+    def test_unexpected_cgroup_cannot_start_a_guarded_run(self):
+        with patch.object(sys, "argv", [str(CORRECTIONS), "run", OBJECTIVE]):
+            with patch.object(Path, "read_text", return_value="0::/foreign.scope"):
+                with patch.dict(RUNTIME, execute=self.fail, recover=self.fail):
+                    with patch("subprocess.check_output", side_effect=self.fail):
+                        with contextlib.redirect_stderr(io.StringIO()) as error:
+                            self.assertEqual(GATE["main"](), 1)
+        self.assertIn("exclusive specialist scope", error.getvalue())
+        self.assertEqual(self.history(), [])
+
+    def test_changed_fixed_codex_cannot_start_a_guarded_run(self):
+        uid = os.getuid()
+        cgroup = f"0::/user.slice/user-{uid}.slice/user@{uid}.service/app.slice/raspi-omx-specialist.scope"
+        with patch.object(sys, "argv", [str(CORRECTIONS), "run", OBJECTIVE]):
+            with patch.object(Path, "read_text", return_value=cgroup):
+                with patch.dict(RUNTIME, execute=self.fail, recover=self.fail):
+                    with patch("subprocess.check_output", return_value="codex-cli 0.0.0") as check:
+                        with contextlib.redirect_stderr(io.StringIO()) as error:
+                            self.assertEqual(GATE["main"](), 1)
+        check.assert_called_once_with([RUNTIME["CODEX"], "--version"], text=True)
+        self.assertIn("fixed verifier Codex version changed", error.getvalue())
+        self.assertEqual(self.history(), [])
 
     def test_two_preflights_cannot_reserve_the_same_cycle(self):
         first = GATE["snapshot"](self.ledger, OBJECTIVE, self.validate)
