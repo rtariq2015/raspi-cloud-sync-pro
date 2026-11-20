@@ -3,20 +3,78 @@
 set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
-if [ "${1-}" != "--leader" ]; then
+stop_scope() {
+  scope=$1
+  description=$2
+  # Check the exact scope before stopping anything. The old unscoped entry
+  # has no such identity and must be stopped using its documented procedure.
+  invocation=$(systemctl --user show "$scope" --property=InvocationID --value)
+  scope_description=$(systemctl --user show "$scope" --property=Description --value)
+  group=$(systemctl --user show "$scope" --property=ControlGroup --value)
+  if [ -z "$invocation" ] || [ "$scope_description" != "$description" ]; then
+    echo "No owned Raspi OMX scope found for this checkout. Stop not verified." >&2
+    exit 1
+  fi
+  case "$group" in
+    /user.slice/*/"$scope") ;;
+    *) echo "Unexpected scope control group. Stop not verified." >&2; exit 1 ;;
+  esac
+  events="/sys/fs/cgroup$group/cgroup.events"
+  [ -r "$events" ] || { echo "Scope membership unavailable. Stop not verified." >&2; exit 1; }
+  printf 'Stopping %s (invocation %s)\n' "$group" "$invocation"
+  [ "$(systemctl --user show "$scope" --property=InvocationID --value)" = "$invocation" ] ||
+    { echo "Scope changed before stop. Stop not verified." >&2; exit 1; }
+  systemctl --user stop "$scope"
+  if [ -e "$events" ] && ! awk '$1=="populated" && $2==0 {empty=1} END {exit !empty}' "$events"; then
+    echo "Scope still contains processes. Stop not verified." >&2
+    exit 1
+  fi
+  echo "Verified the Raspi OMX scope is empty."
+}
+
+run_scope() {
+  scope=$1
+  description=$2
+  runtime_limit=$3
+  shift 3
+  exec systemd-run --user --scope --collect --quiet --unit="$scope" \
+    --description="$description" --property=KillMode=control-group \
+    --property=TimeoutStopSec=5s --property="RuntimeMaxSec=$runtime_limit" "$@"
+}
+
+check_resume_id() {
+  if ! printf '%s\n' "$1" | LC_ALL=C grep -Eq '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'; then
+    echo "Expected a recorded session UUID" >&2
+    exit 2
+  fi
+  # grep matches individual lines. Reject newline-delimited arguments as well.
+  [ "${#1}" -eq 36 ] || exit 2
+}
+
+case "${1-}" in
+  --stop|--stop-specialist)
+    [ "$#" -eq 1 ] || exit 2
+    if [ "$1" = "--stop" ]; then
+      stop_scope raspi-omx-leader.scope "Raspi OMX leader: $root"
+    else
+      stop_scope raspi-omx-specialist.scope "Raspi OMX specialist: $root"
+    fi
+    exit 0
+    ;;
+esac
+
+if [ "${1-}" != "--leader" ] && [ "${1-}" != "--specialist" ]; then
   leader_command='./tools/raspi-ai-team --leader'
   if [ "$#" -ne 0 ]; then
-    [ "$#" -eq 2 ] && [ "$1" = '--resume' ] || { echo "Usage: tools/raspi-ai-team [--resume UUID]" >&2; exit 2; }
-    case "$2" in *[!0-9a-fA-F-]*|'') echo "Expected a recorded session UUID" >&2; exit 2 ;; esac
-    leader_command="$leader_command --resume $2"
+    [ "$#" -eq 2 ] && [ "$1" = '--resume' ] || {
+      echo "Usage: tools/raspi-ai-team [--resume UUID | --stop | --stop-specialist | --specialist ROLE --milestone ID --task-file PATH [--verify]]" >&2
+      exit 2
+    }
+    check_resume_id "$2"
+    # A requested resume must not silently attach to another running session.
+    exec tmux new-session -s raspi-ai-team -c "$root" "$leader_command --resume $2"
   fi
   exec tmux new-session -A -s raspi-ai-team -c "$root" "$leader_command"
-fi
-shift
-if [ "$#" -ne 0 ]; then
-  [ "$#" -eq 2 ] && [ "$1" = '--resume' ] || { echo "Unexpected leader arguments" >&2; exit 2; }
-  case "$2" in *[!0-9a-fA-F-]*|'') echo "Expected a recorded session UUID" >&2; exit 2 ;; esac
-  set -- resume "$2"
 fi
 case "$(omx --version | head -n 1)" in
   'oh-my-codex v0.21.46') ;;
@@ -26,8 +84,25 @@ esac
 export CODEX_HOME="$HOME/.codex"
 export OMX_AUTO_UPDATE=0 OMX_TEAM_MODE=disabled OMX_LAUNCH_POLICY=direct
 export DO_NOT_TRACK=1 TRAIL_CLOUD=0 TRAIL_NO_FETCH=1
+if [ "$1" = "--specialist" ]; then
+  shift
+  [ "$#" -eq 5 ] || [ "$#" -eq 6 ] || exit 2
+  [ "$2" = "--milestone" ] && [ "$4" = "--task-file" ] || exit 2
+  if [ "$#" -eq 6 ]; then [ "$6" = "--verify" ] || exit 2; fi
+  # A fixed user scope rejects a second start while any owned process survives.
+  # The existing launcher validates the milestone, model, and permissions.
+  run_scope raspi-omx-specialist.scope "Raspi OMX specialist: $root" 30min \
+    "$HOME/.local/bin/raspi-agent" "$@"
+fi
+shift
+if [ "$#" -ne 0 ]; then
+  [ "$#" -eq 2 ] && [ "$1" = '--resume' ] || { echo "Unexpected leader arguments" >&2; exit 2; }
+  check_resume_id "$2"
+  set -- resume "$2"
+fi
 # CLI flags override inherited account/Orca defaults; no bypass permissions.
-exec omx launch --direct --no-daemon --model gpt-6.1-sol --sandbox workspace-write --ask-for-approval on-request \
+run_scope raspi-omx-leader.scope "Raspi OMX leader: $root" 8h \
+  omx launch --direct --no-daemon --model gpt-6.1-sol --sandbox workspace-write --ask-for-approval on-request \
   -c 'check_for_update_on_startup=false' -c 'model_reasoning_effort="medium"' \
   -c 'agents.enabled=false' -c 'features.multi_agent=false' -c 'features.hooks=false' -c 'features.goals=false' \
   -c 'features.apps=false' -c 'features.plugins=false' \
