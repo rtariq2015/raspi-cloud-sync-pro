@@ -74,3 +74,26 @@ transfer/
 .vs/
 *.user
 *.suo
+.omx/
+.omx-state-locks/
+.omx-state-locks.identity.json
+.codex/*
+!.codex/agents/
+!.codex/agents/**
+!.codex/skills/
+!.codex/skills/**
+.codex/skills/.system/**
+!.codex/prompts/
+!.codex/prompts/**
+
+# Reviewed portable Raspi workflow settings
+!.codex/config.toml
+!.codex/.omx-config.json
+!.codex/RASPI-WORKFLOW.md
+graft/
+.trail/cache/
+
+# Generated OMX catalog is reproducible with the pinned setup command.
+.codex/agents/
+.codex/prompts/
+.codex/skills/

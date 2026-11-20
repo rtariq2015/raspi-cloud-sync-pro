@@ -220,3 +220,25 @@ unique first-boot identity, private onboarding, signed versioned application
 updates and rollback. No appliance image, signing service or update release is
 published yet. Build/test on a spare card and second Pi before distribution;
 do not replace the current working card to trial an image recipe.
+
+
+## OMX laptop workflow migration — 19 November 2026
+
+Owner-authorized migration is isolated on rtariq2015/omx-migration. Existing tools and ChatGPT access are reused; serial OMX policy and protected independent review are configured. Six fake-data tests and separate read-only verification pass; a write canary is denied by the runtime. Independent final review accepted bounded supervised serial activation. The exact Orca entry and project smoke now pass; actual cwd, configuration hash, command exit and process/account arguments were independently checked. Native /stop failed descendant termination; identity-checked supervised recovery passed. Team/native delegation and unattended retries remain disabled/excluded as documented. No application feature, Pi/scanner/cloud/image/credential/service change is authorized or performed. See [migration guide](OMX_MIGRATION.md). Historical hardware results above remain historical; no-eject acquisition remains unproven.
+
+
+## OMX workflow follow-up — 20 November 2026
+
+Verified user-scope stop, timeout behavior, exact-session recovery and a single protected specialist at a time. A disposable implementation passed nine unit tests and four documentation examples after two evidenced corrections. Automatic protected handoff from the Orca leader and runtime enforcement of the ledger correction budget remain open. See [the operating guide](OMX_MIGRATION.md).
+
+
+## Guarded corrections follow-up — 20 November 2026
+
+The migration launcher adds a guarded correction entry and exact-reservation
+recovery against the existing objective ledger. A disposable run automatically
+advanced through two protected coding attempts based on its read-only verifier.
+Scoped interruption, stale reservation refusal and durable exhaustion are
+covered. The default serial workflow remains available. Automatic protected
+stage handoffs from the Orca leader remain open because the installed sandbox
+denies the Orca runtime connection. See the
+[guarded correction entry](OMX_MIGRATION.md#guarded-correction-entry).

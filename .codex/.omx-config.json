@@ -1,0 +1,41 @@
+{
+  "teamMode": "disabled",
+  "agentModels": {
+    "planner": "gpt-6.1-sol",
+    "analyst": "gpt-6.1-sol",
+    "architect": "gpt-6-astra",
+    "researcher": "gpt-6-astra",
+    "executor": "gpt-6.1-sol",
+    "test-engineer": "gpt-6.1-sol",
+    "debugger": "gpt-6.1-sol",
+    "code-reviewer": "gpt-6.1-sol",
+    "verifier": "gpt-6.1-sol",
+    "critic": "gpt-6.1-sol",
+    "writer": "gpt-6-luna",
+    "explore": "gpt-6-luna",
+    "dependency-expert": "gpt-6.1-sol",
+    "designer": "gpt-6.1-sol",
+    "git-master": "gpt-6-luna",
+    "vision": "gpt-6.1-sol",
+    "code-simplifier": "gpt-6.1-sol"
+  },
+  "agentReasoning": {
+    "planner": "medium",
+    "analyst": "medium",
+    "architect": "high",
+    "researcher": "high",
+    "executor": "medium",
+    "test-engineer": "medium",
+    "debugger": "medium",
+    "code-reviewer": "medium",
+    "verifier": "medium",
+    "critic": "medium",
+    "writer": "low",
+    "explore": "low",
+    "dependency-expert": "medium",
+    "designer": "medium",
+    "git-master": "low",
+    "vision": "medium",
+    "code-simplifier": "medium"
+  }
+}
