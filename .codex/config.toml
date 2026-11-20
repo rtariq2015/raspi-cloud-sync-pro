@@ -1,0 +1,38 @@
+check_for_update_on_startup = false
+# oh-my-codex top-level settings (must be before any [table])
+model_reasoning_effort = "medium"
+developer_instructions = "You have oh-my-codex installed. AGENTS.md is the orchestration brain and main control surface. Follow AGENTS.md for skill/keyword routing, $name workflow invocation, and role-specialized subagents; when the native surface exposes `agent_type` role routing, set `agent_type` to an installed role and never omit it for OMX work. When it reports `role_routing_unavailable` and adapted Ralplan authority is requested, do not fabricate `agent_type`; run `omx ralplan preflight --json` and stop on `unsupported_documented_leader_proof`. Ordinary work remains under its own workflow gates. Never fake the role via a prompt label or infer authority from session/thread/pointer/transcript/cwd state. Use outcome-first, concise progress updates: state the target result, constraints, validation evidence, and stop condition before adding process detail. Native subagents live in .codex/agents and may handle independent parallel subtasks within one Codex session or team pane. Skills load from .codex/skills, not native-agent TOMLs. Treat installed prompts as narrower execution surfaces under AGENTS.md authority."
+model = "gpt-6.1-sol"
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+[features]
+multi_agent = false
+apps = false
+plugins = false
+browser_use = false
+browser_use_external = false
+computer_use = false
+skill_mcp_dependency_install = false
+
+hooks = false
+goals = false
+
+[shell_environment_policy.set]
+USE_OMX_EXPLORE_CMD = "0"
+
+# ============================================================
+# oh-my-codex (OMX) Configuration
+# Managed by omx setup - manual edits preserved on next setup
+# ============================================================
+
+# OMX TUI StatusLine (Codex CLI v0.101.0+)
+[tui]
+# omx:managed-status-line
+status_line = ["model-with-reasoning", "git-branch", "context-remaining", "total-input-tokens", "total-output-tokens", "five-hour-limit", "weekly-limit"]
+
+# ============================================================
+# End oh-my-codex
+# Codex 0.165 native subagent control (features.multi_agent alone is insufficient).
+[agents]
+enabled = false

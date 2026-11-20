@@ -1,0 +1,36 @@
+#!/bin/sh
+# One supported tmux entry for the serial, project-scoped OMX leader.
+set -eu
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$root"
+if [ "${1-}" != "--leader" ]; then
+  leader_command='./tools/raspi-ai-team --leader'
+  if [ "$#" -ne 0 ]; then
+    [ "$#" -eq 2 ] && [ "$1" = '--resume' ] || { echo "Usage: tools/raspi-ai-team [--resume UUID]" >&2; exit 2; }
+    case "$2" in *[!0-9a-fA-F-]*|'') echo "Expected a recorded session UUID" >&2; exit 2 ;; esac
+    leader_command="$leader_command --resume $2"
+  fi
+  exec tmux new-session -A -s raspi-ai-team -c "$root" "$leader_command"
+fi
+shift
+if [ "$#" -ne 0 ]; then
+  [ "$#" -eq 2 ] && [ "$1" = '--resume' ] || { echo "Unexpected leader arguments" >&2; exit 2; }
+  case "$2" in *[!0-9a-fA-F-]*|'') echo "Expected a recorded session UUID" >&2; exit 2 ;; esac
+  set -- resume "$2"
+fi
+case "$(omx --version | head -n 1)" in
+  'oh-my-codex v0.21.46') ;;
+  *) echo "OMX version changed; review the migration rollback before relaunch." >&2; exit 1 ;;
+esac
+[ "$(codex --version)" = 'codex-cli 0.165.0' ] || { echo "Codex version changed; reverify before relaunch." >&2; exit 1; }
+export CODEX_HOME="$HOME/.codex"
+export OMX_AUTO_UPDATE=0 OMX_TEAM_MODE=disabled OMX_LAUNCH_POLICY=direct
+export DO_NOT_TRACK=1 TRAIL_CLOUD=0 TRAIL_NO_FETCH=1
+# CLI flags override inherited account/Orca defaults; no bypass permissions.
+exec omx launch --direct --no-daemon --model gpt-6.1-sol --sandbox workspace-write --ask-for-approval on-request \
+  -c 'check_for_update_on_startup=false' -c 'model_reasoning_effort="medium"' \
+  -c 'agents.enabled=false' -c 'features.multi_agent=false' -c 'features.hooks=false' -c 'features.goals=false' \
+  -c 'features.apps=false' -c 'features.plugins=false' \
+  -c 'features.browser_use=false' -c 'features.browser_use_external=false' \
+  -c 'features.computer_use=false' -c 'features.skill_mcp_dependency_install=false' \
+  -c 'mcp_servers.node_repl.enabled=false' "$@"

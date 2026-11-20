@@ -503,3 +503,8 @@ The private PTY path and no-terminal refusal both passed on the Pi. GitHub
 checks now include ARM64 cross-builds and an isolated real Samba protocol job.
 
 </details>
+
+
+## OMX laptop workflow migration — 19 November 2026
+
+Owner-authorized migration is isolated on rtariq2015/omx-migration. Existing tools and ChatGPT access are reused; serial OMX policy and protected independent review are configured. Six fake-data tests and separate read-only verification pass; a write canary is denied by the runtime. Independent final review accepted bounded supervised serial activation. The exact Orca entry and project smoke now pass; actual cwd, configuration hash, command exit and process/account arguments were independently checked. Native /stop failed descendant termination; identity-checked supervised recovery passed. Team/native delegation and unattended retries remain disabled/excluded as documented. No application feature, Pi/scanner/cloud/image/credential/service change is authorized or performed. See [migration guide](OMX_MIGRATION.md). Historical hardware results above remain historical; no-eject acquisition remains unproven.
