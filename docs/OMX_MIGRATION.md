@@ -121,3 +121,72 @@ A disposable single objective passed classification, protected Sol/medium coding
 The rollback mirror restored the baseline launcher only when the active file matched the recorded candidate hash. It preserved a later edit. Before live rollback, verify both scopes have stopped. Restore only the matching launcher and documentation changes, preserve later changes and ledger history, and relaunch the baseline from the backed-up checkout. Keep this completion's new evidence and authorization record.
 
 Primary references: [OMX 0.21.46 mission semantics](https://github.com/Yeachan-Heo/oh-my-codex/blob/v0.21.46/docs/mission.md), [upstream Linux stop issue](https://github.com/openai/codex/issues/61647), [systemd 255 control-group stop](https://www.freedesktop.org/software/systemd/man/255/systemd.kill.html).
+
+
+## Guarded correction entry
+
+`./tools/raspi-ai-team --corrections OBJECTIVE` is an operator entry in the
+existing Orca migration checkout. It runs under the same specialist scope,
+version checks and 30-minute limit as `--specialist`. The scope prevents
+overlapping specialist launches through either route. Protected stage dispatch from
+the leader still requires supervision. Both installed Codex sandbox
+profiles rejected the Orca runtime connection with `EPERM`. Orca's maintained
+worker command can start a known agent or take an existing terminal, and exposes
+no per-dispatch command and sandbox pair for the fixed protected launcher.
+The existing systemd entry and protected launcher remain the supported fallback.
+See [Orca orchestration](https://orca.dev/docs/cli/orchestration).
+
+The existing milestone key is the objective identity. Record one approved
+objective per key. Add a `correction_gate` record only for a scoped correction
+whose known failure can be reproduced deterministically. Record the finding,
+absolute approved `worktree`, absolute `check_file` under private Raspi setup
+state outside the specialist's writable checkout, `check_sha256`,
+`worker_sha256` for the installed `raspi-agent`, the verifier's distinct
+`failure_exit`, and one or two exact ordered coding `prompts`. Review the
+verifier and its inputs before approval. The verifier runs with the read-only Codex
+permission profile, with network disabled. A passing preflight consumes no
+attempt. Only the declared failure permits launch. Bind the review and prompts
+to the same defect and do not copy a correction plan to another milestone key.
+
+The gate stores `correction_attempts` under that milestone, performs durable
+atomic replacement before model execution, and matches each result against the
+current reservation and approved configuration. The protected worker and verifier
+exit statuses are captured directly, with logs in private setup state. A worker
+exit of zero alone neither passes a correction nor permits another cycle. A
+second correction requires the expected verifier failure after the completed
+first worker and a fresh preflight. At most two reservations may ever be consumed
+by that approved plan. Keep direct `--specialist` calls to supervised work;
+they are outside this automatic budget. The budget assumes a trusted owner and
+ledger. Any writer modifying the ledger while the gate runs must acquire the
+same `COORDINATOR-LEDGER.lock` and reload inside the lock. Coordinate ledger
+maintenance around older tools that write without this lock.
+
+For interruption, run `./tools/raspi-ai-team --stop-specialist`. After it confirms
+the scope is empty, run
+`./tools/raspi-ai-team --recover-corrections OBJECTIVE RESERVATION`. Recovery checks
+the exact current reserved ID and tests preserved artifacts without launching
+a model. A passing check settles the existing reservation. A nonzero check
+records an interruption and stops pending reassessment. Failed worker execution,
+a changed verifier, a stale reservation or exhaustion all stop the guarded route.
+No interrupted reservation is refunded.
+
+For rollback, stop and verify the specialist scope, then remove the guarded entry
+from coordinator routing. Compare the exact candidate against the activation
+backup before selectively restoring the launcher. Preserve later edits and all
+ledger reservations. The existing leader, `--specialist`, `--stop-specialist`
+and exact resume remain available.
+
+In the disposable fixture, one invocation launched two authenticated Sol/medium
+coding workers. The first exited zero while the external verifier returned its
+declared failure, 42. The second passed all four synthetic cases. A duplicate
+start while another specialist was active was refused by systemd. The stop
+mechanism emptied the interrupted fixture scope, recovery rejected a stale
+reservation, and the correct reservation settled as interrupted when its
+preserved file still failed verification. A repeated run of the completed
+objective reruns the verifier without starting a worker. If the configuration
+or verified artifacts have drifted, the command stops for reassessment. A separate
+authenticated fixture kept its test failure through two attempts, exhausted its
+budget and rejected a fresh invocation. Local ledger tests cover renaming,
+result replay, worker failure and recovery of already passing artifacts. This verifies the guarded correction route. Whole-objective
+planning, research, testing, review, documentation and GitHub handoffs are still
+coordinator-supervised.

@@ -63,11 +63,12 @@ case "${1-}" in
     ;;
 esac
 
-if [ "${1-}" != "--leader" ] && [ "${1-}" != "--specialist" ]; then
+if [ "${1-}" != "--leader" ] && [ "${1-}" != "--specialist" ] &&
+   [ "${1-}" != "--corrections" ] && [ "${1-}" != "--recover-corrections" ]; then
   leader_command='./tools/raspi-ai-team --leader'
   if [ "$#" -ne 0 ]; then
     [ "$#" -eq 2 ] && [ "$1" = '--resume' ] || {
-      echo "Usage: tools/raspi-ai-team [--resume UUID | --stop | --stop-specialist | --specialist ROLE --milestone ID --task-file PATH [--verify]]" >&2
+      echo "Usage: tools/raspi-ai-team [--resume UUID | --stop | --stop-specialist | --corrections OBJECTIVE | --recover-corrections OBJECTIVE RESERVATION | --specialist ROLE --milestone ID --task-file PATH [--verify]]" >&2
       exit 2
     }
     check_resume_id "$2"
@@ -92,6 +93,22 @@ esac
 export CODEX_HOME="$HOME/.codex"
 export OMX_AUTO_UPDATE=0 OMX_TEAM_MODE=disabled OMX_LAUNCH_POLICY=direct
 export DO_NOT_TRACK=1 TRAIL_CLOUD=0 TRAIL_NO_FETCH=1
+case "$1" in
+  --corrections)
+    [ "$#" -eq 2 ] || exit 2
+    shift
+    set -- run "$@"
+    ;;
+  --recover-corrections)
+    [ "$#" -eq 3 ] || exit 2
+    shift
+    set -- recover "$@"
+    ;;
+esac
+if [ "$1" = "run" ] || [ "$1" = "recover" ]; then
+  run_scope raspi-omx-specialist.scope "Raspi OMX specialist: $root" 30min \
+    /usr/bin/python3 -I "$root/tools/raspi-corrections.py" "$@"
+fi
 if [ "$1" = "--specialist" ]; then
   shift
   [ "$#" -eq 5 ] || [ "$#" -eq 6 ] || exit 2

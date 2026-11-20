@@ -4,11 +4,11 @@ RASPI_SETUP_GUARD_V1. These project-specific restrictions override broader gener
 
 ## Entry, authority and state
 
-Use the single `tools/raspi-ai-team` entry in Orca. It attaches to one named tmux leader in a user systemd scope, pins the tested local OMX/Codex versions, disables Team/native child agents/hooks/goals and auto-update, and keeps the existing system Codex home/account. Enter goals at the Codex prompt. Keep Team, native children, Orca couriers and unattended retry loops outside this serial workflow.
+Use the single `tools/raspi-ai-team` entry in Orca. It attaches to one named tmux leader in a user systemd scope, pins the tested local OMX/Codex versions, disables Team/native child agents/hooks/goals and auto-update, and keeps the existing system Codex home/account. Enter goals at the Codex prompt. Keep Team, native children and Orca couriers outside this serial workflow. Use the guarded correction entry below for a preapproved deterministic correction.
 
 Read existing docs/ROADMAP.md, docs/STATUS.md, relevant acceptance records, ~/.codex/AGENTS.md and ~/.local/state/raspi-setup/COORDINATOR.json and COORDINATOR-LEDGER.json first. The existing ledger is the only authorization/execution record. OMX session state is runtime evidence, never authorization or a second roadmap. Migration OMX-MIGRATION-20261119 authorizes configuration/testing and its draft PR only. Never revive pending/rejected packages or consumed one-shot commands. Revision 3 remains rejected. Future development needs an exact owner-authorized goal and scope.
 
-Keep one durable objective/task ID across retries, resume and renaming. Check prior counters and artifacts before work. Maximum two automatic corrective cycles and two substantially similar failures; record each BEFORE starting it. No supported persistent automatic cap was demonstrated: unattended retries are DISABLED. Perform only one supervised bounded attempt at a time, stop for reassessment at the stored limit. Do not reset counters by starting a new worker or task ID.
+Keep one durable objective/task ID across retries, resume and renaming. Check prior counters and artifacts before work. Maximum two automatic corrective cycles and two substantially similar failures; record each BEFORE starting it. The guarded entry enforces one ledger identity per approved objective and up to two recorded correction cycles. For ordinary specialist dispatch, keep supervision and record corrections in the same objective history. Stop for reassessment at the stored limit. Do not reset counters by starting a new worker or task ID.
 
 ## Seven responsibilities and handoffs
 
@@ -26,7 +26,25 @@ All responsibility shifts are serial. The coordinator does simple approved work 
 
 Independent review must be a separate technically read-only session. From a separate Orca shell in the approved checkout, run `./tools/raspi-ai-team --specialist testing-medium --milestone ID --task-file PATH --verify`. This uses the existing `raspi-agent` launcher with a fixed sandbox, no escalation, and apps/plugins/MCP/browser/hooks/nested agents disabled for read-only roles. For documentation and research, select the corresponding fixed launcher role. Return proposed edits as text. Preserve actual header/argv evidence for the effective model and reasoning.
 
-The launch entry allows one leader and one substantive specialist scope. The user systemd manager refuses a second specialist start until the first scope is gone. Both launches use `agents.enabled=false`. Any manual model launch that bypasses this entry sits outside the limit, so use the scoped entry for all dispatch in this workflow. The coordinator must still inspect the milestone, artifacts and ledger before each handoff. Automatic handoffs from the protected leader and automatic enforcement of the two-correction ledger budget remain unavailable.
+The launch entry allows one leader and one substantive specialist scope. The user systemd manager refuses a second specialist start until the first scope is gone. Both launches use `agents.enabled=false`. Any manual model launch that bypasses this entry sits outside the limit, so use the scoped entry for all dispatch in this workflow. The coordinator must still inspect the milestone, artifacts and ledger before each handoff. Automatic stage handoffs from the protected leader remain unavailable. The guarded correction entry advances within its preapproved correction plan using the verifier exit and current reservation.
+
+## Guarded corrections from Orca
+
+In the same migration checkout, use a separate Orca shell to run
+`./tools/raspi-ai-team --corrections OBJECTIVE` after the owner approves the exact
+objective and correction plan in the ledger. The entry starts at most one
+specialist at a time and runs the next approved correction only after the private
+verifier reproduces its declared failure. A technically protected independent
+review remains a separate specialist handoff. The normal leader and specialist
+commands remain available for supervised stages.
+
+For an interrupted reservation, stop and verify the specialist scope first. Run
+`./tools/raspi-ai-team --recover-corrections OBJECTIVE RESERVATION` with the
+ledger's current reservation ID. It reruns the approved read-only verifier against
+the existing artifacts. A passing artifact is recorded without claiming a worker
+exit. Any nonzero recovery check stops the route and preserves the spent attempt
+for reassessment. [The operating guide](../docs/OMX_MIGRATION.md#guarded-correction-entry) describes
+the exact ledger fields and rollback.
 
 ## Authorized execution sequence
 

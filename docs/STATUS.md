@@ -513,3 +513,15 @@ Owner-authorized migration is isolated on rtariq2015/omx-migration. Existing too
 ## OMX workflow follow-up — 20 November 2026
 
 Verified user-scope stop, timeout behavior, exact-session recovery and a single protected specialist at a time. A disposable implementation passed nine unit tests and four documentation examples after two evidenced corrections. Automatic protected handoff from the Orca leader and runtime enforcement of the ledger correction budget remain open. See [the operating guide](OMX_MIGRATION.md).
+
+
+## Guarded corrections follow-up — 20 November 2026
+
+The migration launcher adds a guarded correction entry and exact-reservation
+recovery against the existing objective ledger. A disposable run automatically
+advanced through two protected coding attempts based on its read-only verifier.
+Scoped interruption, stale reservation refusal and durable exhaustion are
+covered. The default serial workflow remains available. Automatic protected
+stage handoffs from the Orca leader remain open because the installed sandbox
+denies the Orca runtime connection. See the
+[guarded correction entry](OMX_MIGRATION.md#guarded-correction-entry).
